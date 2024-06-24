@@ -17,13 +17,6 @@
         android:theme="@style/Theme.ComputerVision"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.ComputerVision">
-        </activity>
-
-
-        <activity
             android:name=".LoginActivity"
             android:exported="true"
             android:label="@string/app_name"
@@ -34,6 +27,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".SignUpActivity"
+            android:theme="@style/Theme.ComputerVision"/>
+
+        <activity
+            android:name=".DetectionActivity"
+            android:theme="@style/Theme.ComputerVision"/>
+
+        <activity
+            android:name=".SalesActivity"
+            android:theme="@style/Theme.ComputerVision"/>
+        <activity
+            android:name=".DecorateActivity"
+            android:theme="@style/Theme.ComputerVision"/>
+        <activity
+            android:name=".InsertActivity"
+            android:theme="@style/Theme.ComputerVision"/>
+        <activity
+            android:name=".UserProfileActivity"
+            android:theme="@style/Theme.ComputerVision"/>
+
+        <activity
+            android:name=".DetailActivity"
+            android:theme="@style/Theme.ComputerVision"/>
 
         <activity android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat"/>

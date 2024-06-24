@@ -1,14 +1,11 @@
 package com.khw.computervision
 
-
 import android.content.ContentValues
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -34,31 +33,30 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.khw.computervision.ui.theme.ComputerVisionTheme
 
-class LoginActivity : ComponentActivity() {
+class SignUpActivity : ComponentActivity() {
     private lateinit var auth: FirebaseAuth
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-                LoginScreen()
+                SignUpScreen()
             }
         }
     }
 
     @Composable
-    fun LoginScreen() {
+    fun SignUpScreen() {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-
             Spacer(modifier = Modifier.weight(1f))
             LogoScreen("Login")
 
@@ -69,7 +67,7 @@ class LoginActivity : ComponentActivity() {
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            var userID by remember { mutableStateOf("dangdanggeun@intel.com") }
+            var userID by remember { mutableStateOf("") }
             OutlinedTextField(
                 value = userID,
                 onValueChange = { userID = it },
@@ -82,7 +80,7 @@ class LoginActivity : ComponentActivity() {
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            var userPassword by remember { mutableStateOf("123123") }
+            var userPassword by remember { mutableStateOf("") }
             OutlinedTextField(
                 value = userPassword,
                 onValueChange = { userPassword = it },
@@ -101,7 +99,7 @@ class LoginActivity : ComponentActivity() {
                 horizontalArrangement = Arrangement.Center
             ) {
                 val context = LocalContext.current
-                FunTextButton("로그인") {
+                FunTextButton("회원가입") {
                     auth = Firebase.auth
                     if (userID.isEmpty() || userPassword.isEmpty()) {
 
@@ -111,33 +109,33 @@ class LoginActivity : ComponentActivity() {
                             Toast.LENGTH_SHORT,
                         ).show()
                     } else {
-                        auth.signInWithEmailAndPassword(userID, userPassword)
+                        auth.createUserWithEmailAndPassword(userID, userPassword)
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     // Sign in success, update UI with the signed-in user's information
-                                    Log.d(ContentValues.TAG, "signInWithEmail:success")
-                                    val user = auth.currentUser
-                                    val userIntent = Intent(context, SalesActivity::class.java)
-                                    if (user != null) {
-                                        userIntent.putExtra("user", userID)
-                                    }
-                                    context.startActivity(userIntent)
+                                    Toast.makeText(
+                                        context,
+                                        "회원가입 완료",
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                    Log.d(ContentValues.TAG, "createUserWithEmail:success")
+                                    finish()
                                 } else {
                                     // If sign in fails, display a message to the user.
-                                    Log.w(ContentValues.TAG, "signInWithEmail:failure", task.exception)
-
+                                    Log.w(
+                                        ContentValues.TAG,
+                                        "createUserWithEmail:failure",
+                                        task.exception
+                                    )
                                     Toast.makeText(
-                                        baseContext,
+                                        context,
                                         task.exception.toString(),
                                         Toast.LENGTH_SHORT,
                                     ).show()
                                 }
                             }
+
                     }
-                }
-                Spacer(modifier = Modifier.padding(20.dp))
-                FunTextButton("회원가입") {
-                    context.startActivity(Intent(context, SignUpActivity::class.java))
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
