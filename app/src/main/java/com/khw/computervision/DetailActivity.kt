@@ -25,8 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -46,15 +48,16 @@ class DetailActivity : ComponentActivity() {
     fun DetailScreen() {
         Column(
             modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            LogoScreen("Detail")
-            Spacer(modifier = Modifier.weight(1f))
+            val context = LocalContext.current
+            LogoScreen(context, "Detail")
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "",
                 modifier = Modifier
                     .padding(20.dp)
-                    .size(400.dp)
+                    .size(320.dp)
             )
             Row(
                 modifier = Modifier.fillMaxWidth()
@@ -87,11 +90,10 @@ class DetailActivity : ComponentActivity() {
                     )
                 }
                 if (popupVisiableState) {
-                    MessagePopup()
+                    MessagePopup() { popupVisiableState = false }
                 }
 
             }
-            Spacer(modifier = Modifier.weight(1f))
             Divider(color = colorDang, thickness = 2.dp)
             Row(
                 modifier = Modifier
@@ -99,13 +101,13 @@ class DetailActivity : ComponentActivity() {
                     .padding(20.dp),
             ) {
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "가격")
+                Text(text = "가격: 10000원")
 
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "거래방법")
+                Text(text = "거래방법: 직거래")
 
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "상태")
+                Text(text = "상태: 별별별")
                 Spacer(modifier = Modifier.weight(1f))
             }
             Divider(color = colorDang, thickness = 2.dp)
@@ -122,11 +124,11 @@ class DetailActivity : ComponentActivity() {
     }
 
     @Composable
-    fun MessagePopup() {
+    fun MessagePopup(close: () -> Unit) {
         var receiveUser: String by remember { mutableStateOf("") }
         var message: String by remember { mutableStateOf("") }
         AlertDialog(
-            onDismissRequest = { },
+            onDismissRequest = { close() },
             title = { Text(text = "") },
             text = {
                 Column(
@@ -162,7 +164,7 @@ class DetailActivity : ComponentActivity() {
                 }
             },
             dismissButton = {
-                Button(onClick = { }) {
+                Button(onClick = { close() }) {
                     Text("Cancel")
                 }
             }

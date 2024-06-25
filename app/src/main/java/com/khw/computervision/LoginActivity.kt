@@ -8,7 +8,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -58,9 +57,9 @@ class LoginActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-
+            val context = LocalContext.current
             Spacer(modifier = Modifier.weight(1f))
-            LogoScreen("Login")
+            LogoScreen(context, "Login")
 
             Image(
                 painter = gifImageDecode(R.raw.dangkki),
@@ -100,7 +99,6 @@ class LoginActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                val context = LocalContext.current
                 FunTextButton("로그인") {
                     auth = Firebase.auth
                     if (userID.isEmpty() || userPassword.isEmpty()) {

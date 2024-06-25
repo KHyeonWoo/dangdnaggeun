@@ -1,6 +1,9 @@
 package com.khw.computervision
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,16 +29,21 @@ import coil.size.Size
 val colorDang = Color(0xFFF3BB66)
 
 @Composable
-fun LogoScreen(activityName: String) {
+fun LogoScreen(context: Context, activityName: String) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
+        if (activityName != "Login" ) {
+            Spacer(modifier = Modifier.height(20.dp))
+        }
         Text(
             text = "당당근",
             fontSize = 50.sp,
-            color = colorDang
+            color = colorDang,
+            modifier = Modifier.clickable {
+                context.startActivity(Intent(context, SalesActivity::class.java))
+            }
         )
         Spacer(modifier = Modifier.height(10.dp))
 
