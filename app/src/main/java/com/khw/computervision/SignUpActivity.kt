@@ -55,7 +55,7 @@ class SignUpActivity : ComponentActivity() {
         ) {
             Spacer(modifier = Modifier.weight(1f))
             val context = LocalContext.current
-            LogoScreen(context, "Login")
+            LogoScreen("Login")
 
             Image(
                 painter = gifImageDecode(R.raw.dangkki),

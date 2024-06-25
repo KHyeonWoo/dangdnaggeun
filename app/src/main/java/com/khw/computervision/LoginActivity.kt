@@ -57,9 +57,8 @@ class LoginActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            val context = LocalContext.current
             Spacer(modifier = Modifier.weight(1f))
-            LogoScreen(context, "Login")
+            LogoScreen("Login")
 
             Image(
                 painter = gifImageDecode(R.raw.dangkki),
@@ -99,6 +98,7 @@ class LoginActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
+                val context = LocalContext.current
                 FunTextButton("로그인") {
                     auth = Firebase.auth
                     if (userID.isEmpty() || userPassword.isEmpty()) {

@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.firebase.auth)
     implementation(libs.cronet.embedded)
+    implementation(libs.firebase.storage)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -79,4 +80,5 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.6.0")
     implementation("com.squareup.retrofit2:converter-gson:2.6.0")
     implementation("com.github.a914-gowtham:compose-ratingbar:1.3.12")
+    implementation("com.github.skydoves:landscapist-glide:1.3.7")
 }

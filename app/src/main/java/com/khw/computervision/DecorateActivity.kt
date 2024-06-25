@@ -78,13 +78,13 @@ class DecorateActivity : ComponentActivity() {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            val context = LocalContext.current
-            LogoScreen(context, "Decorate")
+            LogoScreen("Decorate")
             Spacer(modifier = Modifier.weight(1f))
             Row(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Spacer(modifier = Modifier.weight(12f))
+                val context = LocalContext.current
                 FunTextButton("저장") {
                     context.startActivity(Intent(context, InsertActivity::class.java))
                 }
