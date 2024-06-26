@@ -1,5 +1,6 @@
 package com.khw.computervision
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.graphics.Bitmap
 import android.provider.MediaStore
@@ -27,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,17 +41,22 @@ import com.canhub.cropper.CropImage
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarStyle
 import com.gowtham.ratingbar.StepSize
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
+import java.time.LocalDateTime
+
+
 
 @Composable
-fun ProfilePopup(faceUri: String?, user: String, close: () -> Unit, successUpload: () -> Unit) {
-
+fun ProfilePopup(profileUri: String?, user: String, close: () -> Unit, successUpload: () -> Unit) {
 
     val context = LocalContext.current
     AlertDialog(
@@ -67,46 +74,9 @@ fun ProfilePopup(faceUri: String?, user: String, close: () -> Unit, successUploa
 
                 var inputImage by remember { mutableStateOf<Bitmap?>(null) }
 
-                val imageCropLauncher =
-                    rememberLauncherForActivityResult(CropImageContract()) { result ->
-                        if (result.isSuccessful) {
-                            inputImage =
-                                MediaStore.Images.Media.getBitmap(
-                                    context.contentResolver,
-                                    result.uriContent
-                                )
-                        } else {
-                            Log.d("PhotoPicker", "No media selected")
-                        }
-                    }
+                ProfileImage(profileUri) { inputImage = it }
 
-                val cropOption = CropImageContractOptions(
-                    CropImage.CancelledResult.uriContent,
-                    CropImageOptions()
-                )
-
-                faceUri?.let {
-                    GlideImage(
-                        imageModel = it,
-                        contentDescription = "Image",
-                        modifier = Modifier
-                            .size(160.dp)
-                            .clickable {
-                                imageCropLauncher.launch(cropOption)
-                            }
-                    )
-                } ?:
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .size(160.dp)
-                        .clickable {
-                            imageCropLauncher.launch(cropOption)
-                        }
-                )
-
-                inputImage?.let {bitmap ->
+                inputImage?.let { bitmap ->
                     val mountainsRef = Firebase.storage.reference.child("$user/profile.jpg")
 
                     val baos = ByteArrayOutputStream()
@@ -149,9 +119,56 @@ fun ProfilePopup(faceUri: String?, user: String, close: () -> Unit, successUploa
 }
 
 @Composable
-fun MessagePopup(close: () -> Unit) {
+fun ProfileImage(profileUri: String?, setInputImage: (Bitmap) -> Unit) {
+
+    val context = LocalContext.current
+    val imageCropLauncher =
+        rememberLauncherForActivityResult(CropImageContract()) { result ->
+            if (result.isSuccessful) {
+                setInputImage(
+                    MediaStore.Images.Media.getBitmap(
+                        context.contentResolver,
+                        result.uriContent
+                    )
+                )
+            } else {
+                Log.d("PhotoPicker", "No media selected")
+            }
+        }
+
+    val cropOption = CropImageContractOptions(
+        CropImage.CancelledResult.uriContent,
+        CropImageOptions()
+    )
+
+    profileUri?.let {
+        GlideImage(
+            imageModel = it,
+            contentDescription = "Image",
+            modifier = Modifier
+                .size(160.dp)
+                .clickable {
+                    imageCropLauncher.launch(cropOption)
+                }
+        )
+    } ?: Image(
+        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+        contentDescription = "",
+        modifier = Modifier
+            .size(160.dp)
+            .clickable {
+                imageCropLauncher.launch(cropOption)
+            }
+    )
+
+}
+
+@Composable
+fun MessagePopup(userID: String, close: () -> Unit) {
     var receiveUser: String by remember { mutableStateOf("") }
     var message: String by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     AlertDialog(
         onDismissRequest = { close() },
         title = { Text(text = "") },
@@ -180,11 +197,37 @@ fun MessagePopup(close: () -> Unit) {
                     label = { Text(text = "메시지", color = colorDang) },
                     modifier = Modifier.height(320.dp)
                 )
-
             }
         },
         confirmButton = {
-            Button(onClick = {}) {
+            Button(onClick = {
+                // Create a new user with a first and last name
+                val db = Firebase.firestore
+                val dateTimeNow = LocalDateTime.now().toLocalDate().toString().replace("-", "") +
+                        LocalDateTime.now().toLocalTime().toString().replace(":", "")
+                            .substring(0, 4)
+                val sendMessage = hashMapOf(
+                    "sendUser" to userID,
+                    "date" to dateTimeNow,
+                    "message" to message,
+                    "read" to "false"
+                )
+
+                coroutineScope.launch(Dispatchers.IO) {
+                    db.collection(receiveUser)
+                        .document(LocalDateTime.now().toLocalDate().toString())
+                        .set(sendMessage)
+                        .addOnSuccessListener {
+                            Log.d(TAG, "DocumentSnapshot successfully written!")
+                            Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.w(TAG, "Error writing document", e)
+                            Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                        }
+                }
+
+            }) {
                 Text("Upload")
             }
         },
@@ -196,9 +239,21 @@ fun MessagePopup(close: () -> Unit) {
     )
 
 }
+
+data class PopupDetails(
+    val userID: String,
+    val price: Int = 0,
+    val dealMethod: String = "",
+    val rating: Float = 0f,
+    val productDescription: String = ""
+)
+
 @Composable
-fun InsertPopup(close: () -> Unit) {
-    var price: String by remember { mutableStateOf("") }
+fun InsertPopup(userID: String, saveData: (PopupDetails) -> Unit, close: () -> Unit) {
+    var price: String by remember { mutableStateOf("0") }
+    var dealMethod: String by remember { mutableStateOf("") }
+    var rating: Float by remember { mutableFloatStateOf(0f) }
+    var productDescription: String by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = { close() },
         title = { Text(text = "") },
@@ -217,7 +272,6 @@ fun InsertPopup(close: () -> Unit) {
                     label = { Text(text = "가격", color = colorDang) },
                 )
 
-                var dealMethod: String by remember { mutableStateOf("") }
                 OutlinedTextField(
                     value = dealMethod,
                     onValueChange = { dealMethod = it },
@@ -231,7 +285,6 @@ fun InsertPopup(close: () -> Unit) {
                         .padding(bottom = 8.dp)
                 )
 
-                var rating: Float by remember { mutableFloatStateOf(0f) }
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -260,7 +313,6 @@ fun InsertPopup(close: () -> Unit) {
                         }
                     )
                 }
-                var productDescription: String by remember { mutableStateOf("") }
                 OutlinedTextField(
                     value = productDescription,
                     onValueChange = { productDescription = it },
@@ -272,11 +324,13 @@ fun InsertPopup(close: () -> Unit) {
                     label = { Text(text = "제품설명", color = colorDang) },
                     modifier = Modifier.height(320.dp)
                 )
-
             }
         },
         confirmButton = {
-            Button(onClick = {}) {
+            Button(onClick = {
+                saveData(PopupDetails(userID, price.toInt(), dealMethod, rating, productDescription))
+                close()
+            }) {
                 Text("Upload")
             }
         },

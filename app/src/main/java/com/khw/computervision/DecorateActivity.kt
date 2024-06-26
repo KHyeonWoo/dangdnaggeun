@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -58,6 +59,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.Part
+import java.io.ByteArrayOutputStream
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -72,7 +86,6 @@ class DecorateActivity : ComponentActivity() {
         }
     }
 
-    @OptIn(ExperimentalPagerApi::class)
     @Composable
     fun DecorateScreen() {
         Column(
@@ -86,7 +99,7 @@ class DecorateActivity : ComponentActivity() {
                 Spacer(modifier = Modifier.weight(12f))
                 val context = LocalContext.current
                 FunTextButton("저장") {
-                    context.startActivity(Intent(context, InsertActivity::class.java))
+                    finish()
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }
@@ -109,23 +122,38 @@ class DecorateActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 var inputImage by remember { mutableStateOf<Bitmap?>(null) }
-                var segmentedImage by remember { mutableStateOf<Bitmap?>(null) }
-                var showDialog by remember { mutableStateOf(false) }
-
-                ImagePicker( onImageSelected = { bitmap ->
+                ImagePicker(onImageSelected = { bitmap ->
                     inputImage = bitmap
                 })
 
+                var isLoading by remember { mutableStateOf(false) }
+                var responseMessage by remember { mutableStateOf("") }
+
                 inputImage?.let { bitmap ->
-                    ImageSegmentation(
-                        inputImage = bitmap,
-                        onSegmentationComplete = { segmentedBitmap ->
-                            segmentedImage = segmentedBitmap
-                            showDialog = true
-                        }
-                    )
+
+                    sendImageToServer(bitmap) {
+                        responseMessage = it
+                        isLoading = false
+                        inputImage = null
+                    }
+
+                    isLoading = true
+// 서버에서 받은 이미지는 Segmentation을 통해 배경 제거 후 firebase에 저장
+//                    ImageSegmentation(
+//                        inputImage = bitmap,
+//                        onSegmentationComplete = { segmentedBitmap ->
+//                            segmentedImage = segmentedBitmap
+//                            showDialog = true
+//                        }
+//                    )
                 }
 
+                if (isLoading) {
+                    CircularProgressIndicator()
+                }
+
+                var segmentedImage by remember { mutableStateOf<Bitmap?>(null) }
+                var showDialog by remember { mutableStateOf(false) }
                 segmentedImage?.let { bitmap ->
                     ImageUploadPopup(
                         showDialog = showDialog,
@@ -141,22 +169,42 @@ class DecorateActivity : ComponentActivity() {
                     )
                 }
             }
-            val pages = listOf("상의", "하의")
-            val pagerState = rememberPagerState()
-            val coroutineScope = rememberCoroutineScope()
-
-            CustomTabRow(pages, pagerState, coroutineScope)
-
+            CustomTabRow()
         }
+    }
+
+    private fun sendImageToServer(
+        bitmap: Bitmap,
+        responseEvent: (String) -> Unit
+    ) {
+        setRetrofit() // 레트로핏 세팅
+
+        val image = bitmapToByteArray(bitmap) // 실제 이미지 파일 경로
+        val requestFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), image)
+        val body = MultipartBody.Part.createFormData("image", "image.png", requestFile)
+
+        mRetrofitAPI.uploadImage(body).enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
+                responseEvent("이미지 서버 전송 성공: ${response.message()}")
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                t.printStackTrace()
+                responseEvent("이미지 서버 전송 실패: ${t.message}")
+            }
+        })
     }
 
     @OptIn(ExperimentalPagerApi::class)
     @Composable
-    private fun CustomTabRow(
-        pages: List<String>,
-        pagerState: PagerState,
-        coroutineScope: CoroutineScope
-    ) {
+    private fun CustomTabRow() {
+        val pages = listOf("상의", "하의")
+        val pagerState = rememberPagerState()
+        val coroutineScope = rememberCoroutineScope()
+
         TabRow(
             selectedTabIndex = pagerState.currentPage,
             indicator = { tabPositions ->
@@ -176,7 +224,7 @@ class DecorateActivity : ComponentActivity() {
                             fontSize = 20.sp,
                             modifier = Modifier
                                 .background(colorDang)
-                                .size(48.dp,28.dp)
+                                .size(48.dp, 28.dp)
                         )
                     },
                     selected = pagerState.currentPage == index,
@@ -298,6 +346,7 @@ class DecorateActivity : ComponentActivity() {
                 }
         }
     }
+
     @Composable
     fun ImageUploadPopup(
         showDialog: Boolean,
@@ -322,6 +371,32 @@ class DecorateActivity : ComponentActivity() {
                 }
             )
         }
+    }
+
+    interface RetrofitAPI {
+        @Multipart
+        @POST("infer")
+        fun uploadImage(@Part image: MultipartBody.Part): Call<ResponseBody>
+    }
+
+    private var baseUrl = "http://192.168.45.205:8080" // 레트로핏의 기본 주소
+
+    private lateinit var mRetrofit: Retrofit // 사용할 레트로핏 객체입니다.
+    private lateinit var mRetrofitAPI: RetrofitAPI // 레트로핏 api객체입니다.
+
+    private fun setRetrofit() {
+        mRetrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        mRetrofitAPI = mRetrofit.create(RetrofitAPI::class.java)
+    }
+
+    private fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        return byteArrayOutputStream.toByteArray()
     }
 
 }

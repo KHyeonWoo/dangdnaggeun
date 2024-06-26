@@ -32,13 +32,18 @@ class DetailActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-                DetailScreen()
+                var userID by remember {
+                    mutableStateOf("")
+                }
+                userID = intent.getStringExtra("user") ?: ""
+
+                DetailScreen(userID)
             }
         }
     }
 
     @Composable
-    fun DetailScreen() {
+    fun DetailScreen(userID: String) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -83,7 +88,7 @@ class DetailActivity : ComponentActivity() {
                     )
                 }
                 if (popupVisiableState) {
-                    MessagePopup() { popupVisiableState = false }
+                    MessagePopup(userID) { popupVisiableState = false }
                 }
 
             }

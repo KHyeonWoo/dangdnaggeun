@@ -1,7 +1,11 @@
 package com.khw.computervision
 
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -13,43 +17,68 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.gowtham.ratingbar.RatingBar
+import com.gowtham.ratingbar.RatingBarStyle
+import com.gowtham.ratingbar.StepSize
 import com.khw.computervision.ui.theme.ComputerVisionTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 class InsertActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-                InsertScreen()
+                var userID by remember {
+                    mutableStateOf("")
+                }
+                userID = intent.getStringExtra("user") ?: ""
+
+                InsertScreen(userID)
             }
         }
     }
 
     @Composable
-    fun InsertScreen() {
+    fun InsertScreen(userID: String) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val context = LocalContext.current
+            var newPopupDetails by remember {
+                mutableStateOf(
+                    PopupDetails(
+                        userID,
+                        0,
+                        "default",
+                        0f,
+                        "null"
+                    )
+                )
+            }
             LogoScreen("Insert")
-            Spacer(modifier = Modifier.weight(1f))
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                var popupVisiableState by remember { mutableStateOf(false) }
+                var popupVisibleState by remember { mutableStateOf(false) }
 
                 FunTextButton("꾸미기") {
                     context.startActivity(Intent(context, DecorateActivity::class.java))
@@ -57,61 +86,112 @@ class InsertActivity : ComponentActivity() {
                 Spacer(modifier = Modifier.weight(1f))
 
                 FunTextButton("수정") {
-                    popupVisiableState = true
+                    popupVisibleState = true
                 }
 
+                if (popupVisibleState) {
+                    InsertPopup(userID, { newPopupDetails = it }, {
+                        popupVisibleState = false
+                    })
+                }
+
+                val coroutineScope = rememberCoroutineScope()
                 FunTextButton("저장") {
-                    context.startActivity(Intent(context, SalesActivity::class.java))
+                    saveEvent(coroutineScope, context, userID, newPopupDetails)
+                    finish()
                 }
-
-                if (popupVisiableState) {
-                    InsertPopup { popupVisiableState = false }
-                }
-            }
-            Button(onClick = {
-                context.startActivity(Intent(context, DetectionActivity::class.java))
-            }){
-                Text(text = "gogo")
             }
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "",
                 modifier = Modifier.size(320.dp)
             )
-            StateScreen()
+            StateScreen(newPopupDetails)
 
-            Spacer(modifier = Modifier.weight(1f))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(text = "게시글 (판매 이유, 구입 장소, 기타 등등)")
-            }
             Spacer(modifier = Modifier.weight(1f))
         }
 
     }
 
+    private fun saveEvent(
+        coroutineScope: CoroutineScope,
+        context: Context,
+        userID: String,
+        newPopupDetails: PopupDetails
+    ) {
+
+        val db = Firebase.firestore
+        val dateTimeNow =
+            LocalDateTime.now().toLocalDate().toString().replace("-", "") +
+                    LocalDateTime.now().toLocalTime().toString().replace(":", "")
+                        .substring(0, 4)
+        val sendMessage = hashMapOf(
+            "InsertUser" to userID,
+            "date" to dateTimeNow,
+            "imageUrl" to "",
+            "price" to newPopupDetails.price,
+            "dealMethod" to newPopupDetails.dealMethod,
+            "rating" to newPopupDetails.rating,
+            "productDescription" to newPopupDetails.productDescription,
+            "state" to 1 //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+        )
+
+        coroutineScope.launch(Dispatchers.IO) {
+            db.collection("product")
+                .document(userID + dateTimeNow)
+                .set(sendMessage)
+                .addOnSuccessListener {
+                    Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
+                    Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Log.w(ContentValues.TAG, "Error writing document", e)
+                    Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
+
     @Composable
-    private fun StateScreen() {
+    private fun StateScreen(newPopupDetails: PopupDetails) {
         Divider(color = colorDang, thickness = 2.dp)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
         ) {
-            Spacer(modifier = Modifier.weight(1f))
-            Text(text = "가격")
+            Text(text = "가격", modifier = Modifier.weight(1f), color = colorDang)
+            Text(text = " ${newPopupDetails.price}", modifier = Modifier.weight(1f))
 
-            Spacer(modifier = Modifier.weight(1f))
-            Text(text = "거래방법")
+            Text(text = "거래방법", modifier = Modifier.weight(1f), color = colorDang)
+            Text(text = " ${newPopupDetails.dealMethod}", modifier = Modifier.weight(1f))
 
-            Spacer(modifier = Modifier.weight(1f))
-            Text(text = "상태")
-            Spacer(modifier = Modifier.weight(1f))
+            Row(
+                modifier = Modifier.weight(3f)
+            ) {
+                Spacer(modifier = Modifier.size(16.dp, 0.dp))
+                Text(text = "상태", color = colorDang)
+                Spacer(modifier = Modifier.size(16.dp, 0.dp))
+                RatingBar(
+                    value = newPopupDetails.rating,
+                    style = RatingBarStyle.Fill(),
+                    stepSize = StepSize.HALF,
+                    onValueChange = {},
+                    size = 16.dp,
+                    spaceBetween = 2.dp,
+                    onRatingChanged = {
+                        Log.d("TAG", "onRatingChanged: $it")
+                    }
+                )
+            }
         }
         Divider(color = colorDang, thickness = 2.dp)
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(text = "게시글 (판매 이유, 구입 장소, 기타 등등)  ${newPopupDetails.productDescription}")
+        }
     }
 }
 

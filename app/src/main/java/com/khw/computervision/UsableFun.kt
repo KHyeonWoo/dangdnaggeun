@@ -42,7 +42,7 @@ fun LogoScreen(activityName: String) {
             fontSize = 50.sp,
             color = colorDang,
             modifier = Modifier.clickable {
-                if (activityName != "Login") {
+                if (activityName != "Login" && activityName != "Sales") {
                     context.startActivity(Intent(context, SalesActivity::class.java))
                 }
             }
