@@ -1,7 +1,9 @@
 package com.khw.computervision
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -20,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.ktx.storage
@@ -136,6 +140,23 @@ class SalesActivity : ComponentActivity() {
         }
         return faceUri
     }
+
+//    @Composable
+//    private fun getMessage(userID: String): Int {
+//        val messageMap by remember { (mutableStateMapOf<String, String>()) }
+//        Firebase.firestore.collection(userID)
+//            .get()
+//            .addOnSuccessListener { result ->
+//                for (document in result) {
+//                    messageMap
+////                    Log.d(TAG, "${document.id} => ${document.data}")
+//                }
+//            }
+//            .addOnFailureListener { exception ->
+//                Log.d(TAG, "Error getting documents: ", exception)
+//            }
+//
+//    }
 
     @Composable
     fun ImageList(userID: String) {

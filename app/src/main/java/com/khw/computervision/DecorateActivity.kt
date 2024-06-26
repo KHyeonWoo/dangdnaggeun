@@ -1,11 +1,9 @@
 package com.khw.computervision
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -48,21 +46,18 @@ import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.segmentation.subject.SubjectSegmentation
 import com.google.mlkit.vision.segmentation.subject.SubjectSegmenterOptions
 import com.khw.computervision.ui.theme.ComputerVisionTheme
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -132,7 +127,7 @@ class DecorateActivity : ComponentActivity() {
                 inputImage?.let { bitmap ->
 
                     sendImageToServer(bitmap) {
-                        responseMessage = it
+                        responseMessage += "\n" + it
                         isLoading = false
                         inputImage = null
                     }
@@ -148,26 +143,27 @@ class DecorateActivity : ComponentActivity() {
 //                    )
                 }
 
+                Text(text = responseMessage)
                 if (isLoading) {
                     CircularProgressIndicator()
                 }
 
-                var segmentedImage by remember { mutableStateOf<Bitmap?>(null) }
-                var showDialog by remember { mutableStateOf(false) }
-                segmentedImage?.let { bitmap ->
-                    ImageUploadPopup(
-                        showDialog = showDialog,
-                        bitmap = bitmap,
-                        onUpload = {
-                            showDialog = false
-                            segmentedImage = null
-                        },
-                        onCancel = {
-                            showDialog = false
-                            segmentedImage = null
-                        }
-                    )
-                }
+//                var segmentedImage by remember { mutableStateOf<Bitmap?>(null) }
+//                var showDialog by remember { mutableStateOf(false) }
+//                segmentedImage?.let { bitmap ->
+//                    ImageUploadPopup(
+//                        showDialog = showDialog,
+//                        bitmap = bitmap,
+//                        onUpload = {
+//                            showDialog = false
+//                            segmentedImage = null
+//                        },
+//                        onCancel = {
+//                            showDialog = false
+//                            segmentedImage = null
+//                        }
+//                    )
+//                }
             }
             CustomTabRow()
         }
@@ -183,20 +179,34 @@ class DecorateActivity : ComponentActivity() {
         val requestFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), image)
         val body = MultipartBody.Part.createFormData("image", "image.png", requestFile)
 
-        mRetrofitAPI.uploadImage(body).enqueue(object : Callback<ResponseBody> {
+        mRetrofitAPI.uploadImage(body).enqueue(object : Callback<ImageResponseBody> {
             override fun onResponse(
-                call: Call<ResponseBody>,
-                response: Response<ResponseBody>
+                call: Call<ImageResponseBody>,
+                response: Response<ImageResponseBody>
             ) {
-                responseEvent("이미지 서버 전송 성공: ${response.message()}")
+                if (response.isSuccessful) {
+                    val uploadResponse = response.body()
+                    if (uploadResponse != null) {
+                        responseEvent("이미지 서버 전송 성공: class_label=${uploadResponse.classLabel}, cropped_image_url=${uploadResponse.croppedImageUrl}")
+                    } else {
+                        responseEvent("응답은 성공했지만 본문이 없습니다.")
+                    }
+                } else {
+                    responseEvent("이미지 서버 전송 실패: ${response.errorBody()?.string()}")
+                }
             }
 
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+            override fun onFailure(call: Call<ImageResponseBody>, t: Throwable) {
                 t.printStackTrace()
                 responseEvent("이미지 서버 전송 실패: ${t.message}")
             }
         })
     }
+
+    class ImageResponseBody(
+        val classLabel: Int,
+        val croppedImageUrl: String
+    )
 
     @OptIn(ExperimentalPagerApi::class)
     @Composable
@@ -376,10 +386,11 @@ class DecorateActivity : ComponentActivity() {
     interface RetrofitAPI {
         @Multipart
         @POST("infer")
-        fun uploadImage(@Part image: MultipartBody.Part): Call<ResponseBody>
+        fun uploadImage(@Part image: MultipartBody.Part): Call<ImageResponseBody>
     }
 
-    private var baseUrl = "http://192.168.45.205:8080" // 레트로핏의 기본 주소
+    private var baseUrl = "http://192.168.45.162:8080" // 레트로핏의 기훈 주소
+//    private var baseUrl = "http://192.168.45.205:8080" // 레트로핏의 동환 주소
 
     private lateinit var mRetrofit: Retrofit // 사용할 레트로핏 객체입니다.
     private lateinit var mRetrofitAPI: RetrofitAPI // 레트로핏 api객체입니다.

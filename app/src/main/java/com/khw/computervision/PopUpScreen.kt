@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.provider.MediaStore
@@ -54,7 +55,6 @@ import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
 
 
-
 @Composable
 fun ProfilePopup(profileUri: String?, user: String, close: () -> Unit, successUpload: () -> Unit) {
 
@@ -77,23 +77,11 @@ fun ProfilePopup(profileUri: String?, user: String, close: () -> Unit, successUp
                 ProfileImage(profileUri) { inputImage = it }
 
                 inputImage?.let { bitmap ->
-                    val mountainsRef = Firebase.storage.reference.child("$user/profile.jpg")
-
-                    val baos = ByteArrayOutputStream()
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-                    val data = baos.toByteArray()
-
-                    val uploadTask = mountainsRef.putBytes(data)
-                    uploadTask.addOnSuccessListener {
-                        Toast.makeText(context, "사진 업로드 성공", Toast.LENGTH_SHORT).show()
-                        inputImage = null
+                    uploadImage(context, bitmap, user, {
                         successUpload()
-                    }.addOnProgressListener {
-                        Toast.makeText(context, "사진 업로드 중", Toast.LENGTH_SHORT).show()
-                    }.addOnFailureListener {
-                        Toast.makeText(context, "사진 업로드 실패", Toast.LENGTH_SHORT).show()
+                    }, {
                         inputImage = null
-                    }
+                    })
                 }
                 Text(text = user)
                 Spacer(modifier = Modifier.weight(2f))
@@ -116,6 +104,33 @@ fun ProfilePopup(profileUri: String?, user: String, close: () -> Unit, successUp
         }
     )
 
+}
+
+fun uploadImage(
+    context: Context,
+    bitmap: Bitmap,
+    user: String,
+    successUpload: () -> Unit,
+    inputImageNullEvent: () -> Unit
+) {
+
+    val mountainsRef = Firebase.storage.reference.child("$user/profile.jpg")
+
+    val baos = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+    val data = baos.toByteArray()
+
+    val uploadTask = mountainsRef.putBytes(data)
+    uploadTask.addOnSuccessListener {
+        Toast.makeText(context, "사진 업로드 성공", Toast.LENGTH_SHORT).show()
+        successUpload()
+        inputImageNullEvent()
+    }.addOnProgressListener {
+        Toast.makeText(context, "사진 업로드 중", Toast.LENGTH_SHORT).show()
+    }.addOnFailureListener {
+        Toast.makeText(context, "사진 업로드 실패", Toast.LENGTH_SHORT).show()
+        inputImageNullEvent()
+    }
 }
 
 @Composable
@@ -226,6 +241,7 @@ fun MessagePopup(userID: String, close: () -> Unit) {
                             Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
                         }
                 }
+                close()
 
             }) {
                 Text("Upload")
@@ -328,7 +344,15 @@ fun InsertPopup(userID: String, saveData: (PopupDetails) -> Unit, close: () -> U
         },
         confirmButton = {
             Button(onClick = {
-                saveData(PopupDetails(userID, price.toInt(), dealMethod, rating, productDescription))
+                saveData(
+                    PopupDetails(
+                        userID,
+                        price.toInt(),
+                        dealMethod,
+                        rating,
+                        productDescription
+                    )
+                )
                 close()
             }) {
                 Text("Upload")
