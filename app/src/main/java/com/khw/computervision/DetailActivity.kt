@@ -22,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.khw.computervision.ui.theme.ComputerVisionTheme
@@ -37,19 +36,26 @@ class DetailActivity : ComponentActivity() {
                 }
                 userID = intent.getStringExtra("user") ?: ""
 
-                DetailScreen(userID)
+
+                // Intent에서 Bundle을 가져옵니다.
+                val bundle = intent.getBundleExtra("product")
+                var productMap: Map<String, String> = mutableMapOf()
+                if (bundle != null) {
+                    productMap = bundleToMap(bundle)
+                }
+
+                DetailScreen(userID, productMap)
             }
         }
     }
 
     @Composable
-    fun DetailScreen(userID: String) {
+    fun DetailScreen(userID: String, productMap: Map<String, String>) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val context = LocalContext.current
-            LogoScreen("Detail")
+            LogoScreen("Detail") { finish() }
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "",
@@ -61,14 +67,14 @@ class DetailActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    painter = painterResource(id = R.drawable.character4),
                     contentDescription = "",
                     modifier = Modifier
                         .padding(start = 20.dp)
                         .size(60.dp)
                 )
                 Text(
-                    text = "사용자", modifier = Modifier
+                    text = productMap.getValue("InsertUser"), modifier = Modifier
                         .padding(top = 10.dp)
                 )
                 Spacer(modifier = Modifier.weight(1f))
@@ -88,7 +94,11 @@ class DetailActivity : ComponentActivity() {
                     )
                 }
                 if (popupVisiableState) {
-                    MessagePopup(userID) { popupVisiableState = false }
+                    MessagePopup(
+                        userID,
+                        productMap.getValue("InsertUser"),
+                        returnMessageIndex(productMap.getValue("InsertUser"))
+                    ) { popupVisiableState = false }
                 }
 
             }
@@ -99,26 +109,24 @@ class DetailActivity : ComponentActivity() {
                     .padding(20.dp),
             ) {
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "가격: 10000원")
+                Text(text = "가격: ${productMap.getValue("price")}")
 
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "거래방법: 직거래")
+                Text(text = "거래방법: ${productMap.getValue("dealMethod")}")
 
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "상태: 별별별")
+                Text(text = "상태: ${productMap.getValue("rating")}")
                 Spacer(modifier = Modifier.weight(1f))
             }
             Divider(color = colorDang, thickness = 2.dp)
 
-            Spacer(modifier = Modifier.weight(1f))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(text = "게시글 (판매 이유, 구입 장소, 기타 등등)")
+                Text(text = productMap.getValue("productDescription"))
             }
             Spacer(modifier = Modifier.weight(1f))
         }
     }
-
 }

@@ -33,6 +33,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -56,7 +57,12 @@ import java.time.LocalDateTime
 
 
 @Composable
-fun ProfilePopup(profileUri: String?, user: String, close: () -> Unit, successUpload: () -> Unit) {
+fun ProfilePopup(
+    profileUri: String?,
+    userID: String,
+    close: () -> Unit,
+    successUpload: () -> Unit
+) {
 
     val context = LocalContext.current
     AlertDialog(
@@ -70,25 +76,31 @@ fun ProfilePopup(profileUri: String?, user: String, close: () -> Unit, successUp
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(text = "")
-                Spacer(modifier = Modifier.weight(1f))
 
                 var inputImage by remember { mutableStateOf<Bitmap?>(null) }
 
                 ProfileImage(profileUri) { inputImage = it }
 
                 inputImage?.let { bitmap ->
-                    uploadImage(context, bitmap, user, {
+                    uploadImage(context, bitmap, userID, {
                         successUpload()
                     }, {
                         inputImage = null
                     })
                 }
-                Text(text = user)
+                Text(text = userID)
                 Spacer(modifier = Modifier.weight(2f))
+
+                val messageMap = getMessage(userID)
 
                 FunTextButton("내가 판매 중인 제품") { }
                 FunTextButton("내가 판매한 제품") { }
-                FunTextButton("내게 온 메세지") { }
+                FunTextButton("내게 온 메세지 : ${messageMap.size}") {
+                    val userIntent = Intent(context, MessageListActivity::class.java)
+                    userIntent.putExtra("messageList", mapToBundle(messageMap))
+                    context.startActivity(userIntent)
+                }
+                Spacer(modifier = Modifier.weight(1f))
                 FunTextButton("로그아웃") {
                     context.startActivity(Intent(context, LoginActivity::class.java))
                 }
@@ -97,14 +109,11 @@ fun ProfilePopup(profileUri: String?, user: String, close: () -> Unit, successUp
         confirmButton =
         { },
         dismissButton =
-        {
-            Button(onClick = { close() }) {
-                Text("Cancel")
-            }
-        }
+        { }
     )
 
 }
+
 
 fun uploadImage(
     context: Context,
@@ -165,6 +174,7 @@ fun ProfileImage(profileUri: String?, setInputImage: (Bitmap) -> Unit) {
                 .clickable {
                     imageCropLauncher.launch(cropOption)
                 }
+                .clip(RoundedCornerShape(120.dp))
         )
     } ?: Image(
         painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -174,13 +184,18 @@ fun ProfileImage(profileUri: String?, setInputImage: (Bitmap) -> Unit) {
             .clickable {
                 imageCropLauncher.launch(cropOption)
             }
+            .clip(RoundedCornerShape(32.dp))
     )
 
 }
 
 @Composable
-fun MessagePopup(userID: String, close: () -> Unit) {
-    var receiveUser: String by remember { mutableStateOf("") }
+fun MessagePopup(
+    userID: String,
+    receiveUser: String,
+    returnMessageIndex: Int,
+    close: () -> Unit
+) {
     var message: String by remember { mutableStateOf("") }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -190,10 +205,11 @@ fun MessagePopup(userID: String, close: () -> Unit) {
         text = {
             Column(
             ) {
+                Text(text = "당당하게 보내세요", color = colorDang)
                 Spacer(modifier = Modifier.height(20.dp))
                 OutlinedTextField(
                     value = receiveUser,
-                    onValueChange = { receiveUser = it },
+                    onValueChange = { },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = colorDang,
                         unfocusedBorderColor = colorDang,
@@ -230,11 +246,11 @@ fun MessagePopup(userID: String, close: () -> Unit) {
 
                 coroutineScope.launch(Dispatchers.IO) {
                     db.collection(receiveUser)
-                        .document(LocalDateTime.now().toLocalDate().toString())
+                        .document("$returnMessageIndex")
                         .set(sendMessage)
                         .addOnSuccessListener {
                             Log.d(TAG, "DocumentSnapshot successfully written!")
-                            Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "메세지 전송 성공", Toast.LENGTH_SHORT).show()
                         }
                         .addOnFailureListener { e ->
                             Log.w(TAG, "Error writing document", e)
@@ -258,6 +274,7 @@ fun MessagePopup(userID: String, close: () -> Unit) {
 
 data class PopupDetails(
     val userID: String,
+    val name: String = "",
     val price: Int = 0,
     val dealMethod: String = "",
     val rating: Float = 0f,
@@ -265,11 +282,17 @@ data class PopupDetails(
 )
 
 @Composable
-fun InsertPopup(userID: String, saveData: (PopupDetails) -> Unit, close: () -> Unit) {
-    var price: String by remember { mutableStateOf("0") }
-    var dealMethod: String by remember { mutableStateOf("") }
-    var rating: Float by remember { mutableFloatStateOf(0f) }
-    var productDescription: String by remember { mutableStateOf("") }
+fun InsertPopup(
+    userID: String,
+    newPopupDetails: PopupDetails,
+    saveData: (PopupDetails) -> Unit,
+    close: () -> Unit
+) {
+    var name: String by remember { mutableStateOf(newPopupDetails.name) }
+    var price: String by remember { mutableStateOf(newPopupDetails.price.toString()) }
+    var dealMethod: String by remember { mutableStateOf(newPopupDetails.dealMethod) }
+    var rating: Float by remember { mutableFloatStateOf(newPopupDetails.rating) }
+    var productDescription: String by remember { mutableStateOf(newPopupDetails.productDescription) }
     AlertDialog(
         onDismissRequest = { close() },
         title = { Text(text = "") },
@@ -278,7 +301,24 @@ fun InsertPopup(userID: String, saveData: (PopupDetails) -> Unit, close: () -> U
             ) {
                 Spacer(modifier = Modifier.height(20.dp))
                 OutlinedTextField(
-                    value = price,
+                    value = name,
+                    onValueChange = { name = it },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = colorDang,
+                        unfocusedBorderColor = colorDang,
+                    ),
+                    textStyle = TextStyle(color = Color.Black),
+                    label = { Text(text = "제품명", color = colorDang) },
+                )
+
+                OutlinedTextField(
+                    value =
+                        if (price== "0") {
+                            ""
+                        } else {
+                            price
+                        }
+                    ,
                     onValueChange = { price = it },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = colorDang,
@@ -347,6 +387,7 @@ fun InsertPopup(userID: String, saveData: (PopupDetails) -> Unit, close: () -> U
                 saveData(
                     PopupDetails(
                         userID,
+                        name,
                         price.toInt(),
                         dealMethod,
                         rating,

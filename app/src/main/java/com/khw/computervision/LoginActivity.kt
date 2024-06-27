@@ -58,7 +58,7 @@ class LoginActivity : ComponentActivity() {
         ) {
 
             Spacer(modifier = Modifier.weight(1f))
-            LogoScreen("Login")
+            LogoScreen("Login") { finish() }
 
             Image(
                 painter = gifImageDecode(R.raw.dangkki),

@@ -1,13 +1,12 @@
 package com.khw.computervision
 
-import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,20 +17,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.ktx.storage
@@ -63,7 +62,7 @@ class SalesActivity : ComponentActivity() {
             Box(
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                LogoScreen("Sales")
+                LogoScreen("Sales") { finish() }
                 var successUpload by remember { mutableStateOf(false) }
                 var profileUri: String? by remember { mutableStateOf(null) }
 
@@ -88,6 +87,7 @@ class SalesActivity : ComponentActivity() {
                             imageModel = it,
                             contentDescription = "Image",
                             modifier = modifier
+                                .clip(RoundedCornerShape(20.dp))
                         )
                     } ?: Image(
                         painter = painterResource(id = R.drawable.ic_launcher_foreground),
@@ -104,12 +104,12 @@ class SalesActivity : ComponentActivity() {
                         { successUpload = !successUpload })
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                FunTextButton("현재 판매하는 제품이에요") { /* TODO */ }
+                FunTextButton("현재 판매하는 제품이에요") {
+                }
             }
             ImageList(userID)
 
@@ -126,7 +126,6 @@ class SalesActivity : ComponentActivity() {
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 
@@ -141,50 +140,36 @@ class SalesActivity : ComponentActivity() {
         return faceUri
     }
 
-//    @Composable
-//    private fun getMessage(userID: String): Int {
-//        val messageMap by remember { (mutableStateMapOf<String, String>()) }
-//        Firebase.firestore.collection(userID)
-//            .get()
-//            .addOnSuccessListener { result ->
-//                for (document in result) {
-//                    messageMap
-////                    Log.d(TAG, "${document.id} => ${document.data}")
-//                }
-//            }
-//            .addOnFailureListener { exception ->
-//                Log.d(TAG, "Error getting documents: ", exception)
-//            }
-//
-//    }
 
     @Composable
     fun ImageList(userID: String) {
+        // rememberSaveable로 상태를 저장하고 복원할 수 있도록 합니다.
+        var productMap: Map<String, Map<String, String>> by remember{ mutableStateOf(emptyMap()) }
+        GetProduct(DataManager.reLoading) { productMap = it }
+
+        val context = LocalContext.current
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.Center
             ) {
-                ImageBox(userID)
-                ImageBox(userID)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                ImageBox(userID)
-                ImageBox(userID)
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                ImageBox(userID)
-                ImageBox(userID)
+                for ((key, value) in productMap) {
+                    Column(
+                        modifier = Modifier.clickable {
+                            val productIntent = Intent(context, DetailActivity::class.java)
+                            productIntent.putExtra("userID", userID)
+                            productIntent.putExtra("product", mapToBundle(value))
+                            context.startActivity(productIntent)
+                        }) {
+                        for ((fieldKey, fieldValue) in value) {
+                            Text(text = "$fieldKey: $fieldValue")
+                        }
+                    }
+                }
             }
         }
     }

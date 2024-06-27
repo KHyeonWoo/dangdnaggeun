@@ -22,10 +22,8 @@ import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.Text
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -48,13 +45,8 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.segmentation.subject.SubjectSegmentation
-import com.google.mlkit.vision.segmentation.subject.SubjectSegmenterOptions
 import com.khw.computervision.ui.theme.ComputerVisionTheme
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -67,9 +59,6 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import java.io.ByteArrayOutputStream
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 class DecorateActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,34 +75,42 @@ class DecorateActivity : ComponentActivity() {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-            LogoScreen("Decorate")
-            Spacer(modifier = Modifier.weight(1f))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
             ) {
-                Spacer(modifier = Modifier.weight(12f))
-                val context = LocalContext.current
-                FunTextButton("저장") {
-                    finish()
-                }
+
+                LogoScreen("Decorate") { finish() }
                 Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Spacer(modifier = Modifier.weight(12f))
+                    val context = LocalContext.current
+                    FunTextButton("저장") {
+                        finish()
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(2f)
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.character2),
+                    painter = painterResource(id = R.drawable.character4),
                     contentDescription = "",
-                    modifier = Modifier
-                        .size(320.dp)
+                    modifier = Modifier.fillMaxSize()
                 )
             }
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .weight(2f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 var inputImage by remember { mutableStateOf<Bitmap?>(null) }
@@ -133,39 +130,14 @@ class DecorateActivity : ComponentActivity() {
                     }
 
                     isLoading = true
-// 서버에서 받은 이미지는 Segmentation을 통해 배경 제거 후 firebase에 저장
-//                    ImageSegmentation(
-//                        inputImage = bitmap,
-//                        onSegmentationComplete = { segmentedBitmap ->
-//                            segmentedImage = segmentedBitmap
-//                            showDialog = true
-//                        }
-//                    )
                 }
 
                 Text(text = responseMessage)
                 if (isLoading) {
                     CircularProgressIndicator()
                 }
-
-//                var segmentedImage by remember { mutableStateOf<Bitmap?>(null) }
-//                var showDialog by remember { mutableStateOf(false) }
-//                segmentedImage?.let { bitmap ->
-//                    ImageUploadPopup(
-//                        showDialog = showDialog,
-//                        bitmap = bitmap,
-//                        onUpload = {
-//                            showDialog = false
-//                            segmentedImage = null
-//                        },
-//                        onCancel = {
-//                            showDialog = false
-//                            segmentedImage = null
-//                        }
-//                    )
-//                }
+                CustomTabRow()
             }
-            CustomTabRow()
         }
     }
 
@@ -295,92 +267,6 @@ class DecorateActivity : ComponentActivity() {
                     imageCropLauncher.launch(cropOption)
                 }
         )
-    }
-
-    @Composable
-    fun ImageSegmentation(
-        inputImage: Bitmap,
-        onSegmentationComplete: (Bitmap) -> Unit
-    ) {
-        var loading: Boolean by remember { mutableStateOf(true) }
-        val coroutineScope = rememberCoroutineScope()
-
-        LaunchedEffect(inputImage) {
-            coroutineScope.launch {
-                val output = withContext(Dispatchers.Default) {
-                    ImageSegmentationHelper.getResult(inputImage)
-                }
-                if (output != null) {
-                    onSegmentationComplete(output)
-                }
-                loading = false
-            }
-        }
-
-        if (loading) {
-            CircularProgressIndicator()
-        }
-    }
-
-    object ImageSegmentationHelper {
-
-        // Options for configuring the SubjectSegmenter
-        private val options = SubjectSegmenterOptions.Builder()
-            .enableForegroundConfidenceMask()
-            .enableForegroundBitmap()
-            .build()
-
-        // SubjectSegmenter instance initialized with the specified options
-        private val segmenter = SubjectSegmentation.getClient(options)
-
-        /**
-         * Asynchronously processes the given input Bitmap image and retrieves the foreground segmentation result.
-         *
-         * @param image The input image in Bitmap format to be segmented.
-         * @return A suspend function that, when invoked, provides the result Bitmap of the foreground segmentation.
-         * @throws Exception if there is an error during the segmentation process.
-         */
-        suspend fun getResult(image: Bitmap) = suspendCoroutine {
-            // Convert the input Bitmap image to InputImage format
-            val inputImage = InputImage.fromBitmap(image, 0)
-
-            // Process the input image using the SubjectSegmenter
-            segmenter.process(inputImage)
-                .addOnSuccessListener { result ->
-                    // Resume the coroutine with the foreground Bitmap result on success
-                    it.resume(result.foregroundBitmap)
-                }
-                .addOnFailureListener { e ->
-                    // Resume the coroutine with an exception in case of failure
-                    it.resumeWithException(e)
-                }
-        }
-    }
-
-    @Composable
-    fun ImageUploadPopup(
-        showDialog: Boolean,
-        bitmap: Bitmap,
-        onUpload: () -> Unit,
-        onCancel: () -> Unit
-    ) {
-        if (showDialog) {
-            androidx.compose.material3.AlertDialog(
-                onDismissRequest = { onCancel() },
-                title = { androidx.compose.material3.Text("Upload Image") },
-                text = { Image(bitmap = bitmap.asImageBitmap(), contentDescription = null) },
-                confirmButton = {
-                    Button(onClick = onUpload) {
-                        androidx.compose.material3.Text("Upload")
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = onCancel) {
-                        androidx.compose.material3.Text("Cancel")
-                    }
-                }
-            )
-        }
     }
 
     interface RetrofitAPI {

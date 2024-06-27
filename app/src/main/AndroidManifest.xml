@@ -30,15 +30,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".DetectionActivity"
-            android:theme="@style/Theme.ComputerVision"/>
-
         <activity
             android:name=".SignUpActivity"
             android:theme="@style/Theme.ComputerVision"/>
-
         <activity
             android:name=".SalesActivity"
             android:theme="@style/Theme.ComputerVision"/>
@@ -50,6 +44,9 @@
             android:theme="@style/Theme.ComputerVision"/>
         <activity
             android:name=".DetailActivity"
+            android:theme="@style/Theme.ComputerVision"/>
+        <activity
+            android:name=".MessageListActivity"
             android:theme="@style/Theme.ComputerVision"/>
 
         <activity android:name="com.canhub.cropper.CropImageActivity"

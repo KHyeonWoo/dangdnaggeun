@@ -9,14 +9,18 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,44 +71,51 @@ class InsertActivity : ComponentActivity() {
                 mutableStateOf(
                     PopupDetails(
                         userID,
+                        "",
                         0,
-                        "default",
+                        "",
                         0f,
-                        "null"
+                        ""
                     )
                 )
             }
-            LogoScreen("Insert")
+            LogoScreen("Insert") { finish() }
+            Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                var popupVisibleState by remember { mutableStateOf(false) }
-
-                FunTextButton("꾸미기") {
-                    context.startActivity(Intent(context, DecorateActivity::class.java))
-                }
                 Spacer(modifier = Modifier.weight(1f))
 
+                var popupVisibleState by remember { mutableStateOf(false) }
                 FunTextButton("수정") {
                     popupVisibleState = true
                 }
 
                 if (popupVisibleState) {
-                    InsertPopup(userID, { newPopupDetails = it }, {
+                    InsertPopup(userID, newPopupDetails, {
+                        newPopupDetails = it
+                    }, {
                         popupVisibleState = false
                     })
                 }
 
+                Spacer(modifier = Modifier.width(8.dp))
                 val coroutineScope = rememberCoroutineScope()
+                val insertIndex = returnInsertIndex()
                 FunTextButton("저장") {
-                    saveEvent(coroutineScope, context, userID, newPopupDetails)
+                    saveEvent(coroutineScope, context, userID, insertIndex, newPopupDetails)
+                    DataManager.reLoading = !DataManager.reLoading
                     finish()
                 }
             }
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.character4),
                 contentDescription = "",
-                modifier = Modifier.size(320.dp)
+                modifier = Modifier
+                    .size(320.dp)
+                    .clickable {
+                        context.startActivity(Intent(context, DecorateActivity::class.java))
+                    }
             )
             StateScreen(newPopupDetails)
 
@@ -117,6 +128,7 @@ class InsertActivity : ComponentActivity() {
         coroutineScope: CoroutineScope,
         context: Context,
         userID: String,
+        insertIndex: Int,
         newPopupDetails: PopupDetails
     ) {
 
@@ -138,7 +150,7 @@ class InsertActivity : ComponentActivity() {
 
         coroutineScope.launch(Dispatchers.IO) {
             db.collection("product")
-                .document(userID + dateTimeNow)
+                .document("$insertIndex")
                 .set(sendMessage)
                 .addOnSuccessListener {
                     Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
@@ -187,10 +199,12 @@ class InsertActivity : ComponentActivity() {
         Divider(color = colorDang, thickness = 2.dp)
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+                .horizontalScroll(rememberScrollState())
         ) {
-            Text(text = "게시글 (판매 이유, 구입 장소, 기타 등등)  ${newPopupDetails.productDescription}")
+            Text(text = " \n ${newPopupDetails.productDescription}")
         }
     }
 }
