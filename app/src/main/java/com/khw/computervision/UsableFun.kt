@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import android.content.ContentValues
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -33,7 +34,13 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 val colorDang = Color(0xFFF3BB66)
 
@@ -276,14 +283,59 @@ fun deleteFirestoreData(collectionName: String, documentId: String, successEvent
         .addOnFailureListener { e -> Log.w(ContentValues.TAG, "Error deleting document", e) }
 }
 
-fun upLoadUriImage(mountainImagesRef: StorageReference, croppedImageUrl: String) {
+fun uploadFileToFirebase(userID: String, fileUri: Uri, category: String, fileName: String) {
+    val storage = FirebaseStorage.getInstance()
+    val storageRef: StorageReference = storage.reference.child("$userID/$category/$fileName")
 
-    val uploadTask = mountainImagesRef.putFile(Uri.parse(croppedImageUrl))
+    storageRef.putFile(fileUri)
+        .addOnSuccessListener { taskSnapshot ->
+            storageRef.downloadUrl.addOnSuccessListener { downloadUri ->
+                Log.d("UPLOAD_SUCCESS", "File URL: $downloadUri")
+            }.addOnFailureListener { exception ->
+                Log.e("UPLOAD_ERROR", "Error getting download URL", exception)
+            }
+        }
+        .addOnFailureListener { exception ->
+            Log.e("UPLOAD_ERROR", "Error uploading file", exception)
+            if (exception is com.google.firebase.storage.StorageException) {
+                val errorCode = exception.errorCode
+                val errorMessage = exception.message
+                Log.e("UPLOAD_ERROR_CODE", "Error Code: $errorCode, Message: $errorMessage")
+            }
+        }
+}
 
-    uploadTask.addOnFailureListener {
-        // Handle unsuccessful uploads
-    }.addOnSuccessListener { taskSnapshot ->
-        // taskSnapshot.metadata contains file metadata such as size, content-type, etc.
-        // ...
+fun downloadFile(context: Context, fileUrl: String, fileName: String): Uri? {
+    try {
+        val url = URL(fileUrl)
+        val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+        connection.doInput = true
+        connection.connect()
+
+        val inputStream: InputStream = connection.inputStream
+        val file = File(context.cacheDir, fileName)
+        val outputStream = FileOutputStream(file)
+        val buffer = ByteArray(1024)
+        var bytesRead: Int
+
+        while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+            outputStream.write(buffer, 0, bytesRead)
+        }
+
+        outputStream.close()
+        inputStream.close()
+        return Uri.fromFile(file)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return null
+    }
+}
+
+fun downloadAndUploadFile(context: Context, userID: String, fileUrl: String, category: String, fileName: String) {
+    val fileUri = downloadFile(context, fileUrl, fileName)
+    if (fileUri != null) {
+        uploadFileToFirebase(userID, fileUri, category, fileName)
+    } else {
+        Log.e("DOWNLOAD_ERROR", "File download failed")
     }
 }

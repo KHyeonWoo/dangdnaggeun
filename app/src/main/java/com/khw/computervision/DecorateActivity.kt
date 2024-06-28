@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -54,6 +55,7 @@ import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -64,6 +66,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.TimeUnit
 
 class DecorateActivity : ComponentActivity() {
 
@@ -79,8 +82,17 @@ class DecorateActivity : ComponentActivity() {
     private lateinit var mRetrofit: Retrofit // 사용할 레트로핏 객체입니다.
     private lateinit var mRetrofitAPI: RetrofitAPI // 레트로핏 api객체입니다.
 
+    //지울 내용들
+    data class ServerResponse(
+        @SerializedName("predictions") val predictions: List<ImageResponseBody>
+    )
     private fun setRetrofit() {
-
+        //지울 내용들
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS) // 연결 타임아웃
+            .readTimeout(30, TimeUnit.SECONDS) // 읽기 타임아웃
+            .writeTimeout(30, TimeUnit.SECONDS) // 쓰기 타임아웃
+            .build()
 
         val gson: Gson = GsonBuilder()
             .setLenient()
@@ -88,6 +100,7 @@ class DecorateActivity : ComponentActivity() {
 
         mRetrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
+            .client(okHttpClient) //지울 내용들
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
@@ -212,11 +225,9 @@ class DecorateActivity : ComponentActivity() {
                         for (uploadResponse in responseBody) {
                             responseEvent("이미지 서버 전송 성공: class_label=${uploadResponse.classLabel}, cropped_image_url=${uploadResponse.croppedImageUrl}")
                             if(uploadResponse.classLabel == 0) {
-                                val mountainImagesRef = Firebase.storage.reference.child("$userID/Top/1")
-                                upLoadUriImage(mountainImagesRef, uploadResponse.croppedImageUrl)
+                                downloadAndUploadFile(this@DecorateActivity, userID, uploadResponse.croppedImageUrl, "top", "1")
                             } else if (uploadResponse.classLabel == 1) {
-                                val mountainImagesRef = Firebase.storage.reference.child("$userID/Bottom/1")
-                                upLoadUriImage(mountainImagesRef, uploadResponse.croppedImageUrl)
+                                downloadAndUploadFile(this@DecorateActivity, userID, uploadResponse.croppedImageUrl, "bottom", "1")
                             }
                         }
                     } else {
