@@ -212,7 +212,7 @@ class DecorateActivity : ComponentActivity() {
 
         val image = bitmapToByteArray(bitmap) // 실제 이미지 파일 경로
         val requestFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), image)
-        val body = MultipartBody.Part.createFormData("image", "image.png", requestFile)
+        val body = MultipartBody.Part.createFormData("image", "$userID.png", requestFile)
 
         mRetrofitAPI.uploadImage(body).enqueue(object : Callback<List<ImageResponseBody>> {
             override fun onResponse(
@@ -225,9 +225,9 @@ class DecorateActivity : ComponentActivity() {
                         for (uploadResponse in responseBody) {
                             responseEvent("이미지 서버 전송 성공: class_label=${uploadResponse.classLabel}, cropped_image_url=${uploadResponse.croppedImageUrl}")
                             if(uploadResponse.classLabel == 0) {
-                                downloadAndUploadFile(this@DecorateActivity, userID, uploadResponse.croppedImageUrl, "top", "1")
+                                successSendToServerEvent(uploadResponse.croppedImageUrl)
                             } else if (uploadResponse.classLabel == 1) {
-                                downloadAndUploadFile(this@DecorateActivity, userID, uploadResponse.croppedImageUrl, "bottom", "1")
+                                successSendToServerEvent(uploadResponse.croppedImageUrl)
                             }
                         }
                     } else {

@@ -180,7 +180,6 @@ class MyUploadedActivity : ComponentActivity() {
                         Box(
                             modifier = Modifier
                                 .size(48.dp, 80.dp)
-                                .border(color = colorDang, width = 1.dp)
                                 .align(Alignment.CenterEnd),
                             contentAlignment = Alignment.Center
                         ) {
