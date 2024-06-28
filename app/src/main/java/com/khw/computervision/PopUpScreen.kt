@@ -82,7 +82,7 @@ fun ProfilePopup(
                 ProfileImage(profileUri) { inputImage = it }
 
                 inputImage?.let { bitmap ->
-                    uploadImage(context, bitmap, userID, {
+                    uploadBitmapImage(context, bitmap, userID, "profile.jpg", {
                         successUpload()
                     }, {
                         inputImage = null
@@ -117,16 +117,16 @@ fun ProfilePopup(
 
 }
 
-
-fun uploadImage(
+fun uploadBitmapImage(
     context: Context,
     bitmap: Bitmap,
     user: String,
+    pathName: String,
     successUpload: () -> Unit,
     inputImageNullEvent: () -> Unit
 ) {
 
-    val mountainsRef = Firebase.storage.reference.child("$user/profile.jpg")
+    val mountainsRef = Firebase.storage.reference.child("$user/$pathName")
 
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)

@@ -103,7 +103,9 @@ class InsertActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .weight(2f)
                     .clickable {
-                        context.startActivity(Intent(context, DecorateActivity::class.java))
+                        val decoIntent = Intent(context, DecorateActivity::class.java)
+                        decoIntent.putExtra("userID", userID)
+                        context.startActivity(decoIntent)
                     },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {

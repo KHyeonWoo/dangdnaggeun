@@ -33,6 +33,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.StorageReference
 
 val colorDang = Color(0xFFF3BB66)
 
@@ -273,4 +274,16 @@ fun deleteFirestoreData(collectionName: String, documentId: String, successEvent
             successEvent()
         }
         .addOnFailureListener { e -> Log.w(ContentValues.TAG, "Error deleting document", e) }
+}
+
+fun upLoadUriImage(mountainImagesRef: StorageReference, croppedImageUrl: String) {
+
+    val uploadTask = mountainImagesRef.putFile(Uri.parse(croppedImageUrl))
+
+    uploadTask.addOnFailureListener {
+        // Handle unsuccessful uploads
+    }.addOnSuccessListener { taskSnapshot ->
+        // taskSnapshot.metadata contains file metadata such as size, content-type, etc.
+        // ...
+    }
 }

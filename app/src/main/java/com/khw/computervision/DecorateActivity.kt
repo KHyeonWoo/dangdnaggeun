@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,8 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
@@ -51,7 +54,6 @@ import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -62,7 +64,6 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import java.io.ByteArrayOutputStream
-import java.util.concurrent.TimeUnit
 
 class DecorateActivity : ComponentActivity() {
 
@@ -79,11 +80,6 @@ class DecorateActivity : ComponentActivity() {
     private lateinit var mRetrofitAPI: RetrofitAPI // 레트로핏 api객체입니다.
 
     private fun setRetrofit() {
-        val okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS) // 연결 타임아웃
-            .readTimeout(30, TimeUnit.SECONDS) // 읽기 타임아웃
-            .writeTimeout(30, TimeUnit.SECONDS) // 쓰기 타임아웃
-            .build()
 
 
         val gson: Gson = GsonBuilder()
@@ -92,7 +88,6 @@ class DecorateActivity : ComponentActivity() {
 
         mRetrofit = Retrofit.Builder()
             .baseUrl(baseUrl)
-            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
@@ -102,14 +97,19 @@ class DecorateActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            var userID by remember {
+                mutableStateOf("")
+            }
+            userID = intent.getStringExtra("userID") ?: ""
+
             ComputerVisionTheme {
-                DecorateScreen()
+                DecorateScreen(userID)
             }
         }
     }
 
     @Composable
-    fun DecorateScreen() {
+    fun DecorateScreen(userID: String) {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -139,12 +139,12 @@ class DecorateActivity : ComponentActivity() {
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = segmentImageUrl)
 
-//                GlideImage(
-//                    imageModel = segmentImageUrl,
-//                    modifier = Modifier.fillMaxSize()
-//                )
+                GlideImage(
+                    imageModel = segmentImageUrl,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
 
 //                Image(
 //                    painter = painterResource(id = R.drawable.character4),
@@ -169,8 +169,8 @@ class DecorateActivity : ComponentActivity() {
 
                 inputImage?.let { bitmap ->
 
-                    sendImageToServer(bitmap, {
-                        responseMessage += "\n" + it
+                    sendImageToServer(userID, bitmap, {
+                        responseMessage = it
                         isLoading = false
                         inputImage = null
                     }, {
@@ -190,6 +190,7 @@ class DecorateActivity : ComponentActivity() {
     }
 
     private fun sendImageToServer(
+        userID: String,
         bitmap: Bitmap,
         responseEvent: (String) -> Unit,
         successSendToServerEvent: (String) -> Unit
@@ -200,9 +201,6 @@ class DecorateActivity : ComponentActivity() {
         val requestFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), image)
         val body = MultipartBody.Part.createFormData("image", "image.png", requestFile)
 
-
-
-
         mRetrofitAPI.uploadImage(body).enqueue(object : Callback<List<ImageResponseBody>> {
             override fun onResponse(
                 call: Call<List<ImageResponseBody>>,
@@ -210,16 +208,23 @@ class DecorateActivity : ComponentActivity() {
             ) {
                 if (response.isSuccessful) {
                     val responseBody = response.body()
-                    if (responseBody != null && responseBody.isNotEmpty()) {
+                    if (!responseBody.isNullOrEmpty()) {
                         for (uploadResponse in responseBody) {
                             responseEvent("이미지 서버 전송 성공: class_label=${uploadResponse.classLabel}, cropped_image_url=${uploadResponse.croppedImageUrl}")
+                            if(uploadResponse.classLabel == 0) {
+                                val mountainImagesRef = Firebase.storage.reference.child("$userID/Top/1")
+                                upLoadUriImage(mountainImagesRef, uploadResponse.croppedImageUrl)
+                            } else if (uploadResponse.classLabel == 1) {
+                                val mountainImagesRef = Firebase.storage.reference.child("$userID/Bottom/1")
+                                upLoadUriImage(mountainImagesRef, uploadResponse.croppedImageUrl)
+                            }
                         }
                     } else {
                         responseEvent("응답은 성공했지만 본문이 없습니다.")
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
-                    responseEvent("이미지 서버 전송 실패: ${errorBody}")
+                    responseEvent("이미지 서버 전송 실패: $errorBody")
                 }
             }
 
