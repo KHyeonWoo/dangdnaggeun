@@ -34,7 +34,7 @@ class DetailActivity : ComponentActivity() {
                 var userID by remember {
                     mutableStateOf("")
                 }
-                userID = intent.getStringExtra("user") ?: ""
+                userID = intent.getStringExtra("userID") ?: ""
 
 
                 // Intent에서 Bundle을 가져옵니다.
@@ -57,7 +57,7 @@ class DetailActivity : ComponentActivity() {
         ) {
             LogoScreen("Detail") { finish() }
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.character4),
                 contentDescription = "",
                 modifier = Modifier
                     .padding(20.dp)

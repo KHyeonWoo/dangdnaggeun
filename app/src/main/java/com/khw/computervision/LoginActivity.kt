@@ -117,7 +117,7 @@ class LoginActivity : ComponentActivity() {
                                     val user = auth.currentUser
                                     val userIntent = Intent(context, SalesActivity::class.java)
                                     if (user != null) {
-                                        userIntent.putExtra("user", userID)
+                                        userIntent.putExtra("userID", userID)
                                     }
                                     context.startActivity(userIntent)
                                 } else {

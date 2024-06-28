@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -33,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,10 +43,15 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.annotations.SerializedName
 import com.khw.computervision.ui.theme.ComputerVisionTheme
+import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -59,8 +62,43 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.TimeUnit
 
 class DecorateActivity : ComponentActivity() {
+
+    interface RetrofitAPI {
+        @Multipart
+        @POST("infer")
+        fun uploadImage(@Part image: MultipartBody.Part): Call<List<ImageResponseBody>>
+    }
+
+    private var baseUrl = "http://192.168.45.162:8080" // 레트로핏의 기훈 주소
+//    private var baseUrl = "http://192.168.45.205:8080" // 레트로핏의 동환 주소
+
+    private lateinit var mRetrofit: Retrofit // 사용할 레트로핏 객체입니다.
+    private lateinit var mRetrofitAPI: RetrofitAPI // 레트로핏 api객체입니다.
+
+    private fun setRetrofit() {
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS) // 연결 타임아웃
+            .readTimeout(30, TimeUnit.SECONDS) // 읽기 타임아웃
+            .writeTimeout(30, TimeUnit.SECONDS) // 쓰기 타임아웃
+            .build()
+
+
+        val gson: Gson = GsonBuilder()
+            .setLenient()
+            .create()
+
+        mRetrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        mRetrofitAPI = mRetrofit.create(RetrofitAPI::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -87,13 +125,13 @@ class DecorateActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Spacer(modifier = Modifier.weight(12f))
-                    val context = LocalContext.current
                     FunTextButton("저장") {
                         finish()
                     }
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
+            var segmentImageUrl by remember { mutableStateOf("") }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -101,11 +139,19 @@ class DecorateActivity : ComponentActivity() {
                     .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.character4),
-                    contentDescription = "",
-                    modifier = Modifier.fillMaxSize()
-                )
+                Text(text = segmentImageUrl)
+
+//                GlideImage(
+//                    imageModel = segmentImageUrl,
+//                    modifier = Modifier.fillMaxSize()
+//                )
+
+//                Image(
+//                    painter = painterResource(id = R.drawable.character4),
+//                    contentDescription = "",
+//                    modifier = Modifier.fillMaxSize()
+//                )
+
             }
             Column(
                 modifier = Modifier
@@ -123,11 +169,13 @@ class DecorateActivity : ComponentActivity() {
 
                 inputImage?.let { bitmap ->
 
-                    sendImageToServer(bitmap) {
+                    sendImageToServer(bitmap, {
                         responseMessage += "\n" + it
                         isLoading = false
                         inputImage = null
-                    }
+                    }, {
+                        segmentImageUrl = it
+                    })
 
                     isLoading = true
                 }
@@ -143,7 +191,8 @@ class DecorateActivity : ComponentActivity() {
 
     private fun sendImageToServer(
         bitmap: Bitmap,
-        responseEvent: (String) -> Unit
+        responseEvent: (String) -> Unit,
+        successSendToServerEvent: (String) -> Unit
     ) {
         setRetrofit() // 레트로핏 세팅
 
@@ -151,33 +200,40 @@ class DecorateActivity : ComponentActivity() {
         val requestFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), image)
         val body = MultipartBody.Part.createFormData("image", "image.png", requestFile)
 
-        mRetrofitAPI.uploadImage(body).enqueue(object : Callback<ImageResponseBody> {
+
+
+
+        mRetrofitAPI.uploadImage(body).enqueue(object : Callback<List<ImageResponseBody>> {
             override fun onResponse(
-                call: Call<ImageResponseBody>,
-                response: Response<ImageResponseBody>
+                call: Call<List<ImageResponseBody>>,
+                response: Response<List<ImageResponseBody>>
             ) {
                 if (response.isSuccessful) {
-                    val uploadResponse = response.body()
-                    if (uploadResponse != null) {
-                        responseEvent("이미지 서버 전송 성공: class_label=${uploadResponse.classLabel}, cropped_image_url=${uploadResponse.croppedImageUrl}")
+                    val responseBody = response.body()
+                    if (responseBody != null && responseBody.isNotEmpty()) {
+                        for (uploadResponse in responseBody) {
+                            responseEvent("이미지 서버 전송 성공: class_label=${uploadResponse.classLabel}, cropped_image_url=${uploadResponse.croppedImageUrl}")
+                        }
                     } else {
                         responseEvent("응답은 성공했지만 본문이 없습니다.")
                     }
                 } else {
-                    responseEvent("이미지 서버 전송 실패: ${response.errorBody()?.string()}")
+                    val errorBody = response.errorBody()?.string()
+                    responseEvent("이미지 서버 전송 실패: ${errorBody}")
                 }
             }
 
-            override fun onFailure(call: Call<ImageResponseBody>, t: Throwable) {
+            override fun onFailure(call: Call<List<ImageResponseBody>>, t: Throwable) {
                 t.printStackTrace()
                 responseEvent("이미지 서버 전송 실패: ${t.message}")
             }
         })
     }
 
-    class ImageResponseBody(
-        val classLabel: Int,
-        val croppedImageUrl: String
+
+    data class ImageResponseBody(
+        @SerializedName("class_label") val classLabel: Int,
+        @SerializedName("croppedImageUrl") val croppedImageUrl: String
     )
 
     @OptIn(ExperimentalPagerApi::class)
@@ -267,27 +323,6 @@ class DecorateActivity : ComponentActivity() {
                     imageCropLauncher.launch(cropOption)
                 }
         )
-    }
-
-    interface RetrofitAPI {
-        @Multipart
-        @POST("infer")
-        fun uploadImage(@Part image: MultipartBody.Part): Call<ImageResponseBody>
-    }
-
-    private var baseUrl = "http://192.168.45.162:8080" // 레트로핏의 기훈 주소
-//    private var baseUrl = "http://192.168.45.205:8080" // 레트로핏의 동환 주소
-
-    private lateinit var mRetrofit: Retrofit // 사용할 레트로핏 객체입니다.
-    private lateinit var mRetrofitAPI: RetrofitAPI // 레트로핏 api객체입니다.
-
-    private fun setRetrofit() {
-        mRetrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        mRetrofitAPI = mRetrofit.create(RetrofitAPI::class.java)
     }
 
     private fun bitmapToByteArray(bitmap: Bitmap): ByteArray {

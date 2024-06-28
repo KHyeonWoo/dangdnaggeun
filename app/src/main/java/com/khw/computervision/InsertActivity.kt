@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
@@ -53,7 +52,7 @@ class InsertActivity : ComponentActivity() {
                 var userID by remember {
                     mutableStateOf("")
                 }
-                userID = intent.getStringExtra("user") ?: ""
+                userID = intent.getStringExtra("userID") ?: ""
 
                 InsertScreen(userID)
             }
@@ -79,17 +78,52 @@ class InsertActivity : ComponentActivity() {
                     )
                 )
             }
-            LogoScreen("Insert") { finish() }
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .weight(1f)
             ) {
-                Spacer(modifier = Modifier.weight(1f))
+                LogoScreen("Insert") { finish() }
+                Spacer(modifier = Modifier.height(20.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Spacer(modifier = Modifier.weight(1f))
 
-                var popupVisibleState by remember { mutableStateOf(false) }
-                FunTextButton("수정") {
-                    popupVisibleState = true
+                    val coroutineScope = rememberCoroutineScope()
+                    val insertIndex = returnInsertIndex()
+                    FunTextButton("저장") {
+                        saveEvent(coroutineScope, context, userID, insertIndex, newPopupDetails)
+                        ReLoadingManager.reLoading()
+                        finish()
+                    }
                 }
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(2f)
+                    .clickable {
+                        context.startActivity(Intent(context, DecorateActivity::class.java))
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Image(
+                    painter = painterResource(id = R.drawable.character4),
+                    contentDescription = "",
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            }
+            var popupVisibleState by remember { mutableStateOf(false) }
+            Column(
+                modifier = Modifier
+                    .weight(2f)
+                    .clickable {
+                        popupVisibleState = true
+                    }
+            ) {
+                StateScreen(newPopupDetails)
 
                 if (popupVisibleState) {
                     InsertPopup(userID, newPopupDetails, {
@@ -99,27 +133,7 @@ class InsertActivity : ComponentActivity() {
                     })
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
-                val coroutineScope = rememberCoroutineScope()
-                val insertIndex = returnInsertIndex()
-                FunTextButton("저장") {
-                    saveEvent(coroutineScope, context, userID, insertIndex, newPopupDetails)
-                    DataManager.reLoading = !DataManager.reLoading
-                    finish()
-                }
             }
-            Image(
-                painter = painterResource(id = R.drawable.character4),
-                contentDescription = "",
-                modifier = Modifier
-                    .size(320.dp)
-                    .clickable {
-                        context.startActivity(Intent(context, DecorateActivity::class.java))
-                    }
-            )
-            StateScreen(newPopupDetails)
-
-            Spacer(modifier = Modifier.weight(1f))
         }
 
     }
@@ -139,6 +153,7 @@ class InsertActivity : ComponentActivity() {
                         .substring(0, 4)
         val sendMessage = hashMapOf(
             "InsertUser" to userID,
+            "name" to newPopupDetails.name,
             "date" to dateTimeNow,
             "imageUrl" to "",
             "price" to newPopupDetails.price,
@@ -165,46 +180,56 @@ class InsertActivity : ComponentActivity() {
 
     @Composable
     private fun StateScreen(newPopupDetails: PopupDetails) {
-        Divider(color = colorDang, thickness = 2.dp)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-        ) {
-            Text(text = "가격", modifier = Modifier.weight(1f), color = colorDang)
-            Text(text = " ${newPopupDetails.price}", modifier = Modifier.weight(1f))
-
-            Text(text = "거래방법", modifier = Modifier.weight(1f), color = colorDang)
-            Text(text = " ${newPopupDetails.dealMethod}", modifier = Modifier.weight(1f))
-
-            Row(
-                modifier = Modifier.weight(3f)
-            ) {
-                Spacer(modifier = Modifier.size(16.dp, 0.dp))
-                Text(text = "상태", color = colorDang)
-                Spacer(modifier = Modifier.size(16.dp, 0.dp))
-                RatingBar(
-                    value = newPopupDetails.rating,
-                    style = RatingBarStyle.Fill(),
-                    stepSize = StepSize.HALF,
-                    onValueChange = {},
-                    size = 16.dp,
-                    spaceBetween = 2.dp,
-                    onRatingChanged = {
-                        Log.d("TAG", "onRatingChanged: $it")
-                    }
-                )
-            }
-        }
-        Divider(color = colorDang, thickness = 2.dp)
-
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp)
-                .horizontalScroll(rememberScrollState())
         ) {
-            Text(text = " \n ${newPopupDetails.productDescription}")
+            Divider(color = colorDang, thickness = 2.dp)
+            Row {
+                Text(text = "제품명: ", color = colorDang)
+                Text(text = newPopupDetails.name)
+            }
+            Divider(color = colorDang, thickness = 2.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+            ) {
+                Text(text = "가격", modifier = Modifier.weight(1f), color = colorDang)
+                Text(text = " ${newPopupDetails.price}", modifier = Modifier.weight(1f))
+
+                Text(text = "거래방법", modifier = Modifier.weight(1f), color = colorDang)
+                Text(text = " ${newPopupDetails.dealMethod}", modifier = Modifier.weight(1f))
+
+                Row(
+                    modifier = Modifier.weight(3f)
+                ) {
+                    Spacer(modifier = Modifier.size(16.dp, 0.dp))
+                    Text(text = "상태", color = colorDang)
+                    Spacer(modifier = Modifier.size(16.dp, 0.dp))
+                    RatingBar(
+                        value = newPopupDetails.rating,
+                        style = RatingBarStyle.Fill(),
+                        stepSize = StepSize.HALF,
+                        onValueChange = {},
+                        size = 16.dp,
+                        spaceBetween = 2.dp,
+                        onRatingChanged = {
+                            Log.d("TAG", "onRatingChanged: $it")
+                        }
+                    )
+                }
+            }
+            Divider(color = colorDang, thickness = 2.dp)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .horizontalScroll(rememberScrollState())
+            ) {
+                Text(text = " \n ${newPopupDetails.productDescription}")
+            }
         }
     }
 }

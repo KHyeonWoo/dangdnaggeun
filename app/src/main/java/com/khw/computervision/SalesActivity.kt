@@ -45,7 +45,7 @@ class SalesActivity : ComponentActivity() {
             var userID by remember {
                 mutableStateOf("")
             }
-            userID = intent.getStringExtra("user") ?: ""
+            userID = intent.getStringExtra("userID") ?: ""
 
             ComputerVisionTheme {
                 SaleScreen(userID)
@@ -108,10 +108,9 @@ class SalesActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                FunTextButton("현재 판매하는 제품이에요") {
-                }
+                FunTextButton("현재 판매하는 제품이에요") {}
             }
-            ImageList(userID)
+            ImageList(userID, ReLoadingManager.reLoadingValue.value)
 
             Spacer(modifier = Modifier.weight(1f))
             Row(
@@ -121,7 +120,7 @@ class SalesActivity : ComponentActivity() {
                 Spacer(modifier = Modifier.weight(1f))
                 FunTextButton("+ 글쓰기") {
                     val userIntent = Intent(context, InsertActivity::class.java)
-                    userIntent.putExtra("user", userID)
+                    userIntent.putExtra("userID", userID)
                     context.startActivity(userIntent)
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -142,10 +141,10 @@ class SalesActivity : ComponentActivity() {
 
 
     @Composable
-    fun ImageList(userID: String) {
+    fun ImageList(userID: String, reLoading: Boolean) {
         // rememberSaveable로 상태를 저장하고 복원할 수 있도록 합니다.
-        var productMap: Map<String, Map<String, String>> by remember{ mutableStateOf(emptyMap()) }
-        GetProduct(DataManager.reLoading) { productMap = it }
+        var productMap: Map<String, Map<String, String>> by remember { mutableStateOf(emptyMap()) }
+        GetProduct(reLoading) { productMap = it }
 
         val context = LocalContext.current
         Column(
@@ -184,7 +183,7 @@ class SalesActivity : ComponentActivity() {
                 .padding(20.dp)
                 .clickable {
                     val userIntent = Intent(context, DetailActivity::class.java)
-                    userIntent.putExtra("user", userID)
+                    userIntent.putExtra("userID", userID)
                     context.startActivity(userIntent)
                 }
         )

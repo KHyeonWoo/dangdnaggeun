@@ -1,7 +1,9 @@
 package com.khw.computervision
 
+import android.content.ContentValues
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -13,6 +15,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -33,8 +37,13 @@ import com.google.firebase.ktx.Firebase
 val colorDang = Color(0xFFF3BB66)
 
 // 싱글톤 클래스 정의
-object DataManager {
-    var reLoading: Boolean = false
+object ReLoadingManager {
+    var reLoadingValue: MutableState<Boolean> =
+        mutableStateOf(false)
+
+    fun reLoading() {
+        reLoadingValue.value = !reLoadingValue.value
+    }
 }
 
 @Composable
@@ -81,6 +90,10 @@ fun LogoScreen(activityName: String, goBack: () -> Unit) {
 
             "UserProfile" -> {
                 TextBox("우리 당당하게 확인해요")
+            }
+
+            "MyUploaded" -> {
+                TextBox("나의 게시글을 확인해요")
             }
         }
     }
@@ -201,36 +214,37 @@ fun getMessage(userID: String): Map<String, String> {
 }
 
 @Composable
-fun GetProduct(reloading: Boolean, getProductEvent: (Map<String, Map<String, String>>) -> Unit) {
-        val context = LocalContext.current
+fun GetProduct(reLoading: Boolean, getProductEvent: (Map<String, Map<String, String>>) -> Unit) {
+    val context = LocalContext.current
 
-        // LaunchedEffect로 비동기 작업을 처리합니다.
-        LaunchedEffect(reloading) {
-            Firebase.firestore.collection("product")
-                .get()
-                .addOnSuccessListener { result ->
-                    // 데이터 가져오기가 성공하면, 문서 ID와 필드들을 맵으로 만듭니다.
-                    val newProductMap = result.documents.associate { document ->
-                        val fields = mapOf(
-                            "InsertUser" to (document.getString("InsertUser") ?: ""),
-                            "date" to (document.getString("date") ?: ""),
-                            "dealMethod" to (document.getString("dealMethod") ?: ""),
-                            "imageUrl" to (document.getString("imageUrl") ?: ""),
-                            "price" to (document.get("price")?.toString() ?: ""),
-                            "productDescription" to (document.getString("productDescription")
-                                ?: ""),
-                            "rating" to (document.get("rating")?.toString() ?: ""),
-                            "state" to (document.get("state")?.toString() ?: ""),
-                        )
-                        document.id to fields
-                    }
-                    getProductEvent(newProductMap)
+    // LaunchedEffect로 비동기 작업을 처리합니다.
+    LaunchedEffect(reLoading) {
+        Firebase.firestore.collection("product")
+            .get()
+            .addOnSuccessListener { result ->
+                // 데이터 가져오기가 성공하면, 문서 ID와 필드들을 맵으로 만듭니다.
+                val newProductMap = result.documents.associate { document ->
+                    val fields = mapOf(
+                        "InsertUser" to (document.getString("InsertUser") ?: ""),
+                        "name" to (document.getString("name") ?: ""),
+                        "date" to (document.getString("date") ?: ""),
+                        "dealMethod" to (document.getString("dealMethod") ?: ""),
+                        "imageUrl" to (document.getString("imageUrl") ?: ""),
+                        "price" to (document.get("price")?.toString() ?: ""),
+                        "productDescription" to (document.getString("productDescription")
+                            ?: ""),
+                        "rating" to (document.get("rating")?.toString() ?: ""),
+                        "state" to (document.get("state")?.toString() ?: ""),
+                    )
+                    document.id to fields
                 }
-                .addOnFailureListener { exception ->
-                    // 데이터 가져오기가 실패하면, 에러 메시지를 토스트로 보여줍니다.
-                    Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
-                }
-        }
+                getProductEvent(newProductMap)
+            }
+            .addOnFailureListener { exception ->
+                // 데이터 가져오기가 실패하면, 에러 메시지를 토스트로 보여줍니다.
+                Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
+            }
+    }
 }
 
 
@@ -250,4 +264,13 @@ fun bundleToMap(bundle: Bundle): Map<String, String> {
         map[key] = bundle.getString(key).orEmpty()
     }
     return map
+}
+
+fun deleteFirestoreData(collectionName: String, documentId: String, successEvent: () -> Unit) {
+    Firebase.firestore.collection(collectionName).document(documentId)
+        .delete()
+        .addOnSuccessListener {
+            successEvent()
+        }
+        .addOnFailureListener { e -> Log.w(ContentValues.TAG, "Error deleting document", e) }
 }
