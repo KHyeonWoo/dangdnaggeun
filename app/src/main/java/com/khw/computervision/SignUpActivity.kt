@@ -146,7 +146,7 @@ class SignUpActivity : ComponentActivity() {
                 }
                 
                 Spacer(modifier = Modifier.weight(0.8f))
-                //20240701 하승수 - 회원가입에서 뒤로가기 버튼 추가
+
                 FunTextButton(buttonText = "뒤로") {
                     finish()
                 }
