@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -164,6 +165,17 @@ fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
     }
 }
 
+@Composable
+fun FunTextButton_SignUp(buttonText: String, clickEvent: () -> Unit) {
+    TextButton(
+        onClick = { clickEvent() },
+        colors = ButtonDefaults.buttonColors(
+            Color.White
+        )
+    ) {
+        Text(text = buttonText, color = colorDang)
+    }
+}
 
 @Composable
 fun returnMessageIndex(userID: String): Int {

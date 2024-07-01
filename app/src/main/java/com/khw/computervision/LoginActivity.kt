@@ -63,9 +63,8 @@ class LoginActivity : ComponentActivity() {
             Image(
                 painter = gifImageDecode(R.raw.dangkki),
                 contentDescription = "mascot",
-                modifier = Modifier.size(280.dp)
+                modifier = Modifier.size(260.dp)
             )
-            Spacer(modifier = Modifier.height(20.dp))
 
             var userID by remember { mutableStateOf("dangdanggeun@intel.com") }
             OutlinedTextField(
@@ -76,7 +75,8 @@ class LoginActivity : ComponentActivity() {
                     unfocusedBorderColor = colorDang,
                 ),
                 textStyle = TextStyle(color = Color.Black),
-                label = { Text(text = "EMAIL", color = colorDang) }
+                label = { Text(text = "EMAIL", color = colorDang) },
+                modifier = Modifier.size(210.dp, 60.dp)
             )
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -90,54 +90,51 @@ class LoginActivity : ComponentActivity() {
                 ),
                 textStyle = TextStyle(color = Color.Black),
                 label = { Text(text = "PASSWORD", color = colorDang) },
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.size(210.dp, 60.dp)
             )
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(30.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                val context = LocalContext.current
-                FunTextButton("로그인") {
-                    auth = Firebase.auth
-                    if (userID.isEmpty() || userPassword.isEmpty()) {
+            val context = LocalContext.current
+            FunTextButton("로그인") {
+                auth = Firebase.auth
+                if (userID.isEmpty() || userPassword.isEmpty()) {
 
-                        Toast.makeText(
-                            baseContext,
-                            "이메일 / 비밀번호를 입력하세요",
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    } else {
-                        auth.signInWithEmailAndPassword(userID, userPassword)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    // Sign in success, update UI with the signed-in user's information
-                                    Log.d(ContentValues.TAG, "signInWithEmail:success")
-                                    val user = auth.currentUser
-                                    val userIntent = Intent(context, SalesActivity::class.java)
-                                    if (user != null) {
-                                        userIntent.putExtra("userID", userID)
-                                    }
-                                    context.startActivity(userIntent)
-                                } else {
-                                    // If sign in fails, display a message to the user.
-                                    Log.w(ContentValues.TAG, "signInWithEmail:failure", task.exception)
-
-                                    Toast.makeText(
-                                        baseContext,
-                                        task.exception.toString(),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                    Toast.makeText(
+                        baseContext,
+                        "이메일 / 비밀번호를 입력하세요",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                } else {
+                    auth.signInWithEmailAndPassword(userID, userPassword)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                // Sign in success, update UI with the signed-in user's information
+                                Log.d(ContentValues.TAG, "signInWithEmail:success")
+                                val user = auth.currentUser
+                                val userIntent = Intent(context, SalesActivity::class.java)
+                                if (user != null) {
+                                    userIntent.putExtra("userID", userID)
                                 }
+                                context.startActivity(userIntent)
+                            } else {
+                                // If sign in fails, display a message to the user.
+                                Log.w(ContentValues.TAG, "signInWithEmail:failure", task.exception)
+
+                                Toast.makeText(
+                                    baseContext,
+                                    task.exception.toString(),
+                                    Toast.LENGTH_SHORT,
+                                ).show()
                             }
-                    }
-                }
-                Spacer(modifier = Modifier.padding(20.dp))
-                FunTextButton("회원가입") {
-                    context.startActivity(Intent(context, SignUpActivity::class.java))
+                        }
                 }
             }
+            Spacer(modifier = Modifier.padding(8.dp))
+            FunTextButton_SignUp("회원가입") {
+                context.startActivity(Intent(context, SignUpActivity::class.java))
+            }
+
             Spacer(modifier = Modifier.weight(1f))
         }
     }
