@@ -100,26 +100,20 @@ class DecorateActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-
-                var changedUri by remember {
-                    mutableStateOf("")
-                }
-                changedUri = intent.getStringExtra("clickedUri") ?: ""
-
-                DecorateScreen(changedUri)
+                DecorateScreen()
             }
         }
     }
 
     @Composable
-    fun DecorateScreen(changedUri: String) {
+    fun DecorateScreen() {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
 
             var uploadTrigger by remember { mutableStateOf(false) }
             var clickedRef by remember { mutableStateOf<StorageReference?>(null) }
-            var clickedUri by remember { mutableStateOf<String?>(changedUri) }
+            var clickedUri by remember { mutableStateOf<String?>(null) }
             var uploadServerResult by remember { mutableStateOf("") }
             Column(
                 modifier = Modifier

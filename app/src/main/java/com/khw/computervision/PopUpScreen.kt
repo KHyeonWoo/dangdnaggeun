@@ -59,6 +59,7 @@ import java.time.LocalDateTime
 @Composable
 fun ProfilePopup(
     profileUri: String?,
+    userID: String,
     close: () -> Unit,
     successUpload: () -> Unit
 ) {
@@ -81,20 +82,21 @@ fun ProfilePopup(
                 ProfileImage(profileUri) { inputImage = it }
 
                 inputImage?.let { bitmap ->
-                    uploadBitmapImage(context, bitmap, "profile.jpg", {
+                    uploadBitmapImage(context, bitmap, userID, "profile.jpg", {
                         successUpload()
                     }, {
                         inputImage = null
                     })
                 }
-                Text(text = UserIDManager.userID.value)
+                Text(text = userID)
                 Spacer(modifier = Modifier.weight(2f))
 
-                val messageMap = getMessage()
+                val messageMap = getMessage(userID)
 
                 FunTextButton("내가 올린 제품") {
-                    context.startActivity(Intent(context, MyUploadedActivity::class.java))
-                }
+                    val productIntent = Intent(context, MyUploadedActivity::class.java)
+                    productIntent.putExtra("userID", userID)
+                    context.startActivity(productIntent) }
                 FunTextButton("내가 판매한 제품") { }
                 FunTextButton("내게 온 메세지 : ${messageMap.size}") {
                     val userIntent = Intent(context, MessageListActivity::class.java)
@@ -104,7 +106,6 @@ fun ProfilePopup(
                 Spacer(modifier = Modifier.weight(1f))
                 FunTextButton("로그아웃") {
                     context.startActivity(Intent(context, LoginActivity::class.java))
-                    UserIDManager.userID.value = ""
                 }
             }
         },
@@ -119,12 +120,13 @@ fun ProfilePopup(
 fun uploadBitmapImage(
     context: Context,
     bitmap: Bitmap,
+    user: String,
     pathName: String,
     successUpload: () -> Unit,
     inputImageNullEvent: () -> Unit
 ) {
 
-    val mountainsRef = Firebase.storage.reference.child("${UserIDManager.userID.value}/$pathName")
+    val mountainsRef = Firebase.storage.reference.child("$user/$pathName")
 
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
@@ -192,6 +194,7 @@ fun ProfileImage(profileUri: String?, setInputImage: (Bitmap) -> Unit) {
 
 @Composable
 fun MessagePopup(
+    userID: String,
     receiveUser: String,
     returnMessageIndex: Int,
     close: () -> Unit
@@ -238,7 +241,7 @@ fun MessagePopup(
                         LocalDateTime.now().toLocalTime().toString().replace(":", "")
                             .substring(0, 4)
                 val sendMessage = hashMapOf(
-                    "sendUser" to UserIDManager.userID.value,
+                    "sendUser" to userID,
                     "date" to dateTimeNow,
                     "message" to message,
                     "read" to "false"
@@ -284,6 +287,7 @@ data class PopupDetails(
 
 @Composable
 fun InsertPopup(
+    userID: String,
     newPopupDetails: PopupDetails,
     saveData: (PopupDetails) -> Unit,
     close: () -> Unit
@@ -387,7 +391,7 @@ fun InsertPopup(
             Button(onClick = {
                 saveData(
                     PopupDetails(
-                        UserIDManager.userID.value,
+                        userID,
                         name,
                         imageUri,
                         price.toInt(),

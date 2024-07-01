@@ -91,6 +91,10 @@ fun LogoScreen(activityName: String, goBack: () -> Unit) {
                 TextBox("우리 당당하게 팔아요")
             }
 
+            "SignUp" -> {
+                TextBox("모두 당당하게 가입하세요") //20240701 하승수 - 회원가입 페이지 추가
+            }
+
             "Sales" -> {
                 TextBox("우리 당당하게 보여줘요")
             }
@@ -155,8 +159,9 @@ fun gifImageDecode(name: Int): AsyncImagePainter {
     return painter
 }
 
+//20240701 하승수 - fun 이름 FunTextButton에서 FunButton으로 변경 (button 함수)
 @Composable
-fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
+fun FunButton(buttonText: String, clickEvent: () -> Unit) {
     Button(
         onClick = { clickEvent() },
         colors = ButtonDefaults.buttonColors(
@@ -167,8 +172,9 @@ fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
     }
 }
 
+//20240701 하승수 - textbutton 추가 (textbutton 함수)
 @Composable
-fun FunTextButton_SignUp(buttonText: String, clickEvent: () -> Unit) {
+fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
     TextButton(
         onClick = { clickEvent() },
         colors = ButtonDefaults.buttonColors(

@@ -72,7 +72,6 @@ class InsertActivity : ComponentActivity() {
                     PopupDetails(
                         UserIDManager.userID.value,
                         "",
-                        clickedUri,
                         0,
                         "",
                         0f,
@@ -105,9 +104,7 @@ class InsertActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .weight(2f)
                     .clickable {
-                        val userIntent = Intent(context, DecorateActivity::class.java)
-                        userIntent.putExtra("clickedUri", clickedUri)
-                        context.startActivity(userIntent)
+                        context.startActivity(Intent(context, DecorateActivity::class.java))
                     },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
