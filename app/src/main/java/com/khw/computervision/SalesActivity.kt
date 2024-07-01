@@ -108,7 +108,7 @@ class SalesActivity : ComponentActivity() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                FunTextButton("현재 판매하는 제품이에요") {}
+                FunButton("현재 판매하는 제품이에요") {}
             }
             ImageList(userID, ReLoadingManager.reLoadingValue.value)
 
@@ -118,7 +118,7 @@ class SalesActivity : ComponentActivity() {
                 horizontalArrangement = Arrangement.Center
             ) {
                 Spacer(modifier = Modifier.weight(1f))
-                FunTextButton("+ 글쓰기") {
+                FunButton("+ 글쓰기") {
                     val userIntent = Intent(context, InsertActivity::class.java)
                     userIntent.putExtra("userID", userID)
                     context.startActivity(userIntent)

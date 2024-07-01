@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -46,6 +48,7 @@ class SignUpActivity : ComponentActivity() {
         }
     }
 
+
     @Composable
     fun SignUpScreen() {
         Column(
@@ -55,14 +58,19 @@ class SignUpActivity : ComponentActivity() {
         ) {
             Spacer(modifier = Modifier.weight(1f))
             val context = LocalContext.current
-            LogoScreen("Login") { finish() }
+            LogoScreen("SignUp") { finish() }
 
-            Image(
-                painter = gifImageDecode(R.raw.dangkki),
-                contentDescription = "mascot",
-                modifier = Modifier.size(280.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row (modifier = Modifier.fillMaxWidth()){
+                Spacer(modifier = Modifier.weight(.4f))
+                Text(
+                    text = "*필수 입력 사항",
+                    fontSize = 15.sp,
+                    color = Color.Red
+                )
+                Spacer(modifier = Modifier.weight(1f))
+            }
 
             var userID by remember { mutableStateOf("") }
             OutlinedTextField(
@@ -73,7 +81,8 @@ class SignUpActivity : ComponentActivity() {
                     unfocusedBorderColor = colorDang,
                 ),
                 textStyle = TextStyle(color = Color.Black),
-                label = { Text(text = "EMAIL", color = colorDang) }
+                label = { Text(text = "EMAIL", color = colorDang) },
+                modifier = Modifier.size(210.dp, 60.dp)
             )
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -87,15 +96,17 @@ class SignUpActivity : ComponentActivity() {
                 ),
                 textStyle = TextStyle(color = Color.Black),
                 label = { Text(text = "PASSWORD", color = colorDang) },
-                visualTransformation = PasswordVisualTransformation()
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.size(210.dp, 60.dp)
             )
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.weight(.5f))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                FunTextButton("회원가입") {
+                Spacer(modifier = Modifier.weight(1f))
+                FunButton("가입하기") {
                     auth = Firebase.auth
                     if (userID.isEmpty() || userPassword.isEmpty()) {
 
@@ -133,8 +144,15 @@ class SignUpActivity : ComponentActivity() {
 
                     }
                 }
+                
+                Spacer(modifier = Modifier.weight(0.8f))
+                //20240701 하승수 - 회원가입에서 뒤로가기 버튼 추가
+                FunTextButton(buttonText = "뒤로") {
+                    finish()
+                }
+                Spacer(modifier = Modifier.weight(1f))
             }
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(2f))
         }
     }
 }

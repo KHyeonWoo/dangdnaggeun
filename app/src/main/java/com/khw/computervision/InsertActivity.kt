@@ -91,7 +91,7 @@ class InsertActivity : ComponentActivity() {
 
                     val coroutineScope = rememberCoroutineScope()
                     val insertIndex = returnInsertIndex()
-                    FunTextButton("저장") {
+                    FunButton("저장") {
                         saveEvent(coroutineScope, context, userID, insertIndex, newPopupDetails)
                         ReLoadingManager.reLoading()
                         finish()

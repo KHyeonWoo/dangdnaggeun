@@ -11,10 +11,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -96,7 +94,7 @@ class LoginActivity : ComponentActivity() {
             Spacer(modifier = Modifier.height(30.dp))
 
             val context = LocalContext.current
-            FunTextButton("로그인") {
+            FunButton("로그인") {
                 auth = Firebase.auth
                 if (userID.isEmpty() || userPassword.isEmpty()) {
 
@@ -131,7 +129,7 @@ class LoginActivity : ComponentActivity() {
                 }
             }
             Spacer(modifier = Modifier.padding(8.dp))
-            FunTextButton_SignUp("회원가입") {
+            FunTextButton("회원가입") {
                 context.startActivity(Intent(context, SignUpActivity::class.java))
             }
 

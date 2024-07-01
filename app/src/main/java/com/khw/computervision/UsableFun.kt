@@ -22,13 +22,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -87,6 +84,10 @@ fun LogoScreen(activityName: String, goBack: () -> Unit) {
         when (activityName) {
             "Login" -> {
                 TextBox("우리 당당하게 팔아요")
+            }
+
+            "SignUp" -> {
+                TextBox("모두 당당하게 가입하세요") //20240701 하승수 - 회원가입 페이지 추가
             }
 
             "Sales" -> {
@@ -153,8 +154,9 @@ fun gifImageDecode(name: Int): AsyncImagePainter {
     return painter
 }
 
+//20240701 하승수 - fun 이름 FunTextButton에서 FunButton으로 변경 (button 함수)
 @Composable
-fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
+fun FunButton(buttonText: String, clickEvent: () -> Unit) {
     Button(
         onClick = { clickEvent() },
         colors = ButtonDefaults.buttonColors(
@@ -165,8 +167,9 @@ fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
     }
 }
 
+//20240701 하승수 - textbutton 추가 (textbutton 함수)
 @Composable
-fun FunTextButton_SignUp(buttonText: String, clickEvent: () -> Unit) {
+fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
     TextButton(
         onClick = { clickEvent() },
         colors = ButtonDefaults.buttonColors(
