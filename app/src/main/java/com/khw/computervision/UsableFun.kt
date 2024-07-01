@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.ImageLoader
@@ -60,6 +62,7 @@ object ReLoadingManager {
         reLoadingValue.value = !reLoadingValue.value
     }
 }
+
 object UserIDManager {
     var userID: MutableState<String> =
         mutableStateOf("")
@@ -161,13 +164,14 @@ fun gifImageDecode(name: Int): AsyncImagePainter {
 
 //20240701 하승수 - fun 이름 FunTextButton에서 FunButton으로 변경 (button 함수)
 @Composable
-fun FunButton(buttonText: String, clickEvent: () -> Unit) {
+fun FunButton(buttonText: String, image: Int?, clickEvent: () -> Unit) {
     Button(
         onClick = { clickEvent() },
         colors = ButtonDefaults.buttonColors(
             colorDang
         )
     ) {
+        image?.let { Image(painter = painterResource(id = it), contentDescription = "icon") }
         Text(text = buttonText, color = Color.White)
     }
 }
@@ -330,7 +334,8 @@ fun ImageGrid(
             downloadTasks.forEach { it.await() }
 
             // 정렬 로직 추가
-            val sortedItems = itemsRef.zip(itemsUri).sortedBy { it.first.name } // 여기서 name을 기준으로 정렬합니다.
+            val sortedItems =
+                itemsRef.zip(itemsUri).sortedBy { it.first.name } // 여기서 name을 기준으로 정렬합니다.
             itemsRef.clear()
             itemsUri.clear()
             sortedItems.forEach {

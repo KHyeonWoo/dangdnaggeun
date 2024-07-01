@@ -94,7 +94,7 @@ class LoginActivity : ComponentActivity() {
             Spacer(modifier = Modifier.height(30.dp))
 
             val context = LocalContext.current
-            FunButton("로그인") {
+            FunButton("로그인", null) {
                 auth = Firebase.auth
                 if (userID.isEmpty() || userPassword.isEmpty()) {
 

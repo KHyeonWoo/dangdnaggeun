@@ -52,7 +52,6 @@ class MyUploadedActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-
                 MyUploadedScreen(ReLoadingManager.reLoadingValue.value)
             }
         }
