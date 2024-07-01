@@ -1,7 +1,6 @@
 package com.khw.computervision
 
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
@@ -16,12 +15,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,11 +44,7 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.annotations.SerializedName
+import com.google.firebase.storage.StorageReference
 import com.khw.computervision.ui.theme.ComputerVisionTheme
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
@@ -57,6 +52,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -65,46 +61,38 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.PartMap
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.TimeUnit
 
 class DecorateActivity : ComponentActivity() {
 
-    interface RetrofitAPI {
+    interface ApiService {
         @Multipart
-        @POST("infer")
-        fun uploadImage(@Part image: MultipartBody.Part): Call<List<ImageResponseBody>>
+        @POST("/infer")
+        fun uploadImage(
+            @Part image: MultipartBody.Part,
+            @PartMap data: Map<String, @JvmSuppressWildcards RequestBody>
+        ): Call<ResponseBody>
     }
 
-    private var baseUrl = "http://192.168.45.162:8080" // 레트로핏의 기훈 주소
-//    private var baseUrl = "http://192.168.45.205:8080" // 레트로핏의 동환 주소
+    object RetrofitClient {
+        private const val BASE_URL = "http://192.168.45.140:8080/"
 
-    private lateinit var mRetrofit: Retrofit // 사용할 레트로핏 객체입니다.
-    private lateinit var mRetrofitAPI: RetrofitAPI // 레트로핏 api객체입니다.
-
-    //지울 내용들
-    data class ServerResponse(
-        @SerializedName("predictions") val predictions: List<ImageResponseBody>
-    )
-    private fun setRetrofit() {
-        //지울 내용들
-        val okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS) // 연결 타임아웃
-            .readTimeout(30, TimeUnit.SECONDS) // 읽기 타임아웃
-            .writeTimeout(30, TimeUnit.SECONDS) // 쓰기 타임아웃
+        private val client = OkHttpClient.Builder()
+            .readTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)
             .build()
 
-        val gson: Gson = GsonBuilder()
-            .setLenient()
-            .create()
+        val instance: ApiService by lazy {
+            val retrofit = Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
 
-        mRetrofit = Retrofit.Builder()
-            .baseUrl(baseUrl)
-            .client(okHttpClient) //지울 내용들
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-
-        mRetrofitAPI = mRetrofit.create(RetrofitAPI::class.java)
+            retrofit.create(ApiService::class.java)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -144,7 +132,9 @@ class DecorateActivity : ComponentActivity() {
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
-            var segmentImageUrl by remember { mutableStateOf("") }
+            var uploadTrigger by remember { mutableStateOf(false) }
+            var clickedRef by remember { mutableStateOf<StorageReference?>(null) }
+            var clickedUri by remember { mutableStateOf<String?>(null) }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -153,17 +143,13 @@ class DecorateActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                GlideImage(
-                    imageModel = segmentImageUrl,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-
-//                Image(
-//                    painter = painterResource(id = R.drawable.character4),
-//                    contentDescription = "",
-//                    modifier = Modifier.fillMaxSize()
-//                )
+                clickedUri?.let {
+                    GlideImage(
+                        imageModel = it,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
 
             }
             Column(
@@ -178,26 +164,22 @@ class DecorateActivity : ComponentActivity() {
                 })
 
                 var isLoading by remember { mutableStateOf(false) }
-                var responseMessage by remember { mutableStateOf("") }
 
                 inputImage?.let { bitmap ->
 
-                    sendImageToServer(userID, bitmap, {
-                        responseMessage = it
-                        isLoading = false
+                    sendImageToServer(userID, bitmap) {
+                        uploadTrigger = !uploadTrigger
                         inputImage = null
-                    }, {
-                        segmentImageUrl = it
-                    })
+                        isLoading = false
+                    }
 
                     isLoading = true
                 }
-
-                Text(text = responseMessage)
-                if (isLoading) {
-                    CircularProgressIndicator()
+                CustomTabRow(userID, uploadTrigger, isLoading)
+                { onClickedRef: StorageReference, onClickedUri: String ->
+                    clickedRef = onClickedRef
+                    clickedUri = onClickedUri
                 }
-                CustomTabRow()
             }
         }
     }
@@ -205,56 +187,46 @@ class DecorateActivity : ComponentActivity() {
     private fun sendImageToServer(
         userID: String,
         bitmap: Bitmap,
-        responseEvent: (String) -> Unit,
-        successSendToServerEvent: (String) -> Unit
+        successEvent: () -> Unit
     ) {
-        setRetrofit() // 레트로핏 세팅
 
         val image = bitmapToByteArray(bitmap) // 실제 이미지 파일 경로
-        val requestFile = RequestBody.create("image/jpeg".toMediaTypeOrNull(), image)
-        val body = MultipartBody.Part.createFormData("image", "$userID.png", requestFile)
+        val requestFile = RequestBody.create("image/*".toMediaTypeOrNull(), image)
+        val imagePart = MultipartBody.Part.createFormData("image", "$userID.png", requestFile)
+        val userIdPart = RequestBody.create("text/plain".toMediaTypeOrNull(), userID)
 
-        mRetrofitAPI.uploadImage(body).enqueue(object : Callback<List<ImageResponseBody>> {
-            override fun onResponse(
-                call: Call<List<ImageResponseBody>>,
-                response: Response<List<ImageResponseBody>>
-            ) {
-                if (response.isSuccessful) {
-                    val responseBody = response.body()
-                    if (!responseBody.isNullOrEmpty()) {
-                        for (uploadResponse in responseBody) {
-                            responseEvent("이미지 서버 전송 성공: class_label=${uploadResponse.classLabel}, cropped_image_url=${uploadResponse.croppedImageUrl}")
-                            if(uploadResponse.classLabel == 0) {
-                                successSendToServerEvent(uploadResponse.croppedImageUrl)
-                            } else if (uploadResponse.classLabel == 1) {
-                                successSendToServerEvent(uploadResponse.croppedImageUrl)
-                            }
-                        }
+
+        val dataMap = mapOf("userID" to userIdPart)
+
+        RetrofitClient.instance.uploadImage(imagePart, dataMap)
+            .enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(
+                    call: Call<ResponseBody>,
+                    response: Response<ResponseBody>
+                ) {
+                    if (response.isSuccessful) {
+                        successEvent()
                     } else {
-                        responseEvent("응답은 성공했지만 본문이 없습니다.")
+                        println("요청이 실패했습니다. 상태 코드: ${response.code()}")
+                        println("에러 메시지: ${response.errorBody()?.string()}")
                     }
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    responseEvent("이미지 서버 전송 실패: $errorBody")
                 }
-            }
 
-            override fun onFailure(call: Call<List<ImageResponseBody>>, t: Throwable) {
-                t.printStackTrace()
-                responseEvent("이미지 서버 전송 실패: ${t.message}")
-            }
-        })
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    println("요청이 실패했습니다: ${t.message}")
+                }
+            })
     }
 
 
-    data class ImageResponseBody(
-        @SerializedName("class_label") val classLabel: Int,
-        @SerializedName("croppedImageUrl") val croppedImageUrl: String
-    )
-
     @OptIn(ExperimentalPagerApi::class)
     @Composable
-    private fun CustomTabRow() {
+    private fun CustomTabRow(
+        userID: String,
+        uploadTrigger: Boolean,
+        isLoading: Boolean,
+        onImageClick: (StorageReference, String) -> Unit
+    ) {
         val pages = listOf("상의", "하의")
         val pagerState = rememberPagerState()
         val coroutineScope = rememberCoroutineScope()
@@ -272,14 +244,23 @@ class DecorateActivity : ComponentActivity() {
             pages.forEachIndexed { index, title ->
                 Tab(
                     text = {
-                        Text(
-                            text = title,
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            modifier = Modifier
-                                .background(colorDang)
-                                .size(48.dp, 28.dp)
-                        )
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    pagerState.scrollToPage(index)
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                contentColor = colorDang,
+                                containerColor = colorDang
+                            )
+                        ) {
+                            Text(
+                                text = title,
+                                color = Color.White,
+                                fontSize = 20.sp,
+                            )
+                        }
                     },
                     selected = pagerState.currentPage == index,
                     onClick = {
@@ -294,12 +275,28 @@ class DecorateActivity : ComponentActivity() {
             count = pages.size,
             state = pagerState,
         ) { page ->
-            Text(
-                modifier = Modifier.wrapContentSize(),
-                text = page.toString(),
-                textAlign = TextAlign.Center,
-                fontSize = 30.sp
-            )
+//                  loading 이미지
+            if (isLoading) {
+                CircularProgressIndicator()
+            } else {
+                if (page.toString() == "0") {
+
+                    ImageGrid(
+                        userID = userID,
+                        category = "top",
+                        successUpload = uploadTrigger,
+                        onImageClick = onImageClick
+                    )
+                } else if (page.toString() == "1") {
+                    ImageGrid(
+                        userID = userID,
+                        category = "bottom",
+                        successUpload = uploadTrigger,
+                        onImageClick = onImageClick
+                    )
+                }
+            }
+
         }
 
     }

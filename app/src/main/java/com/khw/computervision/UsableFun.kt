@@ -1,28 +1,37 @@
 package com.khw.computervision
 
 import android.content.ContentValues
-import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,13 +43,12 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
+import com.google.firebase.storage.ktx.storage
+import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.tasks.await
 
 val colorDang = Color(0xFFF3BB66)
 
@@ -281,4 +289,70 @@ fun deleteFirestoreData(collectionName: String, documentId: String, successEvent
             successEvent()
         }
         .addOnFailureListener { e -> Log.w(ContentValues.TAG, "Error deleting document", e) }
+}
+
+
+@Composable
+fun ImageGrid(
+    userID: String,
+    category: String,
+    successUpload: Boolean,
+    onImageClick: (StorageReference, String) -> Unit
+) {
+    val userRef = Firebase.storage.reference.child(userID)
+    val storageRef = userRef.child(category)
+    val itemsRef = remember { mutableStateListOf<StorageReference>() }
+    val itemsUri = remember { mutableStateListOf<String>() }
+
+
+    LaunchedEffect(successUpload) {
+        itemsRef.clear()
+        itemsUri.clear()
+
+        coroutineScope {
+
+            val listResult = storageRef.listAll().await()
+
+            val downloadTasks = listResult.items.map { clothRef ->
+                async {
+                    try {
+                        val uri = clothRef.downloadUrl.await().toString()
+                        itemsRef.add(clothRef)
+                        itemsUri.add(uri)
+                    } catch (e: Exception) {
+                        // Handle exceptions if needed
+                    }
+                }
+            }
+            downloadTasks.forEach { it.await() }
+        }
+    }
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(top = 4.dp, start = 2.dp)
+    ) {
+        (itemsRef zip itemsUri).chunked(5).forEach { item ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                item.forEach {
+                    Column {
+                        GlideImage(
+                            imageModel = it.second,
+                            contentDescription = "Image",
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clickable {
+                                    onImageClick(it.first, it.second)
+                                },
+                            contentScale = ContentScale.FillBounds
+                        )
+                    }
+                }
+            }
+        }
+
+        if (itemsUri.isEmpty()) {
+            Text(text = "Loading image...", modifier = Modifier.padding(16.dp))
+        }
+    }
 }
