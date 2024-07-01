@@ -275,6 +275,7 @@ fun MessagePopup(
 data class PopupDetails(
     val userID: String,
     val name: String = "",
+    val imageUri: String = "",
     val price: Int = 0,
     val dealMethod: String = "",
     val rating: Float = 0f,
@@ -288,6 +289,7 @@ fun InsertPopup(
     close: () -> Unit
 ) {
     var name: String by remember { mutableStateOf(newPopupDetails.name) }
+    val imageUri: String by remember { mutableStateOf(newPopupDetails.imageUri) }
     var price: String by remember { mutableStateOf(newPopupDetails.price.toString()) }
     var dealMethod: String by remember { mutableStateOf(newPopupDetails.dealMethod) }
     var rating: Float by remember { mutableFloatStateOf(newPopupDetails.rating) }
@@ -387,6 +389,7 @@ fun InsertPopup(
                     PopupDetails(
                         UserIDManager.userID.value,
                         name,
+                        imageUri,
                         price.toInt(),
                         dealMethod,
                         rating,
