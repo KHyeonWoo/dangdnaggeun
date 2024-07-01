@@ -126,7 +126,7 @@ class DecorateActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Spacer(modifier = Modifier.weight(12f))
-                    FunButton("저장") {
+                    FunTextButton("저장") {
                         finish()
                     }
                     Spacer(modifier = Modifier.weight(1f))

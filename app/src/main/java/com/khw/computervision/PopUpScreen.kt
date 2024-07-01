@@ -93,18 +93,18 @@ fun ProfilePopup(
 
                 val messageMap = getMessage(userID)
 
-                FunButton("내가 올린 제품") {
+                FunTextButton("내가 올린 제품") {
                     val productIntent = Intent(context, MyUploadedActivity::class.java)
                     productIntent.putExtra("userID", userID)
                     context.startActivity(productIntent) }
-                FunButton("내가 판매한 제품") { }
-                FunButton("내게 온 메세지 : ${messageMap.size}") {
+                FunTextButton("내가 판매한 제품") { }
+                FunTextButton("내게 온 메세지 : ${messageMap.size}") {
                     val userIntent = Intent(context, MessageListActivity::class.java)
                     userIntent.putExtra("messageList", mapToBundle(messageMap))
                     context.startActivity(userIntent)
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                FunButton("로그아웃") {
+                FunTextButton("로그아웃") {
                     context.startActivity(Intent(context, LoginActivity::class.java))
                 }
             }

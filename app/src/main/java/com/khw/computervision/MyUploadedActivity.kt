@@ -52,18 +52,14 @@ class MyUploadedActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-                var userID by remember {
-                    mutableStateOf("")
-                }
-                userID = intent.getStringExtra("userID") ?: ""
 
-                MyUploadedScreen(userID, ReLoadingManager.reLoadingValue.value)
+                MyUploadedScreen(ReLoadingManager.reLoadingValue.value)
             }
         }
     }
 
     @Composable
-    fun MyUploadedScreen(userID: String, reLoading: Boolean) {
+    fun MyUploadedScreen(reLoading: Boolean) {
         var productMap: Map<String, Map<String, String>> by remember { mutableStateOf(emptyMap()) }
         GetProduct(reLoading) { productMap = it }
         Column(
@@ -74,7 +70,7 @@ class MyUploadedActivity : ComponentActivity() {
                 finish()
             }
             SearchScreen()
-            MyProductSwipeBox(userID, productMap)
+            MyProductSwipeBox(productMap)
         }
     }
 
@@ -121,10 +117,10 @@ class MyUploadedActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    private fun MyProductSwipeBox(userID: String, productMap: Map<String, Map<String, String>>) {
+    private fun MyProductSwipeBox(productMap: Map<String, Map<String, String>>) {
 
         for ((key, value) in productMap) {
-            if (value["InsertUser"] == userID) {
+            if (value["InsertUser"] == UserIDManager.userID.value) {
                 val squareSize = 48.dp
 
                 val swipeState = rememberSwipeableState(0)

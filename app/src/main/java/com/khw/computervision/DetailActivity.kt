@@ -31,11 +31,6 @@ class DetailActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-                var userID by remember {
-                    mutableStateOf("")
-                }
-                userID = intent.getStringExtra("userID") ?: ""
-
 
                 // Intent에서 Bundle을 가져옵니다.
                 val bundle = intent.getBundleExtra("product")
@@ -44,13 +39,13 @@ class DetailActivity : ComponentActivity() {
                     productMap = bundleToMap(bundle)
                 }
 
-                DetailScreen(userID, productMap)
+                DetailScreen(productMap)
             }
         }
     }
 
     @Composable
-    fun DetailScreen(userID: String, productMap: Map<String, String>) {
+    fun DetailScreen(productMap: Map<String, String>) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -78,10 +73,10 @@ class DetailActivity : ComponentActivity() {
                         .padding(top = 10.dp)
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                var popupVisiableState by remember { mutableStateOf(false) }
+                var messagePopUp by remember { mutableStateOf(false) }
                 TextButton(
                     onClick = {
-                        popupVisiableState = true
+                        messagePopUp = true
                     },
                 ) {
                     Text(
@@ -93,12 +88,11 @@ class DetailActivity : ComponentActivity() {
                             )
                     )
                 }
-                if (popupVisiableState) {
+                if (messagePopUp) {
                     MessagePopup(
-                        userID,
                         productMap.getValue("InsertUser"),
-                        returnMessageIndex(productMap.getValue("InsertUser"))
-                    ) { popupVisiableState = false }
+                        returnMessageIndex()
+                    ) { messagePopUp = false }
                 }
 
             }

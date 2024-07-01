@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -58,6 +59,10 @@ object ReLoadingManager {
     fun reLoading() {
         reLoadingValue.value = !reLoadingValue.value
     }
+}
+object UserIDManager {
+    var userID: MutableState<String> =
+        mutableStateOf("")
 }
 
 @Composable
@@ -181,9 +186,9 @@ fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
 }
 
 @Composable
-fun returnMessageIndex(userID: String): Int {
+fun returnMessageIndex(): Int {
     val insertMap = produceState(initialValue = emptyMap()) {
-        Firebase.firestore.collection(userID)
+        Firebase.firestore.collection(UserIDManager.userID.value)
             .get()
             .addOnSuccessListener { result ->
                 // 데이터 가져오기가 성공하면, 문서 ID와 메시지 내용을 맵으로 만듭니다.
@@ -213,13 +218,13 @@ fun returnInsertIndex(): Int {
 }
 
 @Composable
-fun getMessage(userID: String): Map<String, String> {
+fun getMessage(): Map<String, String> {
     val context = LocalContext.current
 
     // Firebase에서 데이터를 가져오고, 이 데이터를 상태로 관리합니다.
     // 초기값은 빈 맵(emptyMap)으로 설정합니다.
     val messageMap = produceState<Map<String, String>>(initialValue = emptyMap()) {
-        Firebase.firestore.collection(userID)
+        Firebase.firestore.collection(UserIDManager.userID.value)
             .get()
             .addOnSuccessListener { result ->
                 // 데이터 가져오기가 성공하면, 문서 ID와 메시지 내용을 맵으로 만듭니다.
@@ -309,12 +314,11 @@ fun deleteFirestoreData(collectionName: String, documentId: String, successEvent
 
 @Composable
 fun ImageGrid(
-    userID: String,
     category: String,
     successUpload: Boolean,
     onImageClick: (StorageReference, String) -> Unit
 ) {
-    val userRef = Firebase.storage.reference.child(userID)
+    val userRef = Firebase.storage.reference.child(UserIDManager.userID.value)
     val storageRef = userRef.child(category)
     val itemsRef = remember { mutableStateListOf<StorageReference>() }
     val itemsUri = remember { mutableStateListOf<String>() }
@@ -353,6 +357,7 @@ fun ImageGrid(
     }
     Column(
         modifier = Modifier
+            .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(top = 4.dp, start = 2.dp)
     ) {
