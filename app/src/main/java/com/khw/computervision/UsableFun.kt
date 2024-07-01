@@ -23,13 +23,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -183,9 +180,9 @@ fun FunTextButton_SignUp(buttonText: String, clickEvent: () -> Unit) {
 }
 
 @Composable
-fun returnMessageIndex(userID: String): Int {
+fun returnMessageIndex(): Int {
     val insertMap = produceState(initialValue = emptyMap()) {
-        Firebase.firestore.collection(userID)
+        Firebase.firestore.collection(UserIDManager.userID.value)
             .get()
             .addOnSuccessListener { result ->
                 // 데이터 가져오기가 성공하면, 문서 ID와 메시지 내용을 맵으로 만듭니다.
@@ -215,13 +212,13 @@ fun returnInsertIndex(): Int {
 }
 
 @Composable
-fun getMessage(userID: String): Map<String, String> {
+fun getMessage(): Map<String, String> {
     val context = LocalContext.current
 
     // Firebase에서 데이터를 가져오고, 이 데이터를 상태로 관리합니다.
     // 초기값은 빈 맵(emptyMap)으로 설정합니다.
     val messageMap = produceState<Map<String, String>>(initialValue = emptyMap()) {
-        Firebase.firestore.collection(userID)
+        Firebase.firestore.collection(UserIDManager.userID.value)
             .get()
             .addOnSuccessListener { result ->
                 // 데이터 가져오기가 성공하면, 문서 ID와 메시지 내용을 맵으로 만듭니다.
@@ -311,12 +308,11 @@ fun deleteFirestoreData(collectionName: String, documentId: String, successEvent
 
 @Composable
 fun ImageGrid(
-    userID: String,
     category: String,
     successUpload: Boolean,
     onImageClick: (StorageReference, String) -> Unit
 ) {
-    val userRef = Firebase.storage.reference.child(userID)
+    val userRef = Firebase.storage.reference.child(UserIDManager.userID.value)
     val storageRef = userRef.child(category)
     val itemsRef = remember { mutableStateListOf<StorageReference>() }
     val itemsUri = remember { mutableStateListOf<String>() }

@@ -59,7 +59,6 @@ import java.time.LocalDateTime
 @Composable
 fun ProfilePopup(
     profileUri: String?,
-    userID: String,
     close: () -> Unit,
     successUpload: () -> Unit
 ) {
@@ -82,21 +81,20 @@ fun ProfilePopup(
                 ProfileImage(profileUri) { inputImage = it }
 
                 inputImage?.let { bitmap ->
-                    uploadBitmapImage(context, bitmap, userID, "profile.jpg", {
+                    uploadBitmapImage(context, bitmap, "profile.jpg", {
                         successUpload()
                     }, {
                         inputImage = null
                     })
                 }
-                Text(text = userID)
+                Text(text = UserIDManager.userID.value)
                 Spacer(modifier = Modifier.weight(2f))
 
-                val messageMap = getMessage(userID)
+                val messageMap = getMessage()
 
                 FunTextButton("내가 올린 제품") {
-                    val productIntent = Intent(context, MyUploadedActivity::class.java)
-                    productIntent.putExtra("userID", userID)
-                    context.startActivity(productIntent) }
+                    context.startActivity(Intent(context, MyUploadedActivity::class.java))
+                }
                 FunTextButton("내가 판매한 제품") { }
                 FunTextButton("내게 온 메세지 : ${messageMap.size}") {
                     val userIntent = Intent(context, MessageListActivity::class.java)
@@ -121,13 +119,12 @@ fun ProfilePopup(
 fun uploadBitmapImage(
     context: Context,
     bitmap: Bitmap,
-    user: String,
     pathName: String,
     successUpload: () -> Unit,
     inputImageNullEvent: () -> Unit
 ) {
 
-    val mountainsRef = Firebase.storage.reference.child("$user/$pathName")
+    val mountainsRef = Firebase.storage.reference.child("${UserIDManager.userID.value}/$pathName")
 
     val baos = ByteArrayOutputStream()
     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
@@ -195,7 +192,6 @@ fun ProfileImage(profileUri: String?, setInputImage: (Bitmap) -> Unit) {
 
 @Composable
 fun MessagePopup(
-    userID: String,
     receiveUser: String,
     returnMessageIndex: Int,
     close: () -> Unit
@@ -242,7 +238,7 @@ fun MessagePopup(
                         LocalDateTime.now().toLocalTime().toString().replace(":", "")
                             .substring(0, 4)
                 val sendMessage = hashMapOf(
-                    "sendUser" to userID,
+                    "sendUser" to UserIDManager.userID.value,
                     "date" to dateTimeNow,
                     "message" to message,
                     "read" to "false"
@@ -287,7 +283,6 @@ data class PopupDetails(
 
 @Composable
 fun InsertPopup(
-    userID: String,
     newPopupDetails: PopupDetails,
     saveData: (PopupDetails) -> Unit,
     close: () -> Unit
@@ -390,7 +385,7 @@ fun InsertPopup(
             Button(onClick = {
                 saveData(
                     PopupDetails(
-                        userID,
+                        UserIDManager.userID.value,
                         name,
                         price.toInt(),
                         dealMethod,

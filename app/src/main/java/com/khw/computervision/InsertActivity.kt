@@ -8,7 +8,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -32,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -51,23 +49,19 @@ class InsertActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-                var userID by remember {
-                    mutableStateOf("")
-                }
-                userID = intent.getStringExtra("userID") ?: ""
 
                 var clickedUri by remember {
                     mutableStateOf("")
                 }
                 clickedUri = intent.getStringExtra("clickedUri") ?: ""
 
-                InsertScreen(userID, clickedUri)
+                InsertScreen(clickedUri)
             }
         }
     }
 
     @Composable
-    fun InsertScreen(userID: String, clickedUri: String) {
+    fun InsertScreen(clickedUri: String) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -76,7 +70,7 @@ class InsertActivity : ComponentActivity() {
             var newPopupDetails by remember {
                 mutableStateOf(
                     PopupDetails(
-                        userID,
+                        UserIDManager.userID.value,
                         "",
                         0,
                         "",
@@ -99,7 +93,7 @@ class InsertActivity : ComponentActivity() {
                     val coroutineScope = rememberCoroutineScope()
                     val insertIndex = returnInsertIndex()
                     FunTextButton("저장") {
-                        saveEvent(coroutineScope, context, userID, insertIndex, newPopupDetails)
+                        saveEvent(coroutineScope, context, insertIndex, newPopupDetails)
                         ReLoadingManager.reLoading()
                         finish()
                     }
@@ -110,9 +104,7 @@ class InsertActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .weight(2f)
                     .clickable {
-                        val decoIntent = Intent(context, DecorateActivity::class.java)
-                        decoIntent.putExtra("userID", userID)
-                        context.startActivity(decoIntent)
+                        context.startActivity(Intent(context, DecorateActivity::class.java))
                     },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -135,7 +127,7 @@ class InsertActivity : ComponentActivity() {
                 StateScreen(newPopupDetails)
 
                 if (popupVisibleState) {
-                    InsertPopup(userID, newPopupDetails, {
+                    InsertPopup(newPopupDetails, {
                         newPopupDetails = it
                     }, {
                         popupVisibleState = false
@@ -150,7 +142,6 @@ class InsertActivity : ComponentActivity() {
     private fun saveEvent(
         coroutineScope: CoroutineScope,
         context: Context,
-        userID: String,
         insertIndex: Int,
         newPopupDetails: PopupDetails
     ) {
@@ -161,7 +152,7 @@ class InsertActivity : ComponentActivity() {
                     LocalDateTime.now().toLocalTime().toString().replace(":", "")
                         .substring(0, 4)
         val sendMessage = hashMapOf(
-            "InsertUser" to userID,
+            "InsertUser" to UserIDManager.userID.value,
             "name" to newPopupDetails.name,
             "date" to dateTimeNow,
             "imageUrl" to "",

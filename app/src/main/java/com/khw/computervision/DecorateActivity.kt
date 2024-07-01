@@ -99,19 +99,14 @@ class DecorateActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var userID by remember {
-                mutableStateOf("")
-            }
-            userID = intent.getStringExtra("userID") ?: ""
-
             ComputerVisionTheme {
-                DecorateScreen(userID)
+                DecorateScreen()
             }
         }
     }
 
     @Composable
-    fun DecorateScreen(userID: String) {
+    fun DecorateScreen() {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -176,7 +171,7 @@ class DecorateActivity : ComponentActivity() {
 
                 inputImage?.let { bitmap ->
 
-                    sendImageToServer(userID, bitmap) {
+                    sendImageToServer(bitmap) {
                         uploadServerResult += it
                         uploadTrigger = !uploadTrigger
                         inputImage = null
@@ -185,7 +180,7 @@ class DecorateActivity : ComponentActivity() {
 
                     isLoading = true
                 }
-                CustomTabRow(userID, uploadTrigger, isLoading)
+                CustomTabRow(uploadTrigger, isLoading)
                 { onClickedRef: StorageReference, onClickedUri: String ->
                     clickedRef = onClickedRef
                     clickedUri = onClickedUri
@@ -195,14 +190,13 @@ class DecorateActivity : ComponentActivity() {
     }
 
     private fun sendImageToServer(
-        userID: String,
         bitmap: Bitmap,
         successEvent: (String) -> Unit
     ) {
         val image = bitmapToByteArray(bitmap) // 실제 이미지 파일 경로
         val requestFile = RequestBody.create("image/*".toMediaTypeOrNull(), image)
-        val imagePart = MultipartBody.Part.createFormData("image", "$userID.png", requestFile)
-        val userIdPart = RequestBody.create("text/plain".toMediaTypeOrNull(), userID)
+        val imagePart = MultipartBody.Part.createFormData("image", "${UserIDManager.userID.value}.png", requestFile)
+        val userIdPart = RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
 
         val dataMap = mapOf("userID" to userIdPart)
 
@@ -228,7 +222,6 @@ class DecorateActivity : ComponentActivity() {
     @OptIn(ExperimentalPagerApi::class)
     @Composable
     private fun CustomTabRow(
-        userID: String,
         uploadTrigger: Boolean,
         isLoading: Boolean,
         onImageClick: (StorageReference, String) -> Unit
@@ -287,14 +280,12 @@ class DecorateActivity : ComponentActivity() {
             } else {
                 if (page.toString() == "0") {
                     ImageGrid(
-                        userID = userID,
                         category = "top",
                         successUpload = uploadTrigger,
                         onImageClick = onImageClick
                     )
                 } else if (page.toString() == "1") {
                     ImageGrid(
-                        userID = userID,
                         category = "bottom",
                         successUpload = uploadTrigger,
                         onImageClick = onImageClick
