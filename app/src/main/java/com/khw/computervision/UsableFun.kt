@@ -202,22 +202,6 @@ fun returnMessageIndex(): Int {
 }
 
 @Composable
-fun returnInsertIndex(): Int {
-    val insertMap = produceState<Map<String, String>>(initialValue = emptyMap()) {
-        Firebase.firestore.collection("product")
-            .get()
-            .addOnSuccessListener { result ->
-                // 데이터 가져오기가 성공하면, 문서 ID와 메시지 내용을 맵으로 만듭니다.
-                // 결과를 'value'에 할당하여 상태를 업데이트합니다.
-                value = result.documents.associate {
-                    it.id to it.data?.get("InsertUser") as String
-                }
-            }
-    }
-    return insertMap.value.size + 1
-}
-
-@Composable
 fun getMessage(): Map<String, String> {
     val context = LocalContext.current
 

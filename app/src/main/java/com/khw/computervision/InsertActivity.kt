@@ -92,9 +92,8 @@ class InsertActivity : ComponentActivity() {
                     Spacer(modifier = Modifier.weight(1f))
 
                     val coroutineScope = rememberCoroutineScope()
-                    val insertIndex = returnInsertIndex()
                     FunTextButton("저장") {
-                        saveEvent(coroutineScope, context, insertIndex, newPopupDetails)
+                        saveEvent(coroutineScope, context, newPopupDetails)
                         ReLoadingManager.reLoading()
                         finish()
                     }
@@ -143,7 +142,6 @@ class InsertActivity : ComponentActivity() {
     private fun saveEvent(
         coroutineScope: CoroutineScope,
         context: Context,
-        insertIndex: Int,
         newPopupDetails: PopupDetails
     ) {
 
@@ -166,7 +164,7 @@ class InsertActivity : ComponentActivity() {
 
         coroutineScope.launch(Dispatchers.IO) {
             db.collection("product")
-                .document("$insertIndex")
+                .document(dateTimeNow)
                 .set(sendMessage)
                 .addOnSuccessListener {
                     Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
