@@ -325,6 +325,15 @@ fun ImageGrid(
                 }
             }
             downloadTasks.forEach { it.await() }
+
+            // 정렬 로직 추가
+            val sortedItems = itemsRef.zip(itemsUri).sortedBy { it.first.name } // 여기서 name을 기준으로 정렬합니다.
+            itemsRef.clear()
+            itemsUri.clear()
+            sortedItems.forEach {
+                itemsRef.add(it.first)
+                itemsUri.add(it.second)
+            }
         }
     }
     Column(
