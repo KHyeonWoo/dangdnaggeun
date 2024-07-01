@@ -135,6 +135,7 @@ class DecorateActivity : ComponentActivity() {
             var uploadTrigger by remember { mutableStateOf(false) }
             var clickedRef by remember { mutableStateOf<StorageReference?>(null) }
             var clickedUri by remember { mutableStateOf<String?>(null) }
+            var uploadServerResult by remember { mutableStateOf("") }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -143,6 +144,7 @@ class DecorateActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
+                Text(text = uploadServerResult)
                 clickedUri?.let {
                     GlideImage(
                         imageModel = it,
@@ -168,6 +170,7 @@ class DecorateActivity : ComponentActivity() {
                 inputImage?.let { bitmap ->
 
                     sendImageToServer(userID, bitmap) {
+                        uploadServerResult += it
                         uploadTrigger = !uploadTrigger
                         inputImage = null
                         isLoading = false
@@ -187,14 +190,12 @@ class DecorateActivity : ComponentActivity() {
     private fun sendImageToServer(
         userID: String,
         bitmap: Bitmap,
-        successEvent: () -> Unit
+        successEvent: (String) -> Unit
     ) {
-
         val image = bitmapToByteArray(bitmap) // 실제 이미지 파일 경로
         val requestFile = RequestBody.create("image/*".toMediaTypeOrNull(), image)
         val imagePart = MultipartBody.Part.createFormData("image", "$userID.png", requestFile)
         val userIdPart = RequestBody.create("text/plain".toMediaTypeOrNull(), userID)
-
 
         val dataMap = mapOf("userID" to userIdPart)
 
@@ -205,19 +206,17 @@ class DecorateActivity : ComponentActivity() {
                     response: Response<ResponseBody>
                 ) {
                     if (response.isSuccessful) {
-                        successEvent()
+                        successEvent("성공")
                     } else {
-                        println("요청이 실패했습니다. 상태 코드: ${response.code()}")
-                        println("에러 메시지: ${response.errorBody()?.string()}")
+                        successEvent("에러 메시지: ${response.errorBody()?.string()}")
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    println("요청이 실패했습니다: ${t.message}")
+                    successEvent("요청이 실패했습니다: ${t.message}")
                 }
             })
     }
-
 
     @OptIn(ExperimentalPagerApi::class)
     @Composable
@@ -280,7 +279,6 @@ class DecorateActivity : ComponentActivity() {
                 CircularProgressIndicator()
             } else {
                 if (page.toString() == "0") {
-
                     ImageGrid(
                         userID = userID,
                         category = "top",
@@ -296,9 +294,7 @@ class DecorateActivity : ComponentActivity() {
                     )
                 }
             }
-
         }
-
     }
 
     @Composable
