@@ -72,6 +72,7 @@ class InsertActivity : ComponentActivity() {
                     PopupDetails(
                         UserIDManager.userID.value,
                         "",
+                        "",
                         0,
                         "",
                         0f,

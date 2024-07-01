@@ -91,7 +91,7 @@ fun ProfilePopup(
                 Text(text = userID)
                 Spacer(modifier = Modifier.weight(2f))
 
-                val messageMap = getMessage(userID)
+                val messageMap = getMessage()
 
                 FunTextButton("내가 올린 제품") {
                     val productIntent = Intent(context, MyUploadedActivity::class.java)
@@ -287,7 +287,6 @@ data class PopupDetails(
 
 @Composable
 fun InsertPopup(
-    userID: String,
     newPopupDetails: PopupDetails,
     saveData: (PopupDetails) -> Unit,
     close: () -> Unit
@@ -391,7 +390,7 @@ fun InsertPopup(
             Button(onClick = {
                 saveData(
                     PopupDetails(
-                        userID,
+                        UserIDManager.userID.value,
                         name,
                         imageUri,
                         price.toInt(),
