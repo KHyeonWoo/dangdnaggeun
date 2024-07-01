@@ -194,7 +194,6 @@ fun ProfileImage(profileUri: String?, setInputImage: (Bitmap) -> Unit) {
 
 @Composable
 fun MessagePopup(
-    userID: String,
     receiveUser: String,
     returnMessageIndex: Int,
     close: () -> Unit
@@ -241,7 +240,7 @@ fun MessagePopup(
                         LocalDateTime.now().toLocalTime().toString().replace(":", "")
                             .substring(0, 4)
                 val sendMessage = hashMapOf(
-                    "sendUser" to userID,
+                    "sendUser" to UserIDManager.userID,
                     "date" to dateTimeNow,
                     "message" to message,
                     "read" to "false"
