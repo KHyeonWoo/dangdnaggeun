@@ -63,6 +63,10 @@ object ReLoadingManager {
         reLoadingValue.value = !reLoadingValue.value
     }
 }
+object UserIDManager {
+    var userID: MutableState<String> =
+        mutableStateOf("")
+}
 
 @Composable
 fun LogoScreen(activityName: String, goBack: () -> Unit) {

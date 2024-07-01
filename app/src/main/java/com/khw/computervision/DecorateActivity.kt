@@ -1,5 +1,6 @@
 package com.khw.computervision
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
@@ -114,6 +115,11 @@ class DecorateActivity : ComponentActivity() {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
+
+            var uploadTrigger by remember { mutableStateOf(false) }
+            var clickedRef by remember { mutableStateOf<StorageReference?>(null) }
+            var clickedUri by remember { mutableStateOf<String?>(null) }
+            var uploadServerResult by remember { mutableStateOf("") }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -126,16 +132,17 @@ class DecorateActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Spacer(modifier = Modifier.weight(12f))
+                    val context = LocalContext.current
                     FunTextButton("저장") {
+                        //240701 김현우 - 이미지 저장 시 InsertActivity로 imageUri, imageRef 전달 추가
+                        val userIntent = Intent(context, InsertActivity::class.java)
+                        userIntent.putExtra("clickedUri", clickedUri)
+                        context.startActivity(userIntent)
                         finish()
                     }
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
-            var uploadTrigger by remember { mutableStateOf(false) }
-            var clickedRef by remember { mutableStateOf<StorageReference?>(null) }
-            var clickedUri by remember { mutableStateOf<String?>(null) }
-            var uploadServerResult by remember { mutableStateOf("") }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -274,7 +281,7 @@ class DecorateActivity : ComponentActivity() {
             count = pages.size,
             state = pagerState,
         ) { page ->
-//                  loading 이미지
+//          loading 이미지
             if (isLoading) {
                 CircularProgressIndicator()
             } else {

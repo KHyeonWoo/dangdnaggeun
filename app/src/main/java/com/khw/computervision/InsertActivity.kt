@@ -30,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,7 @@ import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarStyle
 import com.gowtham.ratingbar.StepSize
 import com.khw.computervision.ui.theme.ComputerVisionTheme
+import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,13 +56,18 @@ class InsertActivity : ComponentActivity() {
                 }
                 userID = intent.getStringExtra("userID") ?: ""
 
-                InsertScreen(userID)
+                var clickedUri by remember {
+                    mutableStateOf("")
+                }
+                clickedUri = intent.getStringExtra("clickedUri") ?: ""
+
+                InsertScreen(userID, clickedUri)
             }
         }
     }
 
     @Composable
-    fun InsertScreen(userID: String) {
+    fun InsertScreen(userID: String, clickedUri: String) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -110,11 +117,11 @@ class InsertActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                Image(
-                    painter = painterResource(id = R.drawable.character4),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .fillMaxSize()
+                //240701 김현우 - 꾸미기 화면에서 이미지 선택 후 저장 시 GLIDE 이미지 show
+                GlideImage(
+                    imageModel = clickedUri,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
                 )
             }
             var popupVisibleState by remember { mutableStateOf(false) }

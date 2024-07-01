@@ -106,6 +106,7 @@ fun ProfilePopup(
                 Spacer(modifier = Modifier.weight(1f))
                 FunTextButton("로그아웃") {
                     context.startActivity(Intent(context, LoginActivity::class.java))
+                    UserIDManager.userID.value = ""
                 }
             }
         },
