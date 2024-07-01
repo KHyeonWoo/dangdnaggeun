@@ -52,6 +52,8 @@ import com.gowtham.ratingbar.StepSize
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
 
@@ -95,7 +97,8 @@ fun ProfilePopup(
                 FunTextButton("내가 올린 제품") {
                     val productIntent = Intent(context, MyUploadedActivity::class.java)
                     productIntent.putExtra("userID", UserIDManager.userID.value)
-                    context.startActivity(productIntent) }
+                    context.startActivity(productIntent)
+                }
                 FunTextButton("내가 판매한 제품") { }
                 FunTextButton("내게 온 메세지 : ${messageMap.size}") {
                     val userIntent = Intent(context, MessageListActivity::class.java)
@@ -194,7 +197,6 @@ fun ProfileImage(profileUri: String?, setInputImage: (Bitmap) -> Unit) {
 @Composable
 fun MessagePopup(
     receiveUser: String,
-    returnMessageIndex: Int,
     close: () -> Unit
 ) {
     var message: String by remember { mutableStateOf("") }
@@ -234,31 +236,35 @@ fun MessagePopup(
         confirmButton = {
             Button(onClick = {
                 // Create a new user with a first and last name
-                val db = Firebase.firestore
                 val dateTimeNow = LocalDateTime.now().toLocalDate().toString().replace("-", "") +
                         LocalDateTime.now().toLocalTime().toString().replace(":", "")
                             .substring(0, 4)
                 val sendMessage = hashMapOf(
-                    "sendUser" to UserIDManager.userID,
+                    "sendUser" to UserIDManager.userID.value,
                     "date" to dateTimeNow,
                     "message" to message,
                     "read" to "false"
                 )
 
+                val db = Firebase.firestore
                 coroutineScope.launch(Dispatchers.IO) {
-                    db.collection(receiveUser)
-                        .document("$returnMessageIndex")
-                        .set(sendMessage)
-                        .addOnSuccessListener {
+                    try {
+                        db.collection(receiveUser)
+                            .document(dateTimeNow)
+                            .set(sendMessage)
+                            .await() // suspend function to await the task completion
+                        withContext(Dispatchers.Main) {
                             Log.d(TAG, "DocumentSnapshot successfully written!")
                             Toast.makeText(context, "메세지 전송 성공", Toast.LENGTH_SHORT).show()
+                            close()
                         }
-                        .addOnFailureListener { e ->
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
                             Log.w(TAG, "Error writing document", e)
                             Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
                         }
+                    }
                 }
-                close()
 
             }) {
                 Text("Upload")
@@ -315,12 +321,11 @@ fun InsertPopup(
 
                 OutlinedTextField(
                     value =
-                        if (price== "0") {
-                            ""
-                        } else {
-                            price
-                        }
-                    ,
+                    if (price == "0") {
+                        ""
+                    } else {
+                        price
+                    },
                     onValueChange = { price = it },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = colorDang,

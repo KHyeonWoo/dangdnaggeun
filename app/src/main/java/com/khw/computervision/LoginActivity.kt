@@ -112,8 +112,8 @@ class LoginActivity : ComponentActivity() {
                                 val user = auth.currentUser
                                 if (user != null) {
                                     UserIDManager.userID.value = userID
+                                    context.startActivity(Intent(context, SalesActivity::class.java))
                                 }
-                                context.startActivity(Intent(context, SalesActivity::class.java))
                             } else {
                                 // If sign in fails, display a message to the user.
                                 Log.w(ContentValues.TAG, "signInWithEmail:failure", task.exception)

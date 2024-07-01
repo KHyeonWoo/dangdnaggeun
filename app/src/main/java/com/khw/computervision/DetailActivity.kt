@@ -90,8 +90,7 @@ class DetailActivity : ComponentActivity() {
                 }
                 if (messagePopUp) {
                     MessagePopup(
-                        productMap.getValue("InsertUser"),
-                        returnMessageIndex()
+                        productMap.getValue("InsertUser")
                     ) { messagePopUp = false }
                 }
 

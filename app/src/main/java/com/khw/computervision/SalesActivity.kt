@@ -124,13 +124,13 @@ class SalesActivity : ComponentActivity() {
 
     private suspend fun getProfile(): String? {
         val storageRef = Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
-        var faceUri: String? = null
+        var profileUri: String? = null
         try {
-            faceUri = storageRef.downloadUrl.await().toString()
+            profileUri = storageRef.downloadUrl.await().toString()
         } catch (_: StorageException) {
 
         }
-        return faceUri
+        return profileUri
     }
 
 
