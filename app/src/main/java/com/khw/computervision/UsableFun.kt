@@ -190,22 +190,6 @@ fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
 }
 
 @Composable
-fun returnMessageIndex(): Int {
-    val insertMap = produceState(initialValue = emptyMap()) {
-        Firebase.firestore.collection(UserIDManager.userID.value)
-            .get()
-            .addOnSuccessListener { result ->
-                // 데이터 가져오기가 성공하면, 문서 ID와 메시지 내용을 맵으로 만듭니다.
-                // 결과를 'value'에 할당하여 상태를 업데이트합니다.
-                value = result.documents.associate {
-                    it.id to it.data?.get("date") as String
-                }
-            }
-    }
-    return insertMap.value.size + 1
-}
-
-@Composable
 fun getMessage(): Map<String, String> {
     val context = LocalContext.current
 
@@ -304,7 +288,7 @@ fun deleteFirestoreData(collectionName: String, documentId: String, successEvent
 fun ImageGrid(
     category: String,
     successUpload: Boolean,
-    onImageClick: (StorageReference, String) -> Unit
+    onImageClick: (StorageReference, String, String) -> Unit
 ) {
     val userRef = Firebase.storage.reference.child(UserIDManager.userID.value)
     val storageRef = userRef.child(category)
@@ -335,7 +319,7 @@ fun ImageGrid(
 
             // 정렬 로직 추가
             val sortedItems =
-                itemsRef.zip(itemsUri).sortedBy { it.first.name } // 여기서 name을 기준으로 정렬합니다.
+                itemsRef.zip(itemsUri).sortedBy { it.first.name } // name을 기준으로 정렬
             itemsRef.clear()
             itemsUri.clear()
             sortedItems.forEach {
@@ -360,7 +344,7 @@ fun ImageGrid(
                             modifier = Modifier
                                 .size(80.dp)
                                 .clickable {
-                                    onImageClick(it.first, it.second)
+                                    onImageClick(it.first, it.second, category)
                                 },
                             contentScale = ContentScale.FillBounds
                         )

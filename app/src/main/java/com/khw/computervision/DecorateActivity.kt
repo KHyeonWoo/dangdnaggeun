@@ -120,6 +120,7 @@ class DecorateActivity : ComponentActivity() {
             var uploadTrigger by remember { mutableStateOf(false) }
             var clickedRef by remember { mutableStateOf<StorageReference?>(null) }
             var clickedUri by remember { mutableStateOf<String?>(changedUri) }
+            var clickedCategory by remember { mutableStateOf<String?>(null) }
             var uploadServerResult by remember { mutableStateOf("") }
             Column(
                 modifier = Modifier
@@ -134,11 +135,12 @@ class DecorateActivity : ComponentActivity() {
                 ) {
                     Spacer(modifier = Modifier.weight(12f))
                     val context = LocalContext.current
-                    FunTextButton("저장") {
+                    FunTextButton("다음") {
                         //240701 김현우 - 이미지 저장 시 InsertActivity로 imageUri 전달 추가
                         finish()
                         val userIntent = Intent(context, InsertActivity::class.java)
                         userIntent.putExtra("clickedUri", clickedUri)
+                        userIntent.putExtra("clickedCategory", clickedCategory)
                         context.startActivity(userIntent)
                     }
                     Spacer(modifier = Modifier.weight(1f))
@@ -187,9 +189,10 @@ class DecorateActivity : ComponentActivity() {
                     isLoading = true
                 }
                 CustomTabRow(uploadTrigger, isLoading)
-                { onClickedRef: StorageReference, onClickedUri: String ->
+                { onClickedRef: StorageReference, onClickedUri: String, onClickedCategory: String ->
                     clickedRef = onClickedRef
                     clickedUri = onClickedUri
+                    clickedCategory = onClickedCategory
                 }
             }
         }
@@ -230,7 +233,7 @@ class DecorateActivity : ComponentActivity() {
     private fun CustomTabRow(
         uploadTrigger: Boolean,
         isLoading: Boolean,
-        onImageClick: (StorageReference, String) -> Unit
+        onImageClick: (StorageReference, String, String) -> Unit
     ) {
         val pages = listOf("상의", "하의")
         val pagerState = rememberPagerState()

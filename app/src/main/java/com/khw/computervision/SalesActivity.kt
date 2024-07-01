@@ -123,7 +123,8 @@ class SalesActivity : ComponentActivity() {
     }
 
     private suspend fun getProfile(): String? {
-        val storageRef = Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
+        val storageRef =
+            Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
         var profileUri: String? = null
         try {
             profileUri = storageRef.downloadUrl.await().toString()
@@ -159,7 +160,14 @@ class SalesActivity : ComponentActivity() {
                             context.startActivity(productIntent)
                         }) {
                         for ((fieldKey, fieldValue) in value) {
-                            Text(text = "$fieldKey: $fieldValue")
+                            if (fieldKey == "imageUrl") {
+                                GlideImage(
+                                    imageModel = fieldValue,
+                                    modifier = Modifier.size(90.dp, 160.dp),
+                                    contentDescription = "Image"
+                                )
+                            }
+
                         }
                     }
                 }
