@@ -100,20 +100,26 @@ class DecorateActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-                DecorateScreen()
+
+                var changedUri by remember {
+                    mutableStateOf("")
+                }
+                changedUri = intent.getStringExtra("clickedUri") ?: ""
+
+                DecorateScreen(changedUri)
             }
         }
     }
 
     @Composable
-    fun DecorateScreen() {
+    fun DecorateScreen(changedUri: String) {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
 
             var uploadTrigger by remember { mutableStateOf(false) }
             var clickedRef by remember { mutableStateOf<StorageReference?>(null) }
-            var clickedUri by remember { mutableStateOf<String?>(null) }
+            var clickedUri by remember { mutableStateOf<String?>(changedUri) }
             var uploadServerResult by remember { mutableStateOf("") }
             Column(
                 modifier = Modifier
@@ -129,11 +135,11 @@ class DecorateActivity : ComponentActivity() {
                     Spacer(modifier = Modifier.weight(12f))
                     val context = LocalContext.current
                     FunTextButton("저장") {
-                        //240701 김현우 - 이미지 저장 시 InsertActivity로 imageUri, imageRef 전달 추가
+                        //240701 김현우 - 이미지 저장 시 InsertActivity로 imageUri 전달 추가
+                        finish()
                         val userIntent = Intent(context, InsertActivity::class.java)
                         userIntent.putExtra("clickedUri", clickedUri)
                         context.startActivity(userIntent)
-                        finish()
                     }
                     Spacer(modifier = Modifier.weight(1f))
                 }

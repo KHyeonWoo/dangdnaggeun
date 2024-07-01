@@ -72,7 +72,7 @@ class InsertActivity : ComponentActivity() {
                     PopupDetails(
                         UserIDManager.userID.value,
                         "",
-                        "",
+                        clickedUri,
                         0,
                         "",
                         0f,
@@ -93,9 +93,9 @@ class InsertActivity : ComponentActivity() {
 
                     val coroutineScope = rememberCoroutineScope()
                     FunTextButton("저장") {
+                        finish()
                         saveEvent(coroutineScope, context, newPopupDetails)
                         ReLoadingManager.reLoading()
-                        finish()
                     }
                 }
             }
@@ -104,7 +104,11 @@ class InsertActivity : ComponentActivity() {
                     .fillMaxWidth()
                     .weight(2f)
                     .clickable {
-                        context.startActivity(Intent(context, DecorateActivity::class.java))
+                        //240701 김현우 - 이미지 추가 수정 시 DecorateActivity imageUri 전달 추가
+                        finish()
+                        val userIntent = Intent(context, DecorateActivity::class.java)
+                        userIntent.putExtra("clickedUri", clickedUri)
+                        context.startActivity(userIntent)
                     },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -154,7 +158,7 @@ class InsertActivity : ComponentActivity() {
             "InsertUser" to UserIDManager.userID.value,
             "name" to newPopupDetails.name,
             "date" to dateTimeNow,
-            "imageUrl" to "",
+            "imageUrl" to newPopupDetails.imageUri,
             "price" to newPopupDetails.price,
             "dealMethod" to newPopupDetails.dealMethod,
             "rating" to newPopupDetails.rating,
