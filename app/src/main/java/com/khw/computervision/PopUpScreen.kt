@@ -59,7 +59,6 @@ import java.time.LocalDateTime
 @Composable
 fun ProfilePopup(
     profileUri: String?,
-    userID: String,
     close: () -> Unit,
     successUpload: () -> Unit
 ) {
@@ -82,20 +81,20 @@ fun ProfilePopup(
                 ProfileImage(profileUri) { inputImage = it }
 
                 inputImage?.let { bitmap ->
-                    uploadBitmapImage(context, bitmap, userID, "profile.jpg", {
+                    uploadBitmapImage(context, bitmap, UserIDManager.userID.value, "profile.jpg", {
                         successUpload()
                     }, {
                         inputImage = null
                     })
                 }
-                Text(text = userID)
+                Text(text = UserIDManager.userID.value)
                 Spacer(modifier = Modifier.weight(2f))
 
                 val messageMap = getMessage()
 
                 FunTextButton("내가 올린 제품") {
                     val productIntent = Intent(context, MyUploadedActivity::class.java)
-                    productIntent.putExtra("userID", userID)
+                    productIntent.putExtra("userID", UserIDManager.userID.value)
                     context.startActivity(productIntent) }
                 FunTextButton("내가 판매한 제품") { }
                 FunTextButton("내게 온 메세지 : ${messageMap.size}") {

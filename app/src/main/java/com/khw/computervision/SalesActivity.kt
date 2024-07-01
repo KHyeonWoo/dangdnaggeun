@@ -42,19 +42,14 @@ class SalesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var userID by remember {
-                mutableStateOf("")
-            }
-            userID = intent.getStringExtra("userID") ?: ""
-
             ComputerVisionTheme {
-                SaleScreen(userID)
+                SaleScreen()
             }
         }
     }
 
     @Composable
-    fun SaleScreen(userID: String) {
+    fun SaleScreen() {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
@@ -67,7 +62,7 @@ class SalesActivity : ComponentActivity() {
                 var profileUri: String? by remember { mutableStateOf(null) }
 
                 LaunchedEffect(successUpload) {
-                    profileUri = getProfile(userID)
+                    profileUri = getProfile()
                 }
 
                 var visiblePopup by remember { mutableStateOf(false) }
@@ -99,7 +94,6 @@ class SalesActivity : ComponentActivity() {
                 if (visiblePopup) {
                     ProfilePopup(
                         profileUri,
-                        userID,
                         { visiblePopup = false },
                         { successUpload = !successUpload })
                 }
@@ -110,7 +104,7 @@ class SalesActivity : ComponentActivity() {
             ) {
                 FunTextButton("현재 판매하는 제품이에요") {}
             }
-            ImageList(userID, ReLoadingManager.reLoadingValue.value)
+            ImageList(ReLoadingManager.reLoadingValue.value)
 
             Spacer(modifier = Modifier.weight(1f))
             Row(
@@ -120,7 +114,7 @@ class SalesActivity : ComponentActivity() {
                 Spacer(modifier = Modifier.weight(1f))
                 FunTextButton("+ 글쓰기") {
                     val userIntent = Intent(context, InsertActivity::class.java)
-                    userIntent.putExtra("userID", userID)
+                    userIntent.putExtra("userID", UserIDManager.userID.value)
                     context.startActivity(userIntent)
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -128,8 +122,8 @@ class SalesActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun getProfile(userID: String): String? {
-        val storageRef = Firebase.storage.reference.child("$userID/profile.jpg")
+    private suspend fun getProfile(): String? {
+        val storageRef = Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
         var faceUri: String? = null
         try {
             faceUri = storageRef.downloadUrl.await().toString()
@@ -141,7 +135,7 @@ class SalesActivity : ComponentActivity() {
 
 
     @Composable
-    fun ImageList(userID: String, reLoading: Boolean) {
+    fun ImageList(reLoading: Boolean) {
         // rememberSaveable로 상태를 저장하고 복원할 수 있도록 합니다.
         var productMap: Map<String, Map<String, String>> by remember { mutableStateOf(emptyMap()) }
         GetProduct(reLoading) { productMap = it }
@@ -152,7 +146,8 @@ class SalesActivity : ComponentActivity() {
                 .fillMaxWidth()
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -160,7 +155,6 @@ class SalesActivity : ComponentActivity() {
                     Column(
                         modifier = Modifier.clickable {
                             val productIntent = Intent(context, DetailActivity::class.java)
-                            productIntent.putExtra("userID", userID)
                             productIntent.putExtra("product", mapToBundle(value))
                             context.startActivity(productIntent)
                         }) {
@@ -173,19 +167,4 @@ class SalesActivity : ComponentActivity() {
         }
     }
 
-    @Composable
-    fun ImageBox(userID: String) {
-        val context = LocalContext.current
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = "",
-            modifier = Modifier
-                .padding(20.dp)
-                .clickable {
-                    val userIntent = Intent(context, DetailActivity::class.java)
-                    userIntent.putExtra("userID", userID)
-                    context.startActivity(userIntent)
-                }
-        )
-    }
 }
