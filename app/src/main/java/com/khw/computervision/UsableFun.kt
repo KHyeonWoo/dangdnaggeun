@@ -19,21 +19,31 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.ImageLoader
@@ -120,6 +130,10 @@ fun LogoScreen(activityName: String, goBack: () -> Unit) {
 
             "MyUploaded" -> {
                 TextBox("나의 게시글을 확인해요")
+            }
+
+            "MessageList" -> {
+                TextBox("나의 메시지를 확인해요") //07022024 하승수 - 메시지 페이지 추가
             }
         }
     }
@@ -357,4 +371,33 @@ fun ImageGrid(
             Text(text = "Loading image...", modifier = Modifier.padding(16.dp))
         }
     }
+}
+
+//07022024 하승수 - 검색 fun 추가
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchTextField(onSearch: (String) -> Unit) {
+    var searchQuery by remember { mutableStateOf("") }
+
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = { searchQuery = it },
+        label = { Text("검색") },
+        modifier = Modifier.size(210.dp, 60.dp),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedTextColor = colorDang,
+            focusedBorderColor = colorDang,
+            unfocusedTextColor = colorDang,
+            unfocusedBorderColor = colorDang,
+            focusedLabelColor = colorDang,
+            unfocusedLabelColor = colorDang
+        ),
+        leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.search_icon),
+                    contentDescription = "Search Icon",
+                    tint = colorDang
+                )
+        }
+    )
 }
