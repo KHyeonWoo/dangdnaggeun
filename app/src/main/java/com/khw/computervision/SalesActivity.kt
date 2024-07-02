@@ -2,6 +2,7 @@ package com.khw.computervision
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -172,18 +173,15 @@ import kotlinx.coroutines.tasks.await
 //        }
 //    }
 //}
-
-//메인메뉴
 @Composable
 fun SaleScreen(navController: NavHostController) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        val context = LocalContext.current
         Box(
             modifier = Modifier.fillMaxWidth(),
         ) {
-            LogoScreen("Sales") {  } //finish()
+            LogoScreen("Sales") { } //finish()
             var successUpload by remember { mutableStateOf(false) }
             var profileUri: String? by remember { mutableStateOf(null) }
 
@@ -230,7 +228,7 @@ fun SaleScreen(navController: NavHostController) {
         ) {
             FunTextButton("현재 판매하는 제품이에요") {}
         }
-        ImageList(ReLoadingManager.reLoadingValue.value)
+        ImageList(navController, ReLoadingManager.reLoadingValue.value)
 
         Spacer(modifier = Modifier.weight(1f))
         Row(
@@ -239,7 +237,7 @@ fun SaleScreen(navController: NavHostController) {
         ) {
             Spacer(modifier = Modifier.weight(1f))
             FunTextButton("+ 글쓰기") {
-                context.startActivity(Intent(context, DecorateActivity::class.java))
+                navController.navigate("decorate")
             }
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -258,14 +256,11 @@ private suspend fun getProfile(): String? {
     return profileUri
 }
 
-
 @Composable
-fun ImageList(reLoading: Boolean) {
-    // rememberSaveable로 상태를 저장하고 복원할 수 있도록 합니다.
+fun ImageList(navController: NavHostController, reLoading: Boolean) {
     var productMap: Map<String, Map<String, String>> by remember { mutableStateOf(emptyMap()) }
     GetProduct(reLoading) { productMap = it }
 
-    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -279,9 +274,7 @@ fun ImageList(reLoading: Boolean) {
             for ((key, value) in productMap) {
                 Column(
                     modifier = Modifier.clickable {
-                        val productIntent = Intent(context, DetailActivity::class.java)
-                        productIntent.putExtra("product", mapToBundle(value))
-                        context.startActivity(productIntent)
+                        navController.navigate("detailProduct/$key")
                     }) {
                     for ((fieldKey, fieldValue) in value) {
                         if (fieldKey == "imageUrl") {

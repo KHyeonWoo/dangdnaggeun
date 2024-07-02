@@ -67,6 +67,9 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.PartMap
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
 val colorDang = Color(0xFFF3BB66)
@@ -240,6 +243,19 @@ fun FunButton(buttonText: String, image: Int?, clickEvent: () -> Unit) {
 }
 
 //20240701 하승수 - textbutton 추가 (textbutton 함수)
+//@Composable
+//fun FunTextButton(buttonText: String, clickEvent: @Composable () -> Unit) {
+//    TextButton(
+////        onClick = { clickEvent() },
+//        onClick = {clickEvent()},
+//        colors = ButtonDefaults.buttonColors(
+//            Color.White
+//        )
+//    ) {
+//        Text(text = buttonText, color = colorDang)
+//    }
+//}
+//20240703 jkh - clickEvent는 단순히 클릭 이벤트라서 () -> Unit 타입으로 정의
 @Composable
 fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
     TextButton(
@@ -358,15 +374,12 @@ fun ImageGrid(
     val itemsRef = remember { mutableStateListOf<StorageReference>() }
     val itemsUri = remember { mutableStateListOf<String>() }
 
-
     LaunchedEffect(successUpload) {
         itemsRef.clear()
         itemsUri.clear()
 
         coroutineScope {
-
             val listResult = storageRef.listAll().await()
-
             val downloadTasks = listResult.items.map { clothRef ->
                 async {
                     try {
@@ -391,6 +404,7 @@ fun ImageGrid(
             }
         }
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -449,4 +463,8 @@ fun SearchTextField(onSearch: (String) -> Unit) {
             )
         }
     )
+}
+
+fun encodeUrl(url: String): String {
+    return URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
 }
