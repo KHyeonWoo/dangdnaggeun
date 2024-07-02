@@ -100,6 +100,9 @@ fun ProfilePopup(
                                 coroutineScope.launch(Dispatchers.IO) {
                                     val address = getAddressFromLocation(geocoder, location)
                                     addressText = address ?: "주소를 찾을 수 없습니다."
+                                    withContext(Dispatchers.Main) {
+                                        UserIDManager.userAddress.value = addressText
+                                    }
                                 }
                             }
                         }
