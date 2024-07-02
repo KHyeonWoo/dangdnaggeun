@@ -90,4 +90,6 @@ dependencies {
     //navigation 종속성 추가 - kh
     implementation ("androidx.navigation:navigation-fragment-ktx:2.3.5")
     implementation ("androidx.navigation:navigation-ui-ktx:2.3.5")
+    // 좌표 종속성 추가 - dh
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 }

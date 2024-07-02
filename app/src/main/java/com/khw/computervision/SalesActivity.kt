@@ -173,7 +173,7 @@ import kotlinx.coroutines.tasks.await
 //    }
 //}
 
-
+//메인메뉴
 @Composable
 fun SaleScreen(navController: NavHostController) {
     Column(
