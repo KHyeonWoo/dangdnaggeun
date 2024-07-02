@@ -30,10 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.google.firebase.storage.StorageReference
 import com.khw.computervision.ui.theme.ComputerVisionTheme
 import com.skydoves.landscapist.glide.GlideImage
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -64,28 +61,35 @@ class AiImgGenActivity : ComponentActivity() {
     @Composable
     fun AiImgGenScreen(clickedUri: String, clickedCategory: String) {
         var extraClickedUri by remember { mutableStateOf("") }
-        var extraClickedCategory by remember { mutableStateOf("") }
+        var gender by remember { mutableStateOf(true) }
 
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            HeaderSection(Modifier.weight(1f), clickedUri)
+            HeaderSection(Modifier.weight(1f), clickedUri, clickedCategory, extraClickedUri, gender)
             BodySection(Modifier.weight(5f),
+                gender,
                 clickedUri = clickedUri,
                 clickedCategory = clickedCategory,
                 extraClickedUri = extraClickedUri,
                 onExtraClick = { onClickedRef, uri, category ->
                     extraClickedUri = uri
-                    extraClickedCategory = category
-                }
+                },
+                changeSex = { gender = !gender }
             )
         }
     }
 
     @Composable
-    fun HeaderSection(modifier: Modifier, clickedUri: String) {
+    fun HeaderSection(
+        modifier: Modifier,
+        clickedUri: String,
+        clickedCategory: String,
+        extraClickedUri: String,
+        gender: Boolean
+    ) {
         Box(
             modifier = modifier
                 .fillMaxWidth()
@@ -95,9 +99,43 @@ class AiImgGenActivity : ComponentActivity() {
                 modifier = Modifier.align(Alignment.BottomEnd)
             ) {
                 val context = LocalContext.current
+                val modelGender =
+                    if (gender) {
+                        "2"
+                    } else {
+                        "1"
+                    }
+                var requestMsg by remember {
+                    mutableStateOf("")
+                }
+                var requestAiImg by remember {
+                    mutableStateOf("")
+                }
+
+                Text(text = requestMsg)
                 FunTextButton(buttonText = "다음") {
+                    if (clickedCategory == "top") {
+                        sendListToServer(
+                            topURL = clickedUri,
+                            bottomURL = extraClickedUri,
+                            gender = modelGender,
+                            successEvent = { requestAiImg = it },
+                            errorEvent = { requestMsg = it }
+                        )
+                    } else if (clickedCategory == "bottom") {
+                        sendListToServer(
+                            topURL = extraClickedUri,
+                            bottomURL = clickedUri,
+                            gender = modelGender,
+                            successEvent = { requestAiImg = it },
+                            errorEvent = { requestMsg = it }
+                        )
+                    }
+
+//                    finish()
                     val userIntent = Intent(context, InsertActivity::class.java)
                     userIntent.putExtra("clickedUri", clickedUri)
+                    userIntent.putExtra("requestAiImg", requestAiImg)
                     context.startActivity(userIntent)
                 }
             }
@@ -107,10 +145,12 @@ class AiImgGenActivity : ComponentActivity() {
     @Composable
     fun BodySection(
         modifier: Modifier,
+        gender: Boolean,
         clickedUri: String,
         clickedCategory: String,
         extraClickedUri: String,
-        onExtraClick: (StorageReference, String, String) -> Unit
+        onExtraClick: (StorageReference, String, String) -> Unit,
+        changeSex: () -> Unit
     ) {
         Column(
             modifier = modifier
@@ -122,7 +162,7 @@ class AiImgGenActivity : ComponentActivity() {
                 modifier = Modifier.weight(3f)
             ) {
                 Column(modifier = Modifier.weight(2f)) {
-                    GenderSelection(Modifier.weight(1f))
+                    GenderSelection(Modifier.weight(1f), gender) { changeSex() }
                     Image(
                         painter = painterResource(id = R.drawable.character2),
                         contentDescription = "AIModel",
@@ -139,7 +179,8 @@ class AiImgGenActivity : ComponentActivity() {
                 )
             }
             Row(
-                modifier = Modifier.weight(2f)) {
+                modifier = Modifier.weight(2f)
+            ) {
                 ImageGridSection(clickedCategory, onExtraClick)
             }
         }
@@ -183,8 +224,7 @@ class AiImgGenActivity : ComponentActivity() {
     }
 
     @Composable
-    fun GenderSelection(modifier: Modifier) {
-        var sex by remember { mutableStateOf(true) }
+    fun GenderSelection(modifier: Modifier, gender: Boolean, changeSex: () -> Unit) {
 
         Row(
             modifier = modifier.fillMaxWidth(),
@@ -193,13 +233,13 @@ class AiImgGenActivity : ComponentActivity() {
         ) {
             GenderOption(
                 label = "여",
-                isSelected = sex,
-                onCheckedChange = { sex = !sex }
+                isSelected = gender,
+                onCheckedChange = { changeSex() }
             )
             GenderOption(
                 label = "남",
-                isSelected = !sex,
-                onCheckedChange = { sex = !sex }
+                isSelected = !gender,
+                onCheckedChange = { changeSex() }
             )
         }
     }
@@ -229,41 +269,46 @@ class AiImgGenActivity : ComponentActivity() {
     }
 
     private fun sendListToServer(
-        list: List<String>,
-        successEvent: (String) -> Unit
+        topURL: String,
+        bottomURL: String,
+        gender: String, // Assuming gender is passed as a string ('1' for male, '2' for female)
+        successEvent: (String) -> Unit,
+        errorEvent: (String) -> Unit
     ) {
 
-        // JSON 변환을 위한 Moshi 초기화
-        val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-        val jsonAdapter = moshi.adapter(List::class.java)
-        val json = jsonAdapter.toJson(list)
-
-        // JSON 문자열을 RequestBody로 생성
-        val listRequestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json)
-        val listPart = MultipartBody.Part.createFormData("list", null, listRequestBody)
-
-        // userIdPart 생성
-        val userIdPart =
+        val userIDPart =
             RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
+        val topURLPart =
+            RequestBody.create("text/plain".toMediaTypeOrNull(), topURL)
+        val bottomURLPart =
+            RequestBody.create("text/plain".toMediaTypeOrNull(), bottomURL)
+        val genderPart =
+            RequestBody.create("text/plain".toMediaTypeOrNull(), gender)
 
+        // Map으로 데이터 구성
+        val dataMap = mapOf(
+            "userID" to userIDPart,
+            "topURL" to topURLPart,
+            "bottomURL" to bottomURLPart,
+            "gender" to genderPart
+        )
 
-        RetrofitClient.instance.uploadList(listPart, userIdPart)
+        RetrofitClient.instance.uploadList(dataMap)
             .enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(
                     call: Call<ResponseBody>,
                     response: Response<ResponseBody>
                 ) {
                     if (response.isSuccessful) {
-                        successEvent("성공")
+                        successEvent("${response.body()?.string()}")
                     } else {
-                        successEvent("에러 메시지: ${response.errorBody()?.string()}")
+                        errorEvent("에러 메시지: ${response.errorBody()?.string()}")
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    successEvent("요청이 실패했습니다: ${t.message}")
+                    errorEvent("요청이 실패했습니다: ${t.message}")
                 }
             })
     }
-
 }

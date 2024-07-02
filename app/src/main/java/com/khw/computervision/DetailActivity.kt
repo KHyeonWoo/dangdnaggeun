@@ -58,68 +58,71 @@ class DetailActivity : ComponentActivity() {
                     .padding(20.dp)
                     .size(320.dp)
             )
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.character4),
-                    contentDescription = "",
-                    modifier = Modifier
-                        .padding(start = 20.dp)
-                        .size(60.dp)
-                )
-                Text(
-                    text = productMap.getValue("InsertUser"), modifier = Modifier
-                        .padding(top = 10.dp)
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                var messagePopUp by remember { mutableStateOf(false) }
-                TextButton(
-                    onClick = {
-                        messagePopUp = true
-                    },
-                ) {
-                    Text(
-                        text = "메세지\n보내기",
-                        modifier = Modifier
-                            .padding(
-                                top = 10.dp,
-                                end = 20.dp
-                            )
-                    )
-                }
-                if (messagePopUp) {
-                    MessagePopup(
-                        productMap.getValue("InsertUser")
-                    ) { messagePopUp = false }
-                }
-
-            }
+            UserInfoSection(productMap)
             Divider(color = colorDang, thickness = 2.dp)
-            Row(
+            PriceAndMethodSection(productMap)
+            Divider(color = colorDang, thickness = 2.dp)
+            ProductDescriptionSection(productMap)
+        }
+    }
+
+
+    @Composable
+    fun UserInfoSection(productMap: Map<String, String>) {
+        val insertUser = productMap.getValue("InsertUser")
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.character4),
+                contentDescription = "",
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-            ) {
-                Spacer(modifier = Modifier.weight(1f))
-                Text(text = "가격: ${productMap.getValue("price")}")
+                    .padding(start = 20.dp)
+                    .size(60.dp)
+            )
+            Text(
+                text = insertUser,
+                modifier = Modifier.padding(top = 10.dp)
+            )
 
-                Spacer(modifier = Modifier.weight(1f))
-                Text(text = "거래방법: ${productMap.getValue("dealMethod")}")
-
-                Spacer(modifier = Modifier.weight(1f))
-                Text(text = "상태: ${productMap.getValue("rating")}")
-                Spacer(modifier = Modifier.weight(1f))
-            }
-            Divider(color = colorDang, thickness = 2.dp)
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(text = productMap.getValue("productDescription"))
-            }
             Spacer(modifier = Modifier.weight(1f))
+
+            var messagePopUp by remember { mutableStateOf(false) }
+
+            if(insertUser == UserIDManager.userID.value) {
+                FunTextButton("메세지", clickEvent = { messagePopUp = true })
+            } else {
+                FunTextButton("메세지", clickEvent = { messagePopUp = true })
+            }
+
+            if (messagePopUp) {
+                MessagePopup(insertUser) { messagePopUp = false }
+            }
+        }
+    }
+
+    @Composable
+    fun PriceAndMethodSection(productMap: Map<String, String>) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "가격: ${productMap.getValue("price")}")
+            Text(text = "거래방법: ${productMap.getValue("dealMethod")}")
+            Text(text = "상태: ${productMap.getValue("rating")}")
+        }
+    }
+
+    @Composable
+    fun ProductDescriptionSection(productMap: Map<String, String>) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(text = productMap.getValue("productDescription"))
         }
     }
 }
