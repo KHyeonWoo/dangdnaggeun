@@ -145,13 +145,10 @@ class DecorateActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 var inputImage by remember { mutableStateOf<Bitmap?>(null) }
-                ImagePicker(onImageSelected = { bitmap ->
-                    inputImage = bitmap
-                })
-
                 var isLoading by remember { mutableStateOf(false) }
 
-                inputImage?.let { bitmap ->
+                ImagePicker(onImageSelected = { bitmap ->
+                    inputImage = bitmap
 
                     sendImageToServer(bitmap) {
                         uploadServerResult += it
@@ -159,9 +156,9 @@ class DecorateActivity : ComponentActivity() {
                         inputImage = null
                         isLoading = false
                     }
-
                     isLoading = true
-                }
+                })
+
                 CustomTabRow(uploadTrigger, isLoading)
                 { onClickedRef: StorageReference, onClickedUri: String, onClickedCategory: String ->
                     clickedRef = onClickedRef
@@ -195,7 +192,7 @@ class DecorateActivity : ComponentActivity() {
                     response: Response<ResponseBody>
                 ) {
                     if (response.isSuccessful) {
-                        successEvent("성공")
+                        successEvent("성공: ${response.body()}")
                     } else {
                         successEvent("에러 메시지: ${response.errorBody()?.string()}")
                     }

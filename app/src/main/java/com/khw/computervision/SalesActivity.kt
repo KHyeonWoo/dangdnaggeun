@@ -113,9 +113,7 @@ class SalesActivity : ComponentActivity() {
             ) {
                 Spacer(modifier = Modifier.weight(1f))
                 FunTextButton("+ 글쓰기") {
-                    val userIntent = Intent(context, InsertActivity::class.java)
-                    userIntent.putExtra("userID", UserIDManager.userID.value)
-                    context.startActivity(userIntent)
+                    context.startActivity(Intent(context, DecorateActivity::class.java))
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }

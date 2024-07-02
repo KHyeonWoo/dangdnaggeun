@@ -21,11 +21,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,11 +37,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.ImageLoader
@@ -102,8 +98,7 @@ interface ApiService {
     @Multipart
     @POST("/tryon")
     fun uploadList(
-        @Part listPart: MultipartBody.Part,
-        @Part("userID") userIdPart: RequestBody
+        @PartMap data: Map<String, @JvmSuppressWildcards RequestBody>
     ): Call<ResponseBody>
 }
 
@@ -111,9 +106,10 @@ object RetrofitClient {
     private const val BASE_URL = "http://192.168.45.140:8080/"
 
     private val client = OkHttpClient.Builder()
-        .readTimeout(30, TimeUnit.SECONDS)
-        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .connectTimeout(60, TimeUnit.SECONDS)
         .build()
+
 
     val instance: ApiService by lazy {
         val retrofit = Retrofit.Builder()
@@ -182,6 +178,10 @@ fun LogoScreen(activityName: String, goBack: () -> Unit) {
 
             "MessageList" -> {
                 TextBox("나의 메시지를 확인해요") //07022024 하승수 - 메시지 페이지 추가
+            }
+
+            "AiImgGen" -> {
+                TextBox("나의 당당하게 꾸며봐요") //07021336 김현우 - AI 이미지 생성 페이지 추가
             }
         }
     }

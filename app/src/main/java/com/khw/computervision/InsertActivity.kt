@@ -55,13 +55,18 @@ class InsertActivity : ComponentActivity() {
                 }
                 clickedUri = intent.getStringExtra("clickedUri") ?: ""
 
-                InsertScreen(clickedUri)
+                var requestAiImg by remember {
+                    mutableStateOf("")
+                }
+                requestAiImg = intent.getStringExtra("requestAiImg") ?: ""
+
+                InsertScreen(clickedUri, requestAiImg)
             }
         }
     }
 
     @Composable
-    fun InsertScreen(clickedUri: String) {
+    fun InsertScreen(clickedUri: String, requestAiImg: String) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -137,10 +142,8 @@ class InsertActivity : ComponentActivity() {
                         popupVisibleState = false
                     })
                 }
-
             }
         }
-
     }
 
     private fun saveEvent(
@@ -148,7 +151,6 @@ class InsertActivity : ComponentActivity() {
         context: Context,
         newPopupDetails: PopupDetails
     ) {
-
         val db = Firebase.firestore
         val dateTimeNow =
             LocalDateTime.now().toLocalDate().toString().replace("-", "") +
