@@ -50,6 +50,18 @@ import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Multipart
+import retrofit2.http.POST
+import retrofit2.http.Part
+import retrofit2.http.PartMap
+import java.util.concurrent.TimeUnit
 
 val colorDang = Color(0xFFF3BB66)
 
@@ -66,6 +78,42 @@ object ReLoadingManager {
 object UserIDManager {
     var userID: MutableState<String> =
         mutableStateOf("")
+}
+
+//240702 김현우 - 서버통신을 위한 함수 UsableFun으로 이동
+interface ApiService {
+    @Multipart
+    @POST("/infer")
+    fun uploadImage(
+        @Part image: MultipartBody.Part,
+        @PartMap data: Map<String, @JvmSuppressWildcards RequestBody>
+    ): Call<ResponseBody>
+
+    @Multipart
+    @POST("/tryon")
+    fun uploadList(
+        @Part listPart: MultipartBody.Part,
+        @Part("userID") userIdPart: RequestBody
+    ): Call<ResponseBody>
+}
+
+object RetrofitClient {
+    private const val BASE_URL = "http://192.168.45.140:8080/"
+
+    private val client = OkHttpClient.Builder()
+        .readTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .build()
+
+    val instance: ApiService by lazy {
+        val retrofit = Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        retrofit.create(ApiService::class.java)
+    }
 }
 
 @Composable

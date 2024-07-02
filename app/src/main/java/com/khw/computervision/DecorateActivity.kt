@@ -68,34 +68,6 @@ import java.util.concurrent.TimeUnit
 
 class DecorateActivity : ComponentActivity() {
 
-    interface ApiService {
-        @Multipart
-        @POST("/infer")
-        fun uploadImage(
-            @Part image: MultipartBody.Part,
-            @PartMap data: Map<String, @JvmSuppressWildcards RequestBody>
-        ): Call<ResponseBody>
-    }
-
-    object RetrofitClient {
-        private const val BASE_URL = "http://192.168.45.140:8080/"
-
-        private val client = OkHttpClient.Builder()
-            .readTimeout(30, TimeUnit.SECONDS)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .build()
-
-        val instance: ApiService by lazy {
-            val retrofit = Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-
-            retrofit.create(ApiService::class.java)
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -130,20 +102,22 @@ class DecorateActivity : ComponentActivity() {
 
                 LogoScreen("Decorate") { finish() }
                 Spacer(modifier = Modifier.weight(1f))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Spacer(modifier = Modifier.weight(12f))
-                    val context = LocalContext.current
-                    FunTextButton("다음") {
-                        //240701 김현우 - 이미지 저장 시 InsertActivity로 imageUri 전달 추가
-                        finish()
-                        val userIntent = Intent(context, InsertActivity::class.java)
-                        userIntent.putExtra("clickedUri", clickedUri)
-                        userIntent.putExtra("clickedCategory", clickedCategory)
-                        context.startActivity(userIntent)
+                if (clickedUri != "") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Spacer(modifier = Modifier.weight(12f))
+                        val context = LocalContext.current
+                        FunTextButton("다음") {
+                            //240701 김현우 - 이미지 저장 시 InsertActivity로 imageUri 전달 추가
+                            finish()
+                            val userIntent = Intent(context, AiImgGenActivity::class.java)
+                            userIntent.putExtra("clickedUri", clickedUri)
+                            userIntent.putExtra("clickedCategory", clickedCategory)
+                            context.startActivity(userIntent)
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
                     }
-                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
             Column(
@@ -204,8 +178,13 @@ class DecorateActivity : ComponentActivity() {
     ) {
         val image = bitmapToByteArray(bitmap) // 실제 이미지 파일 경로
         val requestFile = RequestBody.create("image/*".toMediaTypeOrNull(), image)
-        val imagePart = MultipartBody.Part.createFormData("image", "${UserIDManager.userID.value}.png", requestFile)
-        val userIdPart = RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
+        val imagePart = MultipartBody.Part.createFormData(
+            "image",
+            "${UserIDManager.userID.value}.png",
+            requestFile
+        )
+        val userIdPart =
+            RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
 
         val dataMap = mapOf("userID" to userIdPart)
 
