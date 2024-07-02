@@ -4,10 +4,12 @@ import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.location.Geocoder
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -43,6 +46,7 @@ import com.canhub.cropper.CropImage
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
@@ -56,7 +60,12 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
-
+import java.util.Locale
+import android.Manifest
+import android.content.pm.PackageManager
+import android.location.Location
+import androidx.core.app.ActivityCompat
+import com.google.android.gms.location.FusedLocationProviderClient
 
 @Composable
 fun ProfilePopup(
@@ -64,7 +73,7 @@ fun ProfilePopup(
     close: () -> Unit,
     successUpload: () -> Unit
 ) {
-
+    var addressText by remember { mutableStateOf("주소 정보가 여기에 표시됩니다") }
     val context = LocalContext.current
     AlertDialog(
         onDismissRequest = { close() },
@@ -76,6 +85,29 @@ fun ProfilePopup(
                     .height(600.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+
+                val fusedLocationClient =
+                    remember { LocationServices.getFusedLocationProviderClient(context) }
+                val geocoder = remember { Geocoder(context, Locale.KOREA) }
+                val coroutineScope = rememberCoroutineScope()
+
+                val requestPermissionLauncher =
+                    rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.RequestPermission()
+                    ) { isGranted: Boolean ->
+                        if (isGranted) {
+                            getLocation(fusedLocationClient) { location ->
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    val address = getAddressFromLocation(geocoder, location)
+                                    addressText = address ?: "주소를 찾을 수 없습니다."
+                                    withContext(Dispatchers.Main) {
+                                        UserIDManager.userAddress.value = addressText
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                 Text(text = "")
 
                 var inputImage by remember { mutableStateOf<Bitmap?>(null) }
@@ -90,6 +122,32 @@ fun ProfilePopup(
                     })
                 }
                 Text(text = UserIDManager.userID.value)
+                TextButton(onClick = {
+                    when {
+                        ActivityCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED -> {
+                            getLocation(fusedLocationClient) { location ->
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    val address = getAddressFromLocation(geocoder, location)
+                                    addressText = address ?: "주소를 찾을 수 없습니다."
+                                    withContext(Dispatchers.Main) {
+                                        UserIDManager.userAddress.value = addressText
+                                    }
+                                }
+                            }
+                        }
+
+                        else -> {
+                            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                        }
+                    }
+
+                }) {
+                    Text(text = "현재 위치 확인")
+                }
+                Text(text = UserIDManager.userAddress.value)
                 Spacer(modifier = Modifier.weight(2f))
 
                 val messageMap = getMessage()
@@ -118,7 +176,54 @@ fun ProfilePopup(
         dismissButton =
         { }
     )
+}
 
+fun getLocation(
+    fusedLocationProviderClient: FusedLocationProviderClient,
+    onLocationReceived: (Location) -> Unit
+) {
+    try {
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let {
+                onLocationReceived(it)
+            }
+        }
+    } catch (e: SecurityException) {
+        // 권한이 없는 경우 예외 처리
+    }
+}
+
+fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
+    return try {
+        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+        Log.d("AddressLookup", "Received addresses: ${addresses?.size}")
+
+        addresses?.firstOrNull()?.let { address ->
+            val adminArea = address.adminArea ?: ""
+            val locality = address.locality ?: ""
+            val subLocality = address.subLocality ?: ""
+            val thoroughfare = address.thoroughfare ?: ""
+            val subThoroughfare = address.subThoroughfare ?: ""
+
+            // 여기에 로그 추가
+            Log.d("AddressLookup", "Address components:")
+            Log.d("AddressLookup", "adminArea: $adminArea")
+            Log.d("AddressLookup", "locality: $locality")
+            Log.d("AddressLookup", "subLocality: $subLocality")
+            Log.d("AddressLookup", "thoroughfare: $thoroughfare")
+            Log.d("AddressLookup", "subThoroughfare: $subThoroughfare")
+            Log.d("AddressLookup", "Full address: ${address.getAddressLine(0)}")
+
+
+            val result = "$adminArea $subLocality $thoroughfare"
+            Log.d("AddressLookup", "Final result: $result")
+
+            result
+        }
+    } catch (e: Exception) {
+        Log.e("AddressLookup", "Error getting address", e)
+        null
+    }
 }
 
 fun uploadBitmapImage(
