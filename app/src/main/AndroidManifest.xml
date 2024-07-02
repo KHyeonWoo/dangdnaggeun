@@ -51,6 +51,9 @@
         <activity
             android:name=".MyUploadedActivity"
             android:theme="@style/Theme.ComputerVision"/>
+        <activity
+            android:name=".AiImgGenActivity"
+            android:theme="@style/Theme.ComputerVision"/>
 
         <activity android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat"/>

@@ -167,7 +167,6 @@ class SalesActivity : ComponentActivity() {
                                     contentDescription = "Image"
                                 )
                             }
-
                         }
                     }
                 }
