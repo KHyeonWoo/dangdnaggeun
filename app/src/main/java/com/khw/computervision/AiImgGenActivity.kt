@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.storage.StorageReference
 import com.khw.computervision.ui.theme.ComputerVisionTheme
 import com.skydoves.landscapist.glide.GlideImage
@@ -113,22 +118,24 @@ class AiImgGenActivity : ComponentActivity() {
                 }
 
                 Text(text = requestMsg)
+                var isLoading by remember {
+                    mutableStateOf(false)
+                }
+
+                val viewModel: SharedViewModel by viewModels { SharedViewModelFactory() }
                 FunTextButton(buttonText = "다음") {
+                    isLoading = true
                     if (clickedCategory == "top") {
-                        sendListToServer(
+                        viewModel.sendServerRequest(
                             topURL = clickedUri,
                             bottomURL = extraClickedUri,
-                            gender = modelGender,
-                            successEvent = { requestAiImg = it },
-                            errorEvent = { requestMsg = it }
+                            gender = modelGender
                         )
                     } else if (clickedCategory == "bottom") {
-                        sendListToServer(
+                        viewModel.sendServerRequest(
                             topURL = extraClickedUri,
                             bottomURL = clickedUri,
-                            gender = modelGender,
-                            successEvent = { requestAiImg = it },
-                            errorEvent = { requestMsg = it }
+                            gender = modelGender
                         )
                     }
 
@@ -136,7 +143,8 @@ class AiImgGenActivity : ComponentActivity() {
                     val userIntent = Intent(context, InsertActivity::class.java)
                     userIntent.putExtra("clickedUri", clickedUri)
                     userIntent.putExtra("requestAiImg", requestAiImg)
-                    context.startActivity(userIntent)
+                    userIntent.putExtra("isLoading", isLoading)
+                    startActivity(userIntent)
                 }
             }
         }
@@ -310,5 +318,55 @@ class AiImgGenActivity : ComponentActivity() {
                     errorEvent("요청이 실패했습니다: ${t.message}")
                 }
             })
+    }
+}
+
+// ViewModel 클래스 정의
+class SharedViewModel : ViewModel() {
+
+    private val _responseData = MutableLiveData<String>()
+    val responseData: LiveData<String> get() = _responseData
+
+    fun sendServerRequest(
+        topURL: String,
+        bottomURL: String,
+        gender: String
+    ) {
+        val userIDPart =
+            RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
+        val topURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), topURL)
+        val bottomURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), bottomURL)
+        val genderPart = RequestBody.create("text/plain".toMediaTypeOrNull(), gender)
+
+        val dataMap = mapOf(
+            "userID" to userIDPart,
+            "topURL" to topURLPart,
+            "bottomURL" to bottomURLPart,
+            "gender" to genderPart
+        )
+
+        RetrofitClient.instance.uploadList(dataMap).enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    _responseData.postValue("response.body()?.string()")
+                } else {
+                    _responseData.postValue(response.errorBody()?.string())
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                _responseData.postValue(t.message)
+            }
+        })
+    }
+}
+
+class SharedViewModelFactory : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(SharedViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return SharedViewModel() as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -19,10 +20,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,13 +63,26 @@ class InsertActivity : ComponentActivity() {
                 }
                 requestAiImg = intent.getStringExtra("requestAiImg") ?: ""
 
-                InsertScreen(clickedUri, requestAiImg)
+                var isLoading by remember {
+                    mutableStateOf(false)
+                }
+                isLoading = intent.getBooleanExtra("isLoading", false)
+
+//                val viewModel: SharedViewModel by viewModels()
+                val viewModel: SharedViewModel by viewModels { SharedViewModelFactory() }
+
+                InsertScreen(clickedUri, requestAiImg, isLoading, viewModel)
             }
         }
     }
 
     @Composable
-    fun InsertScreen(clickedUri: String, requestAiImg: String) {
+    fun InsertScreen(
+        clickedUri: String,
+        requestAiImg: String,
+        isLoading: Boolean,
+        viewModel: SharedViewModel
+    ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -118,12 +134,18 @@ class InsertActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                //240701 김현우 - 꾸미기 화면에서 이미지 선택 후 저장 시 GLIDE 이미지 show
-                GlideImage(
-                    imageModel = clickedUri,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
+                val responseData by viewModel.responseData.observeAsState()
+                responseData?.let {aiUrl ->
+                    //240701 김현우 - 꾸미기 화면에서 이미지 선택 후 저장 시 GLIDE 이미지 show
+                    Text(text = aiUrl)
+//                    GlideImage(
+////                    imageModel = clickedUri,
+//                        imageModel = aiUrl,
+//                        modifier = Modifier.fillMaxSize(),
+//                        contentScale = ContentScale.Fit
+//                    )
+                } ?:
+                CircularProgressIndicator()
             }
             var popupVisibleState by remember { mutableStateOf(false) }
             Column(
