@@ -84,6 +84,7 @@ object ReLoadingManager {
 object UserIDManager {
     var userID: MutableState<String> =
         mutableStateOf("")
+    var userAddress: MutableState<String> = mutableStateOf("주소 정보가 여기에 표시됩니다.")
 }
 
 //240702 김현우 - 서버통신을 위한 함수 UsableFun으로 이동
@@ -441,11 +442,11 @@ fun SearchTextField(onSearch: (String) -> Unit) {
             unfocusedLabelColor = colorDang
         ),
         leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.search_icon),
-                    contentDescription = "Search Icon",
-                    tint = colorDang
-                )
+            Icon(
+                painter = painterResource(id = R.drawable.search_icon),
+                contentDescription = "Search Icon",
+                tint = colorDang
+            )
         }
     )
 }
