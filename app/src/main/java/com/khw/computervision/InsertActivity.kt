@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -16,20 +17,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.gowtham.ratingbar.RatingBar
@@ -238,6 +247,7 @@ import java.time.LocalDateTime
 //}
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InsertScreen(
     navController: NavHostController,
@@ -262,59 +272,100 @@ fun InsertScreen(
                 )
             )
         }
+        var checkedOption by remember { mutableIntStateOf(0) }
         Column(
             modifier = Modifier
                 .weight(1f)
         ) {
-//            LogoScreen("Insert") { navController.popBackStack() }
             Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
+                Spacer(modifier = Modifier.weight(2f))
+
+                val options = listOf(
+                    " 옷 ",
+                    "모델"
+                )
+                MultiChoiceSegmentedButtonRow {
+                    options.forEachIndexed { index, label ->
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = options.size
+                            ),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = colorDang,
+                                activeContentColor = Color.White,
+                                inactiveContainerColor = Color.White,
+                                inactiveContentColor = Color.White,
+                                activeBorderColor = colorDang,
+                                inactiveBorderColor = colorDang,
+                            ),
+                            onCheckedChange = {
+                                checkedOption =
+                                    if (label == " 옷 ") {
+                                        0
+                                    } else {
+                                        1
+                                    }
+                            },
+                            checked = index == checkedOption
+                        ) {
+                            Text(label)
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 val coroutineScope = rememberCoroutineScope()
-                FunTextButton("저장") {
-                    navController.popBackStack()
-                    saveEvent(coroutineScope, context, newPopupDetails)
-                    ReLoadingManager.reLoading()
+                Row(
+                    modifier = Modifier.weight(1f),
+                ) {
+                    FunTextButton("저장") {
+                        navController.popBackStack()
+                        saveEvent(coroutineScope, context, newPopupDetails)
+                        ReLoadingManager.reLoading()
+                    }
                 }
             }
         }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(2f)
-                .clickable {
-//                    navController.navigate("decorate/$encodingClickedUri")
-                },
+                .weight(3f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val responseData by viewModel.responseData.observeAsState()
-            val aiUrlText =
-                "https://storage.googleapis.com/dangdanggeun-1b552.appspot.com/dangdanggeun%40intel.com/AIresults/20240703122308885560.png".replace(
-                    "\"",
-                    ""
-                )
-            responseData?.let { aiUrl ->
-                val replaceAiUrl = aiUrl.replace("\"", "")
-                Text(text = aiUrl)
+            if (checkedOption == 0) {
                 GlideImage(
-                    imageModel = aiUrl,
+                    imageModel = encodingClickedUri,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit
                 )
+            } else {
 
-            } ?: run {
-                Text(text = aiUrlText)
-                GlideImage(
-                    imageModel = aiUrlText,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
+                val responseData by viewModel.responseData.observeAsState()
+                responseData?.let { aiUrl ->
+                    val replaceAiUrl = aiUrl.replace("\"", "")
+                    val painter = rememberAsyncImagePainter(replaceAiUrl)
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                    //glide로 하니까 이미지 로드가 안됨 ㅜㅜㅜㅜ
+//                GlideImage(
+//                    imageModel = replaceAiUrl,
+//                    modifier = Modifier.fillMaxSize(),
+//                    contentScale = ContentScale.Fit
+//                )
+
+                } ?: run {
+                    CircularProgressIndicator()
+                }
             }
-//            CircularProgressIndicator()
-
         }
         var popupVisibleState by remember { mutableStateOf(false) }
         Column(
@@ -356,7 +407,9 @@ private fun saveEvent(
         "dealMethod" to newPopupDetails.dealMethod,
         "rating" to newPopupDetails.rating,
         "productDescription" to newPopupDetails.productDescription,
-        "state" to 1 //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+        "state" to 1, //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+        "liked" to 0,
+        "viewCount" to 0
     )
 
     coroutineScope.launch(Dispatchers.IO) {
