@@ -34,22 +34,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.khw.computervision.ui.theme.ComputerVisionTheme
 
-class MessageListActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            // Intent에서 Bundle을 가져옵니다.
-            val bundle = intent.getBundleExtra("messageList")
-            var messageMap: Map<String, String> = mutableMapOf()
-            if (bundle != null) {
-                messageMap = bundleToMap(bundle)
-            }
-            ComputerVisionTheme {
-                MessageScreen(messageMap, "User's Image")
-            }
-        }
-    }
-}
+//class MessageListActivity : ComponentActivity() {
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        setContent {
+//            // Intent에서 Bundle을 가져옵니다.
+//            val bundle = intent.getBundleExtra("messageList")
+//            var messageMap: Map<String, String> = mutableMapOf()
+//            if (bundle != null) {
+//                messageMap = bundleToMap(bundle)
+//            }
+//            ComputerVisionTheme {
+//                MessageScreen(messageMap, "User's Image")
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun MessageScreen(messageMap: Map<String, String>, profileUri: String?) {
@@ -135,12 +135,12 @@ fun MessageScreen(messageMap: Map<String, String>, profileUri: String?) {
         Spacer(modifier = Modifier.weight(0.3f))
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ComputerVisionTheme {
-        val sampleMap = mapOf("key1" to "value1", "key2" to "value2")
-        MessageScreen(sampleMap, "User's Image")
-    }
-}
+//
+//@Preview(showBackground = true)
+//@Composable
+//fun GreetingPreview() {
+//    ComputerVisionTheme {
+//        val sampleMap = mapOf("key1" to "value1", "key2" to "value2")
+//        MessageScreen(sampleMap, "User's Image")
+//    }
+//}

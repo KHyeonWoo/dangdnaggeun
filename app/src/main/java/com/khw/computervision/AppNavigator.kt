@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
@@ -17,8 +18,10 @@ import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -27,7 +30,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+import com.google.gson.Gson
 import com.khw.computervision.ui.theme.ComputerVisionTheme
+import java.net.URLEncoder
 
 class AppNavigator : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -120,6 +127,10 @@ class AppNavigator : ComponentActivity() {
                         ) { _ ->
                             ProfileScreen()
                         }
+                        composable("messageList") {
+                            val messageMap = getMessage()
+                            MessageScreen(messageMap, "User's Image")
+                        }
                     }
                 }
             }
@@ -135,7 +146,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
         BottomNavItem("sales", Icons.Default.Search, "Home"),
         BottomNavItem("", Icons.Default.List, "Closet"),
         BottomNavItem("decorate", Icons.Default.AddCircle, "SalesList"),
-        BottomNavItem("", Icons.Default.MailOutline, "Message"),
+        BottomNavItem("messageList", Icons.Default.MailOutline, "Message"),
         BottomNavItem("profile/{profileUri}", Icons.Default.AccountCircle, "Profile")
     )
     BottomNavigation {
@@ -146,7 +157,14 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                 label = { Text(item.label) },
                 selected = currentRoute == item.route,
                 onClick = {
-                    navController.navigate(item.route) {
+                    val route = if (item.route.contains("{messageMap}")) {
+                        val emptyMessageMap = emptyMap<String, String>()
+                        val messageMapJson = URLEncoder.encode(Gson().toJson(emptyMessageMap), "UTF-8")
+                        item.route.replace("{messageMap}", messageMapJson)
+                    } else {
+                        item.route
+                    }
+                    navController.navigate(route) {
                         popUpTo(navController.graph.startDestinationId) {
                             saveState = true
                         }
@@ -176,4 +194,30 @@ fun shouldShowBottomBar(navController: NavController): Boolean {
 fun shouldShowTopBar(navController: NavController): Boolean {
     val currentRoute = currentRoute(navController)
     return currentRoute == "sales"
+}
+
+fun parseMessageMap(messageMapString: String): Map<String, String> {
+    return try {
+        Gson().fromJson(messageMapString, Map::class.java) as Map<String, String>
+    } catch (e: Exception) {
+        emptyMap()
+    }
+}
+
+@Composable
+fun getMessage(): Map<String, String> {
+    val context = LocalContext.current
+    val messageMap = produceState<Map<String, String>>(initialValue = emptyMap()) {
+        Firebase.firestore.collection(UserIDManager.userID.value)
+            .get()
+            .addOnSuccessListener { result ->
+                value = result.documents.associate {
+                    it.id to "보낸일시: ${it.getString("date").orEmpty()}\n보낸사람: ${it.getString("sendUser").orEmpty()}\n메세지: ${it.getString("message").orEmpty()}"
+                }
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
+            }
+    }
+    return messageMap.value
 }

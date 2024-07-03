@@ -277,38 +277,6 @@ fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
 }
 
 @Composable
-fun getMessage(): Map<String, String> {
-    val context = LocalContext.current
-
-    // Firebase에서 데이터를 가져오고, 이 데이터를 상태로 관리합니다.
-    // 초기값은 빈 맵(emptyMap)으로 설정합니다.
-    val messageMap = produceState<Map<String, String>>(initialValue = emptyMap()) {
-        Firebase.firestore.collection(UserIDManager.userID.value)
-            .get()
-            .addOnSuccessListener { result ->
-                // 데이터 가져오기가 성공하면, 문서 ID와 메시지 내용을 맵으로 만듭니다.
-                // 결과를 'value'에 할당하여 상태를 업데이트합니다.
-                value = result.documents.associate {
-                    it.id to "보낸일시: ${
-                        it.getString("date").orEmpty()
-                    }\n보낸사람: ${
-                        it.getString("sendUser").orEmpty()
-                    }\n메세지: ${
-                        it.getString("message").orEmpty()
-                    }"
-                }
-            }
-            .addOnFailureListener { exception ->
-                // 데이터 가져오기가 실패하면, 에러 메시지를 토스트로 보여줍니다.
-                Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
-            }
-    }
-
-    // messageMap의 크기(size)를 반환합니다.
-    return messageMap.value
-}
-
-@Composable
 fun GetProduct(reLoading: Boolean, getProductEvent: (Map<String, Map<String, String>>) -> Unit) {
     val context = LocalContext.current
 

@@ -127,11 +127,11 @@ fun ProfileScreen(
             context.startActivity(productIntent)
         }
 
-        FunButton("내게 온 메세지 : ${messageMap.size}", null) {
-            val userIntent = Intent(context, MessageListActivity::class.java)
-            userIntent.putExtra("messageList", mapToBundle(messageMap))
-            context.startActivity(userIntent)
-        }
+//        FunButton("내게 온 메세지 : ${messageMap.size}", null) {
+//            val userIntent = Intent(context, MessageListActivity::class.java)
+//            userIntent.putExtra("messageList", mapToBundle(messageMap))
+//            context.startActivity(userIntent)
+//        }
 
 //        Spacer(modifier = Modifier.weight(1f))
         FunButton("로그아웃", null) {
