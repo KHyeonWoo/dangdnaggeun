@@ -9,7 +9,6 @@ import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
@@ -17,14 +16,9 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -33,10 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import com.khw.computervision.ui.theme.ComputerVisionTheme
-import kotlinx.coroutines.tasks.await
 
 class AppNavigator : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,7 +35,8 @@ class AppNavigator : ComponentActivity() {
         setContent {
             ComputerVisionTheme {
                 val navController = rememberNavController()
-                val viewModel: SharedViewModel = viewModel() // ViewModel 인스턴스 생성
+                val aiViewModel: AiViewModel = viewModel() // ViewModel 인스턴스 생성
+                val closetViewModel: ClosetViewModel = viewModel() // ViewModel 인스턴스 생성
 
                 Scaffold(
                     topBar = {
@@ -54,7 +46,7 @@ class AppNavigator : ComponentActivity() {
                     },
                     bottomBar = {
                         if (shouldShowBottomBar(navController)) {
-                            BottomNavigationBar(navController, viewModel) // ViewModel 전달
+                            BottomNavigationBar(navController, aiViewModel) // ViewModel 전달
                         }
                     }
                 ) { innerPadding ->
@@ -63,7 +55,7 @@ class AppNavigator : ComponentActivity() {
                         startDestination = "login",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable("login") { LoginScreen(navController) }
+                        composable("login") { LoginScreen(navController, closetViewModel) }
                         composable("sales") { SaleScreen(navController) }
                         composable(
                             "detailProduct/{productId}",
@@ -76,21 +68,22 @@ class AppNavigator : ComponentActivity() {
                                 backStackEntry.arguments?.getString("productId")
                             )
                         }
-                        composable(
-                            "decorate/{encodedClickedUri}",
-                            arguments = listOf(navArgument("encodedClickedUri") {
-                                type = NavType.StringType
-                            })
-                        ) { backStackEntry ->
-                            DecorateScreen(
-                                navController,
-                                backStackEntry.arguments?.getString("encodedClickedUri") ?: ""
-                            )
-                        }
+//                        composable(
+//                            "decorate/{encodedClickedUri}",
+//                            arguments = listOf(navArgument("encodedClickedUri") {
+//                                type = NavType.StringType
+//                            })
+//                        ) { backStackEntry ->
+//                            DecorateScreen(
+//                                navController,
+//                                backStackEntry.arguments?.getString("encodedClickedUri") ?: "",
+//                                closetViewModel
+//                            )
+//                        }
                         composable(
                             "decorate"
                         ) {
-                            DecorateScreen(navController, "")
+                            DecorateScreen(navController, "", closetViewModel)
                         }
                         composable(
                             "aiImgGen/{encodedClickedUri}/{clickedCategory}",
@@ -103,7 +96,8 @@ class AppNavigator : ComponentActivity() {
                                 navController,
                                 backStackEntry.arguments?.getString("encodedClickedUri") ?: "",
                                 backStackEntry.arguments?.getString("clickedCategory") ?: "",
-                                viewModel
+                                aiViewModel,
+                                closetViewModel
                             )
                         }
                         composable(
@@ -115,7 +109,7 @@ class AppNavigator : ComponentActivity() {
                             InsertScreen(
                                 navController,
                                 backStackEntry.arguments?.getString("encodedClickedUri") ?: "",
-                                viewModel
+                                aiViewModel
                             )
                         }
                         composable(
@@ -136,10 +130,10 @@ class AppNavigator : ComponentActivity() {
 data class BottomNavItem(val route: String, val icon: ImageVector, val label: String)
 
 @Composable
-fun BottomNavigationBar(navController: NavController, viewModel: SharedViewModel) {
+fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
     val items = listOf(
-        BottomNavItem("login", Icons.Default.Search, "Home"),
-        BottomNavItem("sales", Icons.Default.List, "SalesList"),
+        BottomNavItem("sales", Icons.Default.Search, "Home"),
+        BottomNavItem("", Icons.Default.List, "Closet"),
         BottomNavItem("decorate", Icons.Default.AddCircle, "SalesList"),
         BottomNavItem("", Icons.Default.MailOutline, "Message"),
         BottomNavItem("profile/{profileUri}", Icons.Default.AccountCircle, "Profile")
@@ -159,7 +153,6 @@ fun BottomNavigationBar(navController: NavController, viewModel: SharedViewModel
                         launchSingleTop = true
                         restoreState = true
                     }
-
                 }
             )
         }

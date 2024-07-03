@@ -307,7 +307,8 @@ fun AiImgGenScreen(
     navController: NavHostController,
     encodingClickedUri: String,
     clickedCategory: String,
-    viewModel: SharedViewModel
+    aiViewModel: AiViewModel,
+    closetViewModel: ClosetViewModel
 ) {
     var extraClickedUri by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf(true) }
@@ -317,12 +318,13 @@ fun AiImgGenScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        HeaderSection(Modifier.weight(1f), navController, encodingClickedUri, clickedCategory, viewModel, extraClickedUri, gender)
+        HeaderSection(Modifier.weight(1f), navController, encodingClickedUri, clickedCategory, aiViewModel, extraClickedUri, gender)
         BodySection(Modifier.weight(5f),
             gender,
             clickedUri = encodingClickedUri,
             clickedCategory = clickedCategory,
             extraClickedUri = extraClickedUri,
+            closetViewModel = closetViewModel,
             onExtraClick = {
                 extraClickedUri = it
             },
@@ -338,7 +340,7 @@ fun HeaderSection(
     navController: NavHostController,
     clickedUri: String,
     clickedCategory: String,
-    viewModel: SharedViewModel,
+    viewModel: AiViewModel,
     extraClickedUri: String,
     gender: Boolean
 ) {
@@ -381,6 +383,7 @@ fun BodySection(
     clickedUri: String,
     clickedCategory: String,
     extraClickedUri: String,
+    closetViewModel: ClosetViewModel,
     onExtraClick: (String) -> Unit,
     changeWoman: () -> Unit,
     changeMan: () -> Unit
@@ -414,7 +417,7 @@ fun BodySection(
         Row(
             modifier = Modifier.weight(2f)
         ) {
-            ImageGridSection(clickedCategory) { _, uri, _ ->
+            ImageGridSection(clickedCategory, closetViewModel) { _, uri, _ ->
                 onExtraClick(uri)
             }
         }
@@ -448,12 +451,13 @@ fun SideSection(
 @Composable
 fun ImageGridSection(
     clickedCategory: String,
+    closetViewModel: ClosetViewModel,
     onExtraClick: (StorageReference, String, String) -> Unit
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
         when (clickedCategory) {
-            "top" -> ImageGrid("bottom", true, onExtraClick)
-            "bottom" -> ImageGrid("top", true, onExtraClick)
+            "top" -> ImageGrid("bottom", onExtraClick, closetViewModel)
+            "bottom" -> ImageGrid("top", onExtraClick, closetViewModel)
         }
     }
 }

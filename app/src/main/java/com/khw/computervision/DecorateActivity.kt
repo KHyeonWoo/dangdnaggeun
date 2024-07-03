@@ -42,7 +42,9 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.pagerTabIndicatorOffset
 import com.google.accompanist.pager.rememberPagerState
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -314,7 +316,7 @@ import java.io.ByteArrayOutputStream
 //}
 
 @Composable
-fun DecorateScreen(navController: NavHostController, encodedClickedUri: String) {
+fun DecorateScreen(navController: NavHostController, encodedClickedUri: String, closetViewModel: ClosetViewModel) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -369,7 +371,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String) 
             var inputImage by remember { mutableStateOf<Bitmap?>(null) }
             var isLoading by remember { mutableStateOf(false) }
 
-            ImagePicker(onImageSelected = { bitmap ->
+            ImagePicker(closetViewModel = closetViewModel, onImageSelected = { bitmap ->
                 inputImage = bitmap
 
                 sendImageToServer(bitmap) {
@@ -381,7 +383,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String) 
                 isLoading = true
             })
 
-            CustomTabRow(uploadTrigger, isLoading) { _, onClickedUri, onClickedCategory ->
+            CustomTabRow(uploadTrigger, isLoading, closetViewModel) { _, onClickedUri, onClickedCategory ->
                 clickedCategory = onClickedCategory
                 displayedImageUri = onClickedUri // 이미지 클릭 시 화면에 표시할 이미지 URI 업데이트
             }
@@ -430,7 +432,8 @@ private fun sendImageToServer(
 private fun CustomTabRow(
     uploadTrigger: Boolean,
     isLoading: Boolean,
-    onImageClick: (StorageReference, String, String) -> Unit
+    closetViewModel: ClosetViewModel,
+    onImageClick: (StorageReference, String, String) -> Unit,
 ) {
     val pages = listOf("상의", "하의")
     val pagerState = rememberPagerState()
@@ -486,14 +489,14 @@ private fun CustomTabRow(
             if (page.toString() == "0") {
                 ImageGrid(
                     category = "top",
-                    successUpload = uploadTrigger,
-                    onImageClick = onImageClick
+                    onImageClick = onImageClick,
+                    closetViewModel = closetViewModel
                 )
             } else if (page.toString() == "1") {
                 ImageGrid(
                     category = "bottom",
-                    successUpload = uploadTrigger,
-                    onImageClick = onImageClick
+                    onImageClick = onImageClick,
+                    closetViewModel = closetViewModel
                 )
             }
         }
@@ -502,7 +505,8 @@ private fun CustomTabRow(
 
 @Composable
 fun ImagePicker(
-    onImageSelected: (Bitmap) -> Unit
+    closetViewModel: ClosetViewModel,
+    onImageSelected: (Bitmap) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -533,6 +537,7 @@ fun ImagePicker(
                     CropImageOptions()
                 )
                 imageCropLauncher.launch(cropOption)
+                closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))
             }
     )
 }

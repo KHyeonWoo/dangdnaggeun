@@ -252,7 +252,7 @@ import java.time.LocalDateTime
 fun InsertScreen(
     navController: NavHostController,
     encodingClickedUri: String,
-    viewModel: SharedViewModel
+    viewModel: AiViewModel
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),

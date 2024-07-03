@@ -31,7 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
@@ -57,10 +58,8 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
-import com.google.firebase.storage.ktx.storage
 import com.skydoves.landscapist.glide.GlideImage
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -97,7 +96,6 @@ object UserIDManager {
     var userID: MutableState<String> =
         mutableStateOf("")
     var userAddress: MutableState<String> = mutableStateOf("주소 정보가 여기에 표시됩니다.")
-    val profileUri = mutableStateOf<String?>(null)
 }
 
 //240702 김현우 - 서버통신을 위한 함수 UsableFun으로 이동
@@ -373,80 +371,76 @@ fun deleteFirestoreData(collectionName: String, documentId: String, successEvent
 }
 
 class ClosetViewModel : ViewModel() {
-    private val _itemsRefData = MutableLiveData<List<StorageReference?>>()
-    private val _itemsUriData = MutableLiveData<List<String?>>()
-    val itemsRefData: LiveData<List<StorageReference?>> get() = _itemsRefData
-    val itemsUriData: LiveData<List<String?>> get() = _itemsUriData
+    private val _topsRefData = MutableLiveData<List<StorageReference>>()
+    private val _topsUriData = MutableLiveData<List<String>>()
+    val topsRefData: LiveData<List<StorageReference>> get() = _topsRefData
+    val topsUriData: LiveData<List<String>> get() = _topsUriData
 
-    fun getItemsToFirebase(
-        storageRef: StorageReference,
-        itemsRef: MutableList<StorageReference>,
-        itemsUri: MutableList<String>
+    private val _bottomsRefData = MutableLiveData<List<StorageReference>>()
+    private val _bottomsUriData = MutableLiveData<List<String>>()
+    val bottomsRefData: LiveData<List<StorageReference>> get() = _bottomsRefData
+    val bottomsUriData: LiveData<List<String>> get() = _bottomsUriData
+
+    fun getItemsFromFirebase(storageRef: StorageReference) {
+        viewModelScope.launch {
+            fetchItems(storageRef.child("top"), _topsRefData, _topsUriData)
+            fetchItems(storageRef.child("bottom"), _bottomsRefData, _bottomsUriData)
+        }
+    }
+
+    private suspend fun fetchItems(
+        categoryRef: StorageReference,
+        refLiveData: MutableLiveData<List<StorageReference>>,
+        uriLiveData: MutableLiveData<List<String>>
     ) {
         resetResponseData()
-        storageRef.listAll()
-            .addOnSuccessListener {listResult ->
-                for (clothRef in listResult.items) {
-                    val uri = clothRef.downloadUrl.toString()
+        val itemsRef = mutableListOf<StorageReference>()
+        val itemsUri = mutableListOf<String>()
+
+        try {
+            val listResult = categoryRef.listAll().await()
+            listResult.items.forEach { clothRef ->
+                try {
+                    val uri = clothRef.downloadUrl.await().toString()
                     itemsRef.add(clothRef)
                     itemsUri.add(uri)
+                } catch (e: Exception) {
+                    // Handle individual downloadUrl failure if needed
                 }
-                _itemsRefData.postValue(itemsRef)
-                _itemsUriData.postValue(itemsUri)
             }
-            .addOnFailureListener {
-                // Uh-oh, an error occurred!
-            }
+            refLiveData.postValue(itemsRef)
+            uriLiveData.postValue(itemsUri)
+        } catch (e: Exception) {
+            // Handle listAll failure if needed
+        }
     }
 
     // Method to reset responseData
     private fun resetResponseData() {
-        _itemsRefData.value = listOf()
-        _itemsUriData.value = listOf()
+        _topsRefData.value = listOf()
+        _topsUriData.value = listOf()
+        _bottomsRefData.value = listOf()
+        _bottomsUriData.value = listOf()
     }
 }
 
 @Composable
 fun ImageGrid(
     category: String,
-    successUpload: Boolean,
-    onImageClick: (StorageReference, String, String) -> Unit
+    onImageClick: (StorageReference, String, String) -> Unit,
+    closetViewModel: ClosetViewModel
 ) {
-    val userRef = Firebase.storage.reference.child(UserIDManager.userID.value)
-    val storageRef = userRef.child(category)
-    val itemsRef = remember { mutableStateListOf<StorageReference>() }
-    val itemsUri = remember { mutableStateListOf<String>() }
 
-    LaunchedEffect(successUpload) {
+    val itemsRef: List<StorageReference> by if (category == "top") {
+        closetViewModel.topsRefData.observeAsState(emptyList())
+    } else {
+        closetViewModel.bottomsRefData.observeAsState(emptyList())
+    }
 
-        itemsRef.clear()
-        itemsUri.clear()
-
-        coroutineScope {
-            val listResult = storageRef.listAll().await()
-            val downloadTasks = listResult.items.map { clothRef ->
-                async {
-                    try {
-                        val uri = clothRef.downloadUrl.await().toString()
-                        itemsRef.add(clothRef)
-                        itemsUri.add(uri)
-                    } catch (e: Exception) {
-                        // Handle exceptions if needed
-                    }
-                }
-            }
-            downloadTasks.forEach { it.await() }
-
-            // 정렬 로직 추가
-            val sortedItems =
-                itemsRef.zip(itemsUri).sortedBy { it.first.name } // name을 기준으로 정렬
-            itemsRef.clear()
-            itemsUri.clear()
-            sortedItems.forEach {
-                itemsRef.add(it.first)
-                itemsUri.add(it.second)
-            }
-        }
+    val itemsUri: List<String> by if (category == "top") {
+        closetViewModel.topsUriData.observeAsState(emptyList())
+    } else {
+        closetViewModel.bottomsUriData.observeAsState(emptyList())
     }
 
     Column(
@@ -455,19 +449,15 @@ fun ImageGrid(
             .verticalScroll(rememberScrollState())
             .padding(top = 4.dp, start = 2.dp)
     ) {
-        if (itemsUri.isEmpty()) {
-            Text(text = "Loading images...", modifier = Modifier.padding(16.dp))
-        } else {
-            itemsRef.zip(itemsUri).chunked(5).forEach { rowItems ->
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    rowItems.forEach { (ref, uri) ->
-                        ImageItem(
-                            uri = uri,
-                            ref = ref,
-                            category = category,
-                            onImageClick = onImageClick
-                        )
-                    }
+        itemsRef.zip(itemsUri).chunked(5).forEach { rowItems ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                rowItems.forEach { (ref, uri) ->
+                    ImageItem(
+                        uri = uri,
+                        ref = ref,
+                        category = category,
+                        onImageClick = onImageClick
+                    )
                 }
             }
         }
@@ -580,7 +570,7 @@ fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
 }
 
 
-class SharedViewModel : ViewModel() {
+class AiViewModel : ViewModel() {
     private val _responseData = MutableLiveData<String?>()
     val responseData: LiveData<String?> get() = _responseData
 
