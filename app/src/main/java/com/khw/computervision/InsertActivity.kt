@@ -68,8 +68,7 @@ class InsertActivity : ComponentActivity() {
                 }
                 isLoading = intent.getBooleanExtra("isLoading", false)
 
-//                val viewModel: SharedViewModel by viewModels()
-                val viewModel: SharedViewModel by viewModels { SharedViewModelFactory() }
+                val viewModel: SharedViewModel by viewModels()
 
                 InsertScreen(clickedUri, requestAiImg, isLoading, viewModel)
             }
@@ -135,17 +134,17 @@ class InsertActivity : ComponentActivity() {
             ) {
 
                 val responseData by viewModel.responseData.observeAsState()
-                responseData?.let {aiUrl ->
+                if (responseData == null) {
+                    CircularProgressIndicator()
+                } else {
                     //240701 김현우 - 꾸미기 화면에서 이미지 선택 후 저장 시 GLIDE 이미지 show
-                    Text(text = aiUrl)
-//                    GlideImage(
-////                    imageModel = clickedUri,
-//                        imageModel = aiUrl,
-//                        modifier = Modifier.fillMaxSize(),
-//                        contentScale = ContentScale.Fit
-//                    )
-                } ?:
-                CircularProgressIndicator()
+                    GlideImage(
+                    imageModel = clickedUri,
+//                        imageModel = responseData,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
             var popupVisibleState by remember { mutableStateOf(false) }
             Column(

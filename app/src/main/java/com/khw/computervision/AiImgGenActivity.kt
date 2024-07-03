@@ -1,5 +1,6 @@
 package com.khw.computervision
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -18,6 +19,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -138,16 +140,27 @@ class AiImgGenActivity : ComponentActivity() {
                             gender = modelGender
                         )
                     }
-
 //                    finish()
-                    val userIntent = Intent(context, InsertActivity::class.java)
-                    userIntent.putExtra("clickedUri", clickedUri)
-                    userIntent.putExtra("requestAiImg", requestAiImg)
-                    userIntent.putExtra("isLoading", isLoading)
-                    startActivity(userIntent)
+                    putInsertActivity(context, clickedUri, isLoading, requestAiImg)
                 }
+                viewModel.responseData.observeAsState().value?.let { Text(text = it) }
             }
         }
+    }
+
+    private fun putInsertActivity(
+        context: Context,
+        clickedUri: String,
+        isLoading: Boolean,
+        requestAiImg: String
+    ) {
+
+        val userIntent = Intent(context, InsertActivity::class.java)
+        userIntent.putExtra("clickedUri", clickedUri)
+        userIntent.putExtra("requestAiImg", requestAiImg)
+        userIntent.putExtra("isLoading", isLoading)
+        userIntent.putExtra("isLoading", isLoading)
+        startActivity(userIntent)
     }
 
     @Composable
@@ -348,7 +361,7 @@ class SharedViewModel : ViewModel() {
         RetrofitClient.instance.uploadList(dataMap).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
-                    _responseData.postValue("response.body()?.string()")
+                    _responseData.postValue(response.body()?.string())
                 } else {
                     _responseData.postValue(response.errorBody()?.string())
                 }
@@ -370,3 +383,4 @@ class SharedViewModelFactory : ViewModelProvider.Factory {
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+
