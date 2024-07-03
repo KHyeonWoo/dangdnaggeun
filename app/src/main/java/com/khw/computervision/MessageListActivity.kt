@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.khw.computervision.ui.theme.ComputerVisionTheme
@@ -54,43 +58,89 @@ fun MessageScreen(messageMap: Map<String, String>, profileUri: String?) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         LogoScreen(activityName = "MessageList") { }
 
         Spacer(modifier = Modifier.weight(0.1f))
-        SearchTextField {}
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Box(modifier = Modifier.weight(2.5f)) {
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.arrow_back_icon),
+                            contentDescription = null,
+                            tint = colorDang,
+                            modifier = Modifier.size(40.dp)
+                        )
+                    }
+                }
+                Box(modifier = Modifier.weight(8f)) {
+                    SearchTextField {}
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.weight(0.2f))
         Divider(thickness = 1.dp, modifier = Modifier.width(350.dp), color = colorDang)
-
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .weight(3f)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(3f)
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
                 for ((key, value) in messageMap) {
-                    Spacer(modifier = Modifier.height(5.dp))
-                    var inputImage by remember { mutableStateOf<Bitmap?>(null) }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround
+                    Box(
+                        modifier = Modifier
+                            .width(320.dp)
+                            .height(100.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text("User's Image")
+
+                        var inputImage by remember { mutableStateOf<Bitmap?>(null) }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceAround
+                        ) {
+                            Box(modifier = Modifier.weight(3f)) {
+
+                                Text("User's Image")
 
 //                ProfileImage(profileUri) { inputImage = it }
-
-                        Text(text = value)
+                            }
+                            Box(modifier = Modifier.weight(7f)) {
+                                Text(text = value)
+                            }
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(5.dp))
-                    Divider(thickness = 1.dp, modifier = Modifier.width(350.dp), color = colorDang)
+                    Divider(
+                        thickness = 1.dp,
+                        modifier = Modifier.width(350.dp),
+                        color = colorDang
+                    )
                 }
             }
         }
         Spacer(modifier = Modifier.weight(0.3f))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    ComputerVisionTheme {
+        val sampleMap = mapOf("key1" to "value1", "key2" to "value2")
+        MessageScreen(sampleMap, "User's Image")
     }
 }
