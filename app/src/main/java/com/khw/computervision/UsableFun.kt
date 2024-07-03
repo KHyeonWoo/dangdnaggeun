@@ -1,6 +1,8 @@
 package com.khw.computervision
 
 import android.content.ContentValues
+import android.location.Geocoder
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -48,6 +50,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import coil.size.Size
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
@@ -467,4 +470,54 @@ fun SearchTextField(onSearch: (String) -> Unit) {
 
 fun encodeUrl(url: String): String {
     return URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+}
+// 20240703 신동환 - 현재 위치 확인하는 함수입니다
+
+
+fun getLocation(
+    fusedLocationProviderClient: FusedLocationProviderClient,
+    onLocationReceived: (Location) -> Unit
+) {
+    try {
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let {
+                onLocationReceived(it)
+            }
+        }
+    } catch (e: SecurityException) {
+        // 권한이 없는 경우 예외 처리
+    }
+}
+
+fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
+    return try {
+        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+        Log.d("AddressLookup", "Received addresses: ${addresses?.size}")
+
+        addresses?.firstOrNull()?.let { address ->
+            val adminArea = address.adminArea ?: ""
+            val locality = address.locality ?: ""
+            val subLocality = address.subLocality ?: ""
+            val thoroughfare = address.thoroughfare ?: ""
+            val subThoroughfare = address.subThoroughfare ?: ""
+
+            // 여기에 로그 추가
+            Log.d("AddressLookup", "Address components:")
+            Log.d("AddressLookup", "adminArea: $adminArea")
+            Log.d("AddressLookup", "locality: $locality")
+            Log.d("AddressLookup", "subLocality: $subLocality")
+            Log.d("AddressLookup", "thoroughfare: $thoroughfare")
+            Log.d("AddressLookup", "subThoroughfare: $subThoroughfare")
+            Log.d("AddressLookup", "Full address: ${address.getAddressLine(0)}")
+
+
+            val result = "$adminArea $subLocality $thoroughfare"
+            Log.d("AddressLookup", "Final result: $result")
+
+            result
+        }
+    } catch (e: Exception) {
+        Log.e("AddressLookup", "Error getting address", e)
+        null
+    }
 }
