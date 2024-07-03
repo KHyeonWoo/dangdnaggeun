@@ -181,50 +181,6 @@ fun SaleScreen(navController: NavHostController) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-//            LogoScreen("Sales") { } //finish()
-            var successUpload by remember { mutableStateOf(false) }
-            var profileUri: String? by remember { mutableStateOf(null) }
-
-            LaunchedEffect(successUpload) {
-                profileUri = getProfile()
-            }
-
-            var visiblePopup by remember { mutableStateOf(false) }
-            val modifier = Modifier
-                .size(40.dp)
-                .clickable {
-                    visiblePopup = !visiblePopup
-                }
-
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(20.dp)
-            ) {
-                profileUri?.let {
-                    GlideImage(
-                        imageModel = it,
-                        contentDescription = "Image",
-                        modifier = modifier
-                            .clip(RoundedCornerShape(20.dp))
-                    )
-                } ?: Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = "",
-                    modifier = modifier
-                )
-            }
-
-            if (visiblePopup) {
-                ProfilePopup(
-                    profileUri,
-                    { visiblePopup = false },
-                    { successUpload = !successUpload })
-            }
-        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
@@ -246,17 +202,13 @@ fun SaleScreen(navController: NavHostController) {
         }
     }
 }
-
 suspend fun getProfile(): String? {
-    val storageRef =
-        Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
-    var profileUri: String? = null
-    try {
-        profileUri = storageRef.downloadUrl.await().toString()
-    } catch (_: StorageException) {
-
+    val storageRef = Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
+    return try {
+        storageRef.downloadUrl.await().toString()
+    } catch (e: Exception) {
+        null
     }
-    return profileUri
 }
 
 @Composable

@@ -17,9 +17,14 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -28,7 +33,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import com.khw.computervision.ui.theme.ComputerVisionTheme
+import kotlinx.coroutines.tasks.await
 
 class AppNavigator : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,7 +44,8 @@ class AppNavigator : ComponentActivity() {
         setContent {
             ComputerVisionTheme {
                 val navController = rememberNavController()
-                val viewModel: SharedViewModel = viewModel()
+                val viewModel: SharedViewModel = viewModel() // ViewModel 인스턴스 생성
+
                 Scaffold(
                     topBar = {
                         if (shouldShowTopBar(navController)) {
@@ -45,7 +54,7 @@ class AppNavigator : ComponentActivity() {
                     },
                     bottomBar = {
                         if (shouldShowBottomBar(navController)) {
-                            BottomNavigationBar(navController)
+                            BottomNavigationBar(navController, viewModel) // ViewModel 전달
                         }
                     }
                 ) { innerPadding ->
@@ -58,15 +67,25 @@ class AppNavigator : ComponentActivity() {
                         composable("sales") { SaleScreen(navController) }
                         composable(
                             "detailProduct/{productId}",
-                            arguments = listOf(navArgument("productId") { type = NavType.StringType })
+                            arguments = listOf(navArgument("productId") {
+                                type = NavType.StringType
+                            })
                         ) { backStackEntry ->
-                            DetailScreen(navController, backStackEntry.arguments?.getString("productId"))
+                            DetailScreen(
+                                navController,
+                                backStackEntry.arguments?.getString("productId")
+                            )
                         }
                         composable(
                             "decorate/{encodedClickedUri}",
-                            arguments = listOf(navArgument("encodedClickedUri") { type = NavType.StringType })
+                            arguments = listOf(navArgument("encodedClickedUri") {
+                                type = NavType.StringType
+                            })
                         ) { backStackEntry ->
-                            DecorateScreen(navController, backStackEntry.arguments?.getString("encodedClickedUri") ?: "")
+                            DecorateScreen(
+                                navController,
+                                backStackEntry.arguments?.getString("encodedClickedUri") ?: ""
+                            )
                         }
                         composable(
                             "decorate"
@@ -99,6 +118,14 @@ class AppNavigator : ComponentActivity() {
                                 viewModel
                             )
                         }
+                        composable(
+                            "profile/{profileUri}",
+                            arguments = listOf(navArgument("profileUri") {
+                                type = NavType.StringType
+                            })
+                        ) { _ ->
+                            ProfileScreen()
+                        }
                     }
                 }
             }
@@ -109,13 +136,13 @@ class AppNavigator : ComponentActivity() {
 data class BottomNavItem(val route: String, val icon: ImageVector, val label: String)
 
 @Composable
-fun BottomNavigationBar(navController: NavController) {
+fun BottomNavigationBar(navController: NavController, viewModel: SharedViewModel) {
     val items = listOf(
-        BottomNavItem("login", Icons.Default.Search, "Home"), //판매리스트
-        BottomNavItem("sales", Icons.Default.List, "SalesList"), //옷장
-        BottomNavItem("decorate", Icons.Default.AddCircle, "SalesList"), //글쓰기
-        BottomNavItem("", Icons.Default.MailOutline, "Message"), //메일or채팅
-        BottomNavItem("", Icons.Default.AccountCircle, "Profile") //프로필
+        BottomNavItem("login", Icons.Default.Search, "Home"),
+        BottomNavItem("sales", Icons.Default.List, "SalesList"),
+        BottomNavItem("decorate", Icons.Default.AddCircle, "SalesList"),
+        BottomNavItem("", Icons.Default.MailOutline, "Message"),
+        BottomNavItem("profile/{profileUri}", Icons.Default.AccountCircle, "Profile")
     )
     BottomNavigation {
         val currentRoute = currentRoute(navController)
@@ -126,20 +153,19 @@ fun BottomNavigationBar(navController: NavController) {
                 selected = currentRoute == item.route,
                 onClick = {
                     navController.navigate(item.route) {
-                        // 시작 목적지로 팝업하여 큰 네비게이션 스택을 피합니다.
                         popUpTo(navController.graph.startDestinationId) {
                             saveState = true
                         }
-                        // 동일한 항목을 다시 선택할 때 동일한 목적지의 여러 복사본을 피합니다.
                         launchSingleTop = true
-                        // 이전에 선택된 항목을 다시 선택할 때 상태를 복원합니다.
                         restoreState = true
                     }
+
                 }
             )
         }
     }
 }
+
 
 @Composable
 fun currentRoute(navController: NavController): String? {

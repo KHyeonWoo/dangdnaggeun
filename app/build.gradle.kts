@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -92,4 +93,7 @@ dependencies {
     implementation ("androidx.navigation:navigation-ui-ktx:2.3.5")
     // 좌표 종속성 추가 - dh
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    // 이게 뭔진 모르지만 일단 종속성 추가- kh
+    implementation ("com.google.accompanist:accompanist-placeholder-material:0.24.13-rc")
+
 }

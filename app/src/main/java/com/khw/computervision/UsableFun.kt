@@ -81,6 +81,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
+
 val colorDang = Color(0xFFF3BB66)
 
 // 싱글톤 클래스 정의
@@ -97,6 +98,7 @@ object UserIDManager {
     var userID: MutableState<String> =
         mutableStateOf("")
     var userAddress: MutableState<String> = mutableStateOf("주소 정보가 여기에 표시됩니다.")
+    val profileUri = mutableStateOf<String?>(null)
 }
 
 //240702 김현우 - 서버통신을 위한 함수 UsableFun으로 이동
