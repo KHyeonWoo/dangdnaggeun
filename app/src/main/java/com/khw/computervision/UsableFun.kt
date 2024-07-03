@@ -44,6 +44,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
@@ -59,11 +62,14 @@ import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Multipart
@@ -519,5 +525,45 @@ fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
     } catch (e: Exception) {
         Log.e("AddressLookup", "Error getting address", e)
         null
+    }
+}
+
+
+class SharedViewModel : ViewModel() {
+    private val _responseData = MutableLiveData<String>()
+    val responseData: LiveData<String> get() = _responseData
+
+    fun sendServerRequest(
+        topURL: String,
+        bottomURL: String,
+        gender: String
+    ) {
+        // 서버 요청 로직
+        val userIDPart = RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
+        val topURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), topURL)
+        val bottomURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), bottomURL)
+        val genderPart = RequestBody.create("text/plain".toMediaTypeOrNull(), gender)
+
+        val dataMap = mapOf(
+            "userID" to userIDPart,
+            "topURL" to topURLPart,
+            "bottomURL" to bottomURLPart,
+            "gender" to genderPart
+        )
+
+        RetrofitClient.instance.uploadList(dataMap)
+            .enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        _responseData.postValue(response.body()?.string())
+                    } else {
+                        _responseData.postValue("Error: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    _responseData.postValue("Request failed: ${t.message}")
+                }
+            })
     }
 }
