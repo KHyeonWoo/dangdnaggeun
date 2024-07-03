@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageException
@@ -181,7 +184,7 @@ fun SaleScreen(navController: NavHostController) {
         Box(
             modifier = Modifier.fillMaxWidth(),
         ) {
-            LogoScreen("Sales") { } //finish()
+//            LogoScreen("Sales") { } //finish()
             var successUpload by remember { mutableStateOf(false) }
             var profileUri: String? by remember { mutableStateOf(null) }
 
@@ -244,7 +247,7 @@ fun SaleScreen(navController: NavHostController) {
     }
 }
 
-private suspend fun getProfile(): String? {
+suspend fun getProfile(): String? {
     val storageRef =
         Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
     var profileUri: String? = null

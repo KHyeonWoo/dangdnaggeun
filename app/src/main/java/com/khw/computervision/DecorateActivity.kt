@@ -328,7 +328,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String) 
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            LogoScreen("Decorate") { navController.popBackStack() }
+//            LogoScreen("Decorate") { navController.popBackStack() }
             Spacer(modifier = Modifier.weight(1f))
             if (displayedImageUri.isNotEmpty()) {
                 Row(

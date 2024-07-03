@@ -354,7 +354,7 @@ fun HeaderSection(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        LogoScreen(activityName = "AiImgGen") {}
+//        LogoScreen(activityName = "AiImgGen") {}
         Row(
             modifier = Modifier.align(Alignment.BottomEnd)
         ) {
