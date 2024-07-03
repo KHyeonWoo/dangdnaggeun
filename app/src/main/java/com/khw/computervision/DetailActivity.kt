@@ -156,7 +156,7 @@ fun DetailScreen(navController: NavHostController, productId: String?) {
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        LogoScreen("Detail") { navController.popBackStack() }
+//        LogoScreen("Detail") { navController.popBackStack() }
         Image(
             painter = painterResource(id = R.drawable.character4),
             contentDescription = "",

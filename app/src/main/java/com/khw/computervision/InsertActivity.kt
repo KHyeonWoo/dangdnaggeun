@@ -277,7 +277,7 @@ fun InsertScreen(
             modifier = Modifier
                 .weight(1f)
         ) {
-            LogoScreen("Insert") { navController.popBackStack() }
+//            LogoScreen("Insert") { navController.popBackStack() }
             Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier.fillMaxWidth()

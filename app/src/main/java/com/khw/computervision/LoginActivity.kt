@@ -156,7 +156,7 @@ fun LoginScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        LogoScreen("Login") { /* Handle finish */ }
+//        LogoScreen("Login") { /* Handle finish */ }
 
         Image(
             painter = gifImageDecode(R.raw.dangkki),
