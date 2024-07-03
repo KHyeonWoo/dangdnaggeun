@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -16,20 +17,29 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MultiChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import coil.compose.rememberImagePainter
+import com.bumptech.glide.request.RequestOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.gowtham.ratingbar.RatingBar
@@ -238,6 +248,7 @@ import java.time.LocalDateTime
 //}
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InsertScreen(
     navController: NavHostController,
@@ -273,6 +284,41 @@ fun InsertScreen(
             ) {
                 Spacer(modifier = Modifier.weight(1f))
 
+                var checkedOption by remember { mutableIntStateOf(0) }
+                val options = listOf(
+                    " 옷 ",
+                    "모델"
+                )
+                MultiChoiceSegmentedButtonRow {
+                    options.forEachIndexed { index, label ->
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = options.size
+                            ),
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = colorDang,
+                                activeContentColor = Color.White,
+                                inactiveContainerColor = Color.White,
+                                inactiveContentColor = Color.White,
+                                activeBorderColor = colorDang,
+                                inactiveBorderColor = colorDang,
+                            ),
+                            onCheckedChange = {
+                                checkedOption =
+                                    if (label == " 옷 ") {
+                                        0
+                                    } else {
+                                        1
+                                    }
+                            },
+                            checked = index == checkedOption
+                        ) {
+                            Text(label)
+                        }
+                    }
+                }
+
                 val coroutineScope = rememberCoroutineScope()
                 FunTextButton("저장") {
                     navController.popBackStack()
@@ -284,10 +330,7 @@ fun InsertScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(2f)
-                .clickable {
-//                    navController.navigate("decorate/$encodingClickedUri")
-                },
+                .weight(2f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val responseData by viewModel.responseData.observeAsState()
@@ -298,22 +341,24 @@ fun InsertScreen(
                 )
             responseData?.let { aiUrl ->
                 val replaceAiUrl = aiUrl.replace("\"", "")
-                Text(text = aiUrl)
-                GlideImage(
-                    imageModel = aiUrl,
+                val painter = rememberImagePainter(replaceAiUrl)
+                Text(text = replaceAiUrl)
+                Image(
+                    painter = painter,
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit
                 )
+                //glide로 하니까 이미지 로드가 안됨 ㅜㅜㅜㅜ
+//                GlideImage(
+//                    imageModel = replaceAiUrl,
+//                    modifier = Modifier.fillMaxSize(),
+//                    contentScale = ContentScale.Fit
+//                )
 
             } ?: run {
-                Text(text = aiUrlText)
-                GlideImage(
-                    imageModel = aiUrlText,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
+                CircularProgressIndicator()
             }
-//            CircularProgressIndicator()
 
         }
         var popupVisibleState by remember { mutableStateOf(false) }

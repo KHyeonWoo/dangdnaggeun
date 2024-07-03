@@ -22,20 +22,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.google.firebase.storage.StorageReference
-import com.google.gson.Gson
-import com.google.gson.JsonObject
 import com.skydoves.landscapist.glide.GlideImage
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
-import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 //class AiImgGenActivity : ComponentActivity() {
 //    override fun onCreate(savedInstanceState: Bundle?) {
@@ -337,7 +326,8 @@ fun AiImgGenScreen(
             onExtraClick = {
                 extraClickedUri = it
             },
-            changeSex = { gender = !gender }
+            changeWoman = { gender = true },
+            changeMan = { gender = false }
         )
     }
 }
@@ -393,7 +383,8 @@ fun BodySection(
     clickedCategory: String,
     extraClickedUri: String,
     onExtraClick: (String) -> Unit,
-    changeSex: () -> Unit
+    changeWoman: () -> Unit,
+    changeMan: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -405,7 +396,7 @@ fun BodySection(
             modifier = Modifier.weight(3f)
         ) {
             Column(modifier = Modifier.weight(2f)) {
-                GenderSelection(Modifier.weight(1f), gender) { changeSex() }
+                GenderSelection(Modifier.weight(1f), gender, { changeWoman() }, { changeMan() })
                 Image(
                     painter = painterResource(id = R.drawable.character2),
                     contentDescription = "AIModel",
@@ -469,7 +460,12 @@ fun ImageGridSection(
 }
 
 @Composable
-fun GenderSelection(modifier: Modifier, gender: Boolean, changeSex: () -> Unit) {
+fun GenderSelection(
+    modifier: Modifier,
+    gender: Boolean,
+    changeWoman: () -> Unit,
+    changeMan: () -> Unit
+) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
@@ -478,12 +474,12 @@ fun GenderSelection(modifier: Modifier, gender: Boolean, changeSex: () -> Unit) 
         GenderOption(
             label = "여",
             isSelected = gender,
-            onCheckedChange = { changeSex() }
+            onCheckedChange = { changeWoman() }
         )
         GenderOption(
             label = "남",
             isSelected = !gender,
-            onCheckedChange = { changeSex() }
+            onCheckedChange = { changeMan() }
         )
     }
 }
