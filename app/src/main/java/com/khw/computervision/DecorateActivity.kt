@@ -314,14 +314,14 @@ import java.io.ByteArrayOutputStream
 //}
 
 @Composable
-fun DecorateScreen(navController: NavHostController, clickedUri: String) {
+fun DecorateScreen(navController: NavHostController, encodedClickedUri: String) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
         var uploadTrigger by remember { mutableStateOf(false) }
         var clickedCategory by remember { mutableStateOf<String?>(null) }
         var uploadServerResult by remember { mutableStateOf("") }
-        var displayedImageUri by remember { mutableStateOf(clickedUri) }
+        var displayedImageUri by remember { mutableStateOf(encodedClickedUri) }
 
         Column(
             modifier = Modifier

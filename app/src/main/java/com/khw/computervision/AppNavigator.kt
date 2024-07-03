@@ -3,6 +3,7 @@ package com.khw.computervision
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,6 +17,7 @@ class AppNavigator : ComponentActivity() {
         setContent {
             ComputerVisionTheme {
                 val navController = rememberNavController()
+                val viewModel: SharedViewModel = viewModel()
                 NavHost(navController = navController, startDestination = "login") {
                     composable("login") { LoginScreen(navController) }
                     composable("sales") { SaleScreen(navController) }
@@ -26,10 +28,10 @@ class AppNavigator : ComponentActivity() {
                         DetailScreen(navController, backStackEntry.arguments?.getString("productId"))
                     }
                     composable(
-                        "decorate/{clickedUri}",
-                        arguments = listOf(navArgument("clickedUri") { type = NavType.StringType })
+                        "decorate/{encodedClickedUri}",
+                        arguments = listOf(navArgument("encodedClickedUri") { type = NavType.StringType })
                     ) { backStackEntry ->
-                        DecorateScreen(navController, backStackEntry.arguments?.getString("clickedUri") ?: "")
+                        DecorateScreen(navController, backStackEntry.arguments?.getString("encodedClickedUri") ?: "")
                     }
                     composable(
                         "decorate",
@@ -37,29 +39,29 @@ class AppNavigator : ComponentActivity() {
                         DecorateScreen(navController, "")
                     }
                     composable(
-                        "aiImgGen/{clickedUri}/{clickedCategory}",
+                        "aiImgGen/{encodedClickedUri}/{clickedCategory}",
                         arguments = listOf(
-                            navArgument("clickedUri") { type = NavType.StringType },
+                            navArgument("encodedClickedUri") { type = NavType.StringType },
                             navArgument("clickedCategory") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
                         AiImgGenScreen(
                             navController,
-                            backStackEntry.arguments?.getString("clickedUri") ?: "",
-                            backStackEntry.arguments?.getString("clickedCategory") ?: ""
+                            backStackEntry.arguments?.getString("encodedClickedUri") ?: "",
+                            backStackEntry.arguments?.getString("clickedCategory") ?: "",
+                            viewModel
                         )
                     }
                     composable(
-                        "insert/{clickedUri}/{requestAiImg}",
+                        "insert/{encodedClickedUri}",
                         arguments = listOf(
-                            navArgument("clickedUri") { type = NavType.StringType },
-                            navArgument("requestAiImg") { type = NavType.StringType }
+                            navArgument("encodedClickedUri") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
                         InsertScreen(
                             navController,
-                            backStackEntry.arguments?.getString("clickedUri") ?: "",
-                            backStackEntry.arguments?.getString("requestAiImg") ?: ""
+                            backStackEntry.arguments?.getString("encodedClickedUri") ?: "",
+                            viewModel
                         )
                     }
                 }

@@ -74,7 +74,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("com.google.android.gms:play-services-auth:20.7.0")  
-    implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
+//    implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
     implementation("com.github.CanHub:Android-Image-Cropper:4.0.0")
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("io.coil-kt:coil-gif:2.6.0")
@@ -84,9 +84,6 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.6.0")
     implementation("com.github.a914-gowtham:compose-ratingbar:1.3.12")
     implementation("com.github.skydoves:landscapist-glide:1.3.7")
-    implementation("com.squareup.moshi:moshi:1.12.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.12.0")
-    implementation("com.squareup.okhttp3:okhttp:4.9.0")
 
     //navigation 종속성 추가 - kh
     implementation ("androidx.navigation:navigation-fragment-ktx:2.3.5")

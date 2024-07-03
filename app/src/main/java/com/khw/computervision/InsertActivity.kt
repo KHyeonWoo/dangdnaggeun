@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -238,7 +240,11 @@ import java.time.LocalDateTime
 
 
 @Composable
-fun InsertScreen(navController: NavHostController, clickedUri: String, requestAiImg: String) {
+fun InsertScreen(
+    navController: NavHostController,
+    encodingClickedUri: String,
+    viewModel: SharedViewModel
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -249,7 +255,7 @@ fun InsertScreen(navController: NavHostController, clickedUri: String, requestAi
                 PopupDetails(
                     UserIDManager.userID.value,
                     "",
-                    clickedUri,
+                    encodingClickedUri,
                     0,
                     "",
                     0f,
@@ -281,16 +287,22 @@ fun InsertScreen(navController: NavHostController, clickedUri: String, requestAi
                 .fillMaxWidth()
                 .weight(2f)
                 .clickable {
-                    navController.navigate("decorate/$clickedUri")
+                    navController.navigate("decorate/$encodingClickedUri")
                 },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val responseData by viewModel.responseData.observeAsState()
 
-            GlideImage(
-                imageModel = clickedUri,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
+            responseData?.let { Text(text = it) }
+            responseData?.let { aiUrl ->
+                GlideImage(
+                    imageModel = aiUrl,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+
+            } ?: CircularProgressIndicator()
+
         }
         var popupVisibleState by remember { mutableStateOf(false) }
         Column(

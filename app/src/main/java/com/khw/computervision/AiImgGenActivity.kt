@@ -1,9 +1,5 @@
 package com.khw.computervision
 
-import android.content.Intent
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,12 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.google.firebase.storage.StorageReference
-import com.khw.computervision.ui.theme.ComputerVisionTheme
 import com.skydoves.landscapist.glide.GlideImage
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
@@ -315,24 +312,28 @@ import retrofit2.Response
 //}
 
 @Composable
-fun AiImgGenScreen(navController: NavHostController, encodedUri: String, clickedCategory: String) {
+fun AiImgGenScreen(
+    navController: NavHostController,
+    encodingClickedUri: String,
+    clickedCategory: String,
+    viewModel: SharedViewModel
+) {
     var extraClickedUri by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf(true) }
-    Text(encodedUri)
-    val clickedUri = encodedUri
+    Text(encodingClickedUri)
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        HeaderSection(Modifier.weight(1f), navController, clickedUri, clickedCategory, extraClickedUri, gender)
+        HeaderSection(Modifier.weight(1f), navController, encodingClickedUri, clickedCategory, viewModel, extraClickedUri, gender)
         BodySection(Modifier.weight(5f),
             gender,
-            clickedUri = clickedUri,
+            clickedUri = encodingClickedUri,
             clickedCategory = clickedCategory,
             extraClickedUri = extraClickedUri,
-            onExtraClick = { _, uri, _ ->
-                extraClickedUri = uri
+            onExtraClick = {
+                extraClickedUri = it
             },
             changeSex = { gender = !gender }
         )
@@ -345,6 +346,7 @@ fun HeaderSection(
     navController: NavHostController,
     clickedUri: String,
     clickedCategory: String,
+    viewModel: SharedViewModel,
     extraClickedUri: String,
     gender: Boolean
 ) {
@@ -363,24 +365,24 @@ fun HeaderSection(
             Text(text = requestMsg)
             FunTextButton(buttonText = "다음") {
                 if (clickedCategory == "top") {
-                    sendListToServer(
+                    viewModel.sendServerRequest(
                         topURL = clickedUri,
                         bottomURL = extraClickedUri,
                         gender = modelGender,
-                        successEvent = { requestAiImg = it },
-                        errorEvent = { requestMsg = it }
+//                        successEvent = { requestAiImg = it },
+//                        errorEvent = { requestMsg = it }
                     )
                 } else if (clickedCategory == "bottom") {
-                    sendListToServer(
+                    viewModel.sendServerRequest(
                         topURL = extraClickedUri,
                         bottomURL = clickedUri,
                         gender = modelGender,
-                        successEvent = { requestAiImg = it },
-                        errorEvent = { requestMsg = it }
+//                        successEvent = { requestAiImg = it },
+//                        errorEvent = { requestMsg = it }
                     )
                 }
-
-                navController.navigate("insert/$clickedUri/$requestAiImg")
+                val encodeClickedUri = encodeUrl(clickedUri)
+                navController.navigate("insert/$encodeClickedUri")
             }
         }
     }
@@ -393,7 +395,7 @@ fun BodySection(
     clickedUri: String,
     clickedCategory: String,
     extraClickedUri: String,
-    onExtraClick: (StorageReference, String, String) -> Unit,
+    onExtraClick: (String) -> Unit,
     changeSex: () -> Unit
 ) {
     Column(
@@ -425,7 +427,9 @@ fun BodySection(
         Row(
             modifier = Modifier.weight(2f)
         ) {
-            ImageGridSection(clickedCategory, onExtraClick)
+            ImageGridSection(clickedCategory) { _, uri, _ ->
+                onExtraClick(uri)
+            }
         }
     }
 }
@@ -511,44 +515,41 @@ fun GenderOption(
     }
 }
 
-private fun sendListToServer(
-    topURL: String,
-    bottomURL: String,
-    gender: String,
-    successEvent: (String) -> Unit,
-    errorEvent: (String) -> Unit
-) {
-    val userIDPart =
-        RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
-    val topURLPart =
-        RequestBody.create("text/plain".toMediaTypeOrNull(), topURL)
-    val bottomURLPart =
-        RequestBody.create("text/plain".toMediaTypeOrNull(), bottomURL)
-    val genderPart =
-        RequestBody.create("text/plain".toMediaTypeOrNull(), gender)
+class SharedViewModel : ViewModel() {
+    private val _responseData = MutableLiveData<String>()
+    val responseData: LiveData<String> get() = _responseData
 
-    val dataMap = mapOf(
-        "userID" to userIDPart,
-        "topURL" to topURLPart,
-        "bottomURL" to bottomURLPart,
-        "gender" to genderPart
-    )
+    fun sendServerRequest(
+        topURL: String,
+        bottomURL: String,
+        gender: String
+    ) {
+        // 서버 요청 로직
+        val userIDPart = RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
+        val topURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), topURL)
+        val bottomURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), bottomURL)
+        val genderPart = RequestBody.create("text/plain".toMediaTypeOrNull(), gender)
 
-    RetrofitClient.instance.uploadList(dataMap)
-        .enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(
-                call: Call<ResponseBody>,
-                response: Response<ResponseBody>
-            ) {
-                if (response.isSuccessful) {
-                    successEvent("${response.body()?.string()}")
-                } else {
-                    errorEvent("에러 메시지: ${response.errorBody()?.string()}")
+        val dataMap = mapOf(
+            "userID" to userIDPart,
+            "topURL" to topURLPart,
+            "bottomURL" to bottomURLPart,
+            "gender" to genderPart
+        )
+
+        RetrofitClient.instance.uploadList(dataMap)
+            .enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        _responseData.postValue(response.body()?.string())
+                    } else {
+                        _responseData.postValue("Error: ${response.errorBody()?.string()}")
+                    }
                 }
-            }
 
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                errorEvent("요청이 실패했습니다: ${t.message}")
-            }
-        })
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    _responseData.postValue("Request failed: ${t.message}")
+                }
+            })
+    }
 }
