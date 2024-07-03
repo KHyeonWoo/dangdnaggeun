@@ -76,7 +76,6 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.PartMap
-import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
@@ -371,6 +370,39 @@ fun deleteFirestoreData(collectionName: String, documentId: String, successEvent
         .addOnFailureListener { e -> Log.w(ContentValues.TAG, "Error deleting document", e) }
 }
 
+class ClosetViewModel : ViewModel() {
+    private val _itemsRefData = MutableLiveData<List<StorageReference?>>()
+    private val _itemsUriData = MutableLiveData<List<String?>>()
+    val itemsRefData: LiveData<List<StorageReference?>> get() = _itemsRefData
+    val itemsUriData: LiveData<List<String?>> get() = _itemsUriData
+
+    fun getItemsToFirebase(
+        storageRef: StorageReference,
+        itemsRef: MutableList<StorageReference>,
+        itemsUri: MutableList<String>
+    ) {
+        resetResponseData()
+        storageRef.listAll()
+            .addOnSuccessListener {listResult ->
+                for (clothRef in listResult.items) {
+                    val uri = clothRef.downloadUrl.toString()
+                    itemsRef.add(clothRef)
+                    itemsUri.add(uri)
+                }
+                _itemsRefData.postValue(itemsRef)
+                _itemsUriData.postValue(itemsUri)
+            }
+            .addOnFailureListener {
+                // Uh-oh, an error occurred!
+            }
+    }
+
+    // Method to reset responseData
+    private fun resetResponseData() {
+        _itemsRefData.value = listOf()
+        _itemsUriData.value = listOf()
+    }
+}
 
 @Composable
 fun ImageGrid(
@@ -384,6 +416,7 @@ fun ImageGrid(
     val itemsUri = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(successUpload) {
+
         itemsRef.clear()
         itemsUri.clear()
 
@@ -420,28 +453,43 @@ fun ImageGrid(
             .verticalScroll(rememberScrollState())
             .padding(top = 4.dp, start = 2.dp)
     ) {
-        (itemsRef zip itemsUri).chunked(5).forEach { item ->
-            Row(modifier = Modifier.fillMaxWidth()) {
-                item.forEach {
-                    Column {
-                        GlideImage(
-                            imageModel = it.second,
-                            contentDescription = "Image",
-                            modifier = Modifier
-                                .size(80.dp)
-                                .clickable {
-                                    onImageClick(it.first, it.second, category)
-                                },
-                            contentScale = ContentScale.FillBounds
+        if (itemsUri.isEmpty()) {
+            Text(text = "Loading images...", modifier = Modifier.padding(16.dp))
+        } else {
+            itemsRef.zip(itemsUri).chunked(5).forEach { rowItems ->
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    rowItems.forEach { (ref, uri) ->
+                        ImageItem(
+                            uri = uri,
+                            ref = ref,
+                            category = category,
+                            onImageClick = onImageClick
                         )
                     }
                 }
             }
         }
+    }
+}
 
-        if (itemsUri.isEmpty()) {
-            Text(text = "Loading image...", modifier = Modifier.padding(16.dp))
-        }
+@Composable
+fun ImageItem(
+    uri: String,
+    ref: StorageReference,
+    category: String,
+    onImageClick: (StorageReference, String, String) -> Unit
+) {
+    Column {
+        GlideImage(
+            imageModel = uri,
+            contentDescription = "Image",
+            modifier = Modifier
+                .size(80.dp)
+                .clickable {
+                    onImageClick(ref, uri, category)
+                },
+            contentScale = ContentScale.FillBounds
+        )
     }
 }
 
@@ -540,7 +588,8 @@ class SharedViewModel : ViewModel() {
         gender: String
     ) {
         // 서버 요청 로직
-        val userIDPart = RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
+        val userIDPart =
+            RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
         val topURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), topURL)
         val bottomURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), bottomURL)
         val genderPart = RequestBody.create("text/plain".toMediaTypeOrNull(), gender)
@@ -554,7 +603,10 @@ class SharedViewModel : ViewModel() {
 
         RetrofitClient.instance.uploadList(dataMap)
             .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                override fun onResponse(
+                    call: Call<ResponseBody>,
+                    response: Response<ResponseBody>
+                ) {
                     if (response.isSuccessful) {
                         _responseData.postValue(response.body()?.string())
                     } else {
@@ -567,6 +619,7 @@ class SharedViewModel : ViewModel() {
                 }
             })
     }
+
     // Method to reset responseData
     fun resetResponseData() {
         _responseData.value = null
