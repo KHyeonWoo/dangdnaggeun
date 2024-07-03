@@ -371,7 +371,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String, 
             var inputImage by remember { mutableStateOf<Bitmap?>(null) }
             var isLoading by remember { mutableStateOf(false) }
 
-            ImagePicker(closetViewModel = closetViewModel, onImageSelected = { bitmap ->
+            ImagePicker(onImageSelected = { bitmap ->
                 inputImage = bitmap
 
                 sendImageToServer(bitmap) {
@@ -379,6 +379,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String, 
                     uploadTrigger = !uploadTrigger
                     inputImage = null
                     isLoading = false
+                    closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))
                 }
                 isLoading = true
             })
@@ -505,7 +506,6 @@ private fun CustomTabRow(
 
 @Composable
 fun ImagePicker(
-    closetViewModel: ClosetViewModel,
     onImageSelected: (Bitmap) -> Unit,
 ) {
     val context = LocalContext.current
@@ -537,7 +537,6 @@ fun ImagePicker(
                     CropImageOptions()
                 )
                 imageCropLauncher.launch(cropOption)
-                closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))
             }
     )
 }
