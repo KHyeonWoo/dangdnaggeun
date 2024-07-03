@@ -178,53 +178,6 @@ fun ProfilePopup(
     )
 }
 
-fun getLocation(
-    fusedLocationProviderClient: FusedLocationProviderClient,
-    onLocationReceived: (Location) -> Unit
-) {
-    try {
-        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
-            location?.let {
-                onLocationReceived(it)
-            }
-        }
-    } catch (e: SecurityException) {
-        // 권한이 없는 경우 예외 처리
-    }
-}
-
-fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
-    return try {
-        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-        Log.d("AddressLookup", "Received addresses: ${addresses?.size}")
-
-        addresses?.firstOrNull()?.let { address ->
-            val adminArea = address.adminArea ?: ""
-            val locality = address.locality ?: ""
-            val subLocality = address.subLocality ?: ""
-            val thoroughfare = address.thoroughfare ?: ""
-            val subThoroughfare = address.subThoroughfare ?: ""
-
-            // 여기에 로그 추가
-            Log.d("AddressLookup", "Address components:")
-            Log.d("AddressLookup", "adminArea: $adminArea")
-            Log.d("AddressLookup", "locality: $locality")
-            Log.d("AddressLookup", "subLocality: $subLocality")
-            Log.d("AddressLookup", "thoroughfare: $thoroughfare")
-            Log.d("AddressLookup", "subThoroughfare: $subThoroughfare")
-            Log.d("AddressLookup", "Full address: ${address.getAddressLine(0)}")
-
-
-            val result = "$adminArea $subLocality $thoroughfare"
-            Log.d("AddressLookup", "Final result: $result")
-
-            result
-        }
-    } catch (e: Exception) {
-        Log.e("AddressLookup", "Error getting address", e)
-        null
-    }
-}
 
 fun uploadBitmapImage(
     context: Context,

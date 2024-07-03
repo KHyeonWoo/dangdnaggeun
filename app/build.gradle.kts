@@ -66,7 +66,6 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.navigation.compose)
-//    implementation(libs.androidx.navigation.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -74,7 +73,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("com.google.android.gms:play-services-auth:20.7.0")  
+
+    //현우 추가
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
 //    implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
     implementation("com.github.CanHub:Android-Image-Cropper:4.0.0")
     implementation("io.coil-kt:coil-compose:2.6.0")

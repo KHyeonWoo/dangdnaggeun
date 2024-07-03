@@ -1,6 +1,8 @@
 package com.khw.computervision
 
 import android.content.ContentValues
+import android.location.Geocoder
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -42,12 +44,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.decode.GifDecoder
 import coil.request.ImageRequest
 import coil.size.Size
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
@@ -56,11 +62,14 @@ import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Multipart
@@ -465,6 +474,101 @@ fun SearchTextField(onSearch: (String) -> Unit) {
     )
 }
 
+
 fun encodeUrl(url: String): String {
     return URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
+}
+// 20240703 신동환 - 현재 위치 확인하는 함수입니다
+
+
+fun getLocation(
+    fusedLocationProviderClient: FusedLocationProviderClient,
+    onLocationReceived: (Location) -> Unit
+) {
+    try {
+        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
+            location?.let {
+                onLocationReceived(it)
+            }
+        }
+    } catch (e: SecurityException) {
+        // 권한이 없는 경우 예외 처리
+    }
+}
+
+fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
+    return try {
+        val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+        Log.d("AddressLookup", "Received addresses: ${addresses?.size}")
+
+        addresses?.firstOrNull()?.let { address ->
+            val adminArea = address.adminArea ?: ""
+            val locality = address.locality ?: ""
+            val subLocality = address.subLocality ?: ""
+            val thoroughfare = address.thoroughfare ?: ""
+            val subThoroughfare = address.subThoroughfare ?: ""
+
+            // 여기에 로그 추가
+            Log.d("AddressLookup", "Address components:")
+            Log.d("AddressLookup", "adminArea: $adminArea")
+            Log.d("AddressLookup", "locality: $locality")
+            Log.d("AddressLookup", "subLocality: $subLocality")
+            Log.d("AddressLookup", "thoroughfare: $thoroughfare")
+            Log.d("AddressLookup", "subThoroughfare: $subThoroughfare")
+            Log.d("AddressLookup", "Full address: ${address.getAddressLine(0)}")
+
+
+            val result = "$adminArea $subLocality $thoroughfare"
+            Log.d("AddressLookup", "Final result: $result")
+
+            result
+        }
+    } catch (e: Exception) {
+        Log.e("AddressLookup", "Error getting address", e)
+        null
+    }
+}
+
+
+class SharedViewModel : ViewModel() {
+    private val _responseData = MutableLiveData<String?>()
+    val responseData: LiveData<String?> get() = _responseData
+
+    fun sendServerRequest(
+        topURL: String,
+        bottomURL: String,
+        gender: String
+    ) {
+        // 서버 요청 로직
+        val userIDPart = RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
+        val topURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), topURL)
+        val bottomURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), bottomURL)
+        val genderPart = RequestBody.create("text/plain".toMediaTypeOrNull(), gender)
+
+        val dataMap = mapOf(
+            "userID" to userIDPart,
+            "topURL" to topURLPart,
+            "bottomURL" to bottomURLPart,
+            "gender" to genderPart
+        )
+
+        RetrofitClient.instance.uploadList(dataMap)
+            .enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        _responseData.postValue(response.body()?.string())
+                    } else {
+                        _responseData.postValue("Error: ${response.errorBody()?.string()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    _responseData.postValue("Request failed: ${t.message}")
+                }
+            })
+    }
+    // Method to reset responseData
+    fun resetResponseData() {
+        _responseData.value = null
+    }
 }
