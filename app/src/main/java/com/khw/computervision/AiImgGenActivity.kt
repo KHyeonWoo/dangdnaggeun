@@ -27,6 +27,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.google.firebase.storage.StorageReference
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.skydoves.landscapist.glide.GlideImage
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
@@ -320,7 +322,7 @@ fun AiImgGenScreen(
 ) {
     var extraClickedUri by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf(true) }
-    Text(encodingClickedUri)
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -359,26 +361,21 @@ fun HeaderSection(
             modifier = Modifier.align(Alignment.BottomEnd)
         ) {
             val modelGender = if (gender) "2" else "1"
-            var requestMsg by remember { mutableStateOf("") }
-            var requestAiImg by remember { mutableStateOf("") }
 
-            Text(text = requestMsg)
             FunTextButton(buttonText = "다음") {
+
+                viewModel.resetResponseData()
                 if (clickedCategory == "top") {
                     viewModel.sendServerRequest(
                         topURL = clickedUri,
                         bottomURL = extraClickedUri,
                         gender = modelGender,
-//                        successEvent = { requestAiImg = it },
-//                        errorEvent = { requestMsg = it }
                     )
                 } else if (clickedCategory == "bottom") {
                     viewModel.sendServerRequest(
                         topURL = extraClickedUri,
                         bottomURL = clickedUri,
                         gender = modelGender,
-//                        successEvent = { requestAiImg = it },
-//                        errorEvent = { requestMsg = it }
                     )
                 }
                 val encodeClickedUri = encodeUrl(clickedUri)
@@ -512,44 +509,5 @@ fun GenderOption(
                 checkmarkColor = Color.White
             )
         )
-    }
-}
-
-class SharedViewModel : ViewModel() {
-    private val _responseData = MutableLiveData<String>()
-    val responseData: LiveData<String> get() = _responseData
-
-    fun sendServerRequest(
-        topURL: String,
-        bottomURL: String,
-        gender: String
-    ) {
-        // 서버 요청 로직
-        val userIDPart = RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
-        val topURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), topURL)
-        val bottomURLPart = RequestBody.create("text/plain".toMediaTypeOrNull(), bottomURL)
-        val genderPart = RequestBody.create("text/plain".toMediaTypeOrNull(), gender)
-
-        val dataMap = mapOf(
-            "userID" to userIDPart,
-            "topURL" to topURLPart,
-            "bottomURL" to bottomURLPart,
-            "gender" to genderPart
-        )
-
-        RetrofitClient.instance.uploadList(dataMap)
-            .enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                    if (response.isSuccessful) {
-                        _responseData.postValue(response.body()?.string())
-                    } else {
-                        _responseData.postValue("Error: ${response.errorBody()?.string()}")
-                    }
-                }
-
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    _responseData.postValue("Request failed: ${t.message}")
-                }
-            })
     }
 }

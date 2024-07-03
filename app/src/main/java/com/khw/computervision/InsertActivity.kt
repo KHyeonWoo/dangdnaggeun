@@ -15,9 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.Text
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -287,21 +286,34 @@ fun InsertScreen(
                 .fillMaxWidth()
                 .weight(2f)
                 .clickable {
-                    navController.navigate("decorate/$encodingClickedUri")
+//                    navController.navigate("decorate/$encodingClickedUri")
                 },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val responseData by viewModel.responseData.observeAsState()
-
-            responseData?.let { Text(text = it) }
+            val aiUrlText =
+                "https://storage.googleapis.com/dangdanggeun-1b552.appspot.com/dangdanggeun%40intel.com/AIresults/20240703122308885560.png".replace(
+                    "\"",
+                    ""
+                )
             responseData?.let { aiUrl ->
+                val replaceAiUrl = aiUrl.replace("\"", "")
+                Text(text = aiUrl)
                 GlideImage(
                     imageModel = aiUrl,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit
                 )
 
-            } ?: CircularProgressIndicator()
+            } ?: run {
+                Text(text = aiUrlText)
+                GlideImage(
+                    imageModel = aiUrlText,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
+//            CircularProgressIndicator()
 
         }
         var popupVisibleState by remember { mutableStateOf(false) }

@@ -474,6 +474,7 @@ fun SearchTextField(onSearch: (String) -> Unit) {
     )
 }
 
+
 fun encodeUrl(url: String): String {
     return URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
 }
@@ -530,8 +531,8 @@ fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
 
 
 class SharedViewModel : ViewModel() {
-    private val _responseData = MutableLiveData<String>()
-    val responseData: LiveData<String> get() = _responseData
+    private val _responseData = MutableLiveData<String?>()
+    val responseData: LiveData<String?> get() = _responseData
 
     fun sendServerRequest(
         topURL: String,
@@ -565,5 +566,9 @@ class SharedViewModel : ViewModel() {
                     _responseData.postValue("Request failed: ${t.message}")
                 }
             })
+    }
+    // Method to reset responseData
+    fun resetResponseData() {
+        _responseData.value = null
     }
 }

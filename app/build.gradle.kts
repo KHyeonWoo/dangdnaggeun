@@ -73,6 +73,8 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //현우 추가
     implementation("com.google.android.gms:play-services-auth:20.7.0")  
 //    implementation("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
     implementation("com.github.CanHub:Android-Image-Cropper:4.0.0")
