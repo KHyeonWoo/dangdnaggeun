@@ -354,13 +354,11 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String) 
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = uploadServerResult)
-            displayedImageUri.let {
-                GlideImage(
-                    imageModel = it,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-            }
+            GlideImage(
+                imageModel = displayedImageUri,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
         }
         Column(
             modifier = Modifier

@@ -38,8 +38,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import coil.compose.rememberImagePainter
-import com.bumptech.glide.request.RequestOptions
+import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.gowtham.ratingbar.RatingBar
@@ -273,18 +272,17 @@ fun InsertScreen(
                 )
             )
         }
+        var checkedOption by remember { mutableIntStateOf(0) }
         Column(
             modifier = Modifier
                 .weight(1f)
         ) {
-//            LogoScreen("Insert") { navController.popBackStack() }
             Spacer(modifier = Modifier.height(20.dp))
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(2f))
 
-                var checkedOption by remember { mutableIntStateOf(0) }
                 val options = listOf(
                     " 옷 ",
                     "모델"
@@ -319,47 +317,55 @@ fun InsertScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.weight(1f))
+
                 val coroutineScope = rememberCoroutineScope()
-                FunTextButton("저장") {
-                    navController.popBackStack()
-                    saveEvent(coroutineScope, context, newPopupDetails)
-                    ReLoadingManager.reLoading()
+                Row(
+                    modifier = Modifier.weight(1f),
+                ) {
+                    FunTextButton("저장") {
+                        navController.popBackStack()
+                        saveEvent(coroutineScope, context, newPopupDetails)
+                        ReLoadingManager.reLoading()
+                    }
                 }
             }
         }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(2f),
+                .weight(3f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val responseData by viewModel.responseData.observeAsState()
-            val aiUrlText =
-                "https://storage.googleapis.com/dangdanggeun-1b552.appspot.com/dangdanggeun%40intel.com/AIresults/20240703122308885560.png".replace(
-                    "\"",
-                    ""
-                )
-            responseData?.let { aiUrl ->
-                val replaceAiUrl = aiUrl.replace("\"", "")
-                val painter = rememberImagePainter(replaceAiUrl)
-                Text(text = replaceAiUrl)
-                Image(
-                    painter = painter,
-                    contentDescription = null,
+            if (checkedOption == 0) {
+                GlideImage(
+                    imageModel = encodingClickedUri,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit
                 )
-                //glide로 하니까 이미지 로드가 안됨 ㅜㅜㅜㅜ
+            } else {
+
+                val responseData by viewModel.responseData.observeAsState()
+                responseData?.let { aiUrl ->
+                    val replaceAiUrl = aiUrl.replace("\"", "")
+                    val painter = rememberAsyncImagePainter(replaceAiUrl)
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                    //glide로 하니까 이미지 로드가 안됨 ㅜㅜㅜㅜ
 //                GlideImage(
 //                    imageModel = replaceAiUrl,
 //                    modifier = Modifier.fillMaxSize(),
 //                    contentScale = ContentScale.Fit
 //                )
 
-            } ?: run {
-                CircularProgressIndicator()
+                } ?: run {
+                    CircularProgressIndicator()
+                }
             }
-
         }
         var popupVisibleState by remember { mutableStateOf(false) }
         Column(
@@ -401,7 +407,9 @@ private fun saveEvent(
         "dealMethod" to newPopupDetails.dealMethod,
         "rating" to newPopupDetails.rating,
         "productDescription" to newPopupDetails.productDescription,
-        "state" to 1 //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+        "state" to 1, //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+        "liked" to 0,
+        "viewCount" to 0
     )
 
     coroutineScope.launch(Dispatchers.IO) {
