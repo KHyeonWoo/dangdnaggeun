@@ -63,9 +63,7 @@ import java.time.LocalDateTime
 import java.util.Locale
 import android.Manifest
 import android.content.pm.PackageManager
-import android.location.Location
 import androidx.core.app.ActivityCompat
-import com.google.android.gms.location.FusedLocationProviderClient
 
 @Composable
 fun ProfilePopup(
@@ -208,7 +206,7 @@ fun uploadBitmapImage(
 }
 
 @Composable
-fun ProfileImage(profileUri: String?, setInputImage: (Bitmap) -> Unit) {
+fun ProfileImage(profileUrl: String?, setInputImage: (Bitmap) -> Unit) {
 
     val context = LocalContext.current
     val imageCropLauncher =
@@ -230,7 +228,7 @@ fun ProfileImage(profileUri: String?, setInputImage: (Bitmap) -> Unit) {
         CropImageOptions()
     )
 
-    profileUri?.let {
+    profileUrl?.let {
         GlideImage(
             imageModel = it,
             contentDescription = "Image",
@@ -342,7 +340,9 @@ fun MessagePopup(
 data class PopupDetails(
     val userID: String,
     val name: String = "",
-    val imageUri: String = "",
+    var imageUrl: String = "",
+    val aiUrl: String = "",
+    val category: String = "",
     val price: Int = 0,
     val dealMethod: String = "",
     val rating: Float = 0f,
@@ -356,7 +356,9 @@ fun InsertPopup(
     close: () -> Unit
 ) {
     var name: String by remember { mutableStateOf(newPopupDetails.name) }
-    val imageUri: String by remember { mutableStateOf(newPopupDetails.imageUri) }
+    val imageUrl: String by remember { mutableStateOf(newPopupDetails.imageUrl) }
+    val aiUrl: String by remember { mutableStateOf(newPopupDetails.aiUrl) }
+    val category: String by remember { mutableStateOf(newPopupDetails.category) }
     var price: String by remember { mutableStateOf(newPopupDetails.price.toString()) }
     var dealMethod: String by remember { mutableStateOf(newPopupDetails.dealMethod) }
     var rating: Float by remember { mutableFloatStateOf(newPopupDetails.rating) }
@@ -455,7 +457,9 @@ fun InsertPopup(
                     PopupDetails(
                         UserIDManager.userID.value,
                         name,
-                        imageUri,
+                        imageUrl,
+                        aiUrl,
+                        category,
                         price.toInt(),
                         dealMethod,
                         rating,

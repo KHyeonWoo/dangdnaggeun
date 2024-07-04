@@ -24,6 +24,7 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -181,25 +182,23 @@ fun SaleScreen(navController: NavHostController) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
+        var checkedOption by remember { mutableIntStateOf(0) }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            FunTextButton("현재 판매하는 제품이에요") {}
-        }
-        ImageList(navController, ReLoadingManager.reLoadingValue.value)
 
-//        Spacer(modifier = Modifier.weight(1f))
-//        Row(
-//            modifier = Modifier.fillMaxWidth(),
-//            horizontalArrangement = Arrangement.Center
-//        ) {
-//            Spacer(modifier = Modifier.weight(1f))
-//            FunTextButton("+ 글쓰기") {
-//                navController.navigate("decorate")
-//            }
-//            Spacer(modifier = Modifier.weight(1f))
-//        }
+            val options = listOf(
+                "상의",
+                "하의"
+            )
+            ChoiceSegButton(options, checkedOption) { checkedOption = it }
+        }
+        if (checkedOption == 0) {
+            ImageList(navController, ReLoadingManager.reLoadingValue.value)
+        } else {
+            ImageList(navController, ReLoadingManager.reLoadingValue.value)
+        }
     }
 }
 suspend fun getProfile(): String? {

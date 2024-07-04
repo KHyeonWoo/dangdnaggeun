@@ -305,12 +305,12 @@ import com.skydoves.landscapist.glide.GlideImage
 @Composable
 fun AiImgGenScreen(
     navController: NavHostController,
-    encodingClickedUri: String,
+    encodingClickedUrl: String,
     clickedCategory: String,
     aiViewModel: AiViewModel,
     closetViewModel: ClosetViewModel
 ) {
-    var extraClickedUri by remember { mutableStateOf("") }
+    var extraClickedUrl by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf(true) }
 
     Column(
@@ -318,15 +318,15 @@ fun AiImgGenScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        HeaderSection(Modifier.weight(1f), navController, encodingClickedUri, clickedCategory, aiViewModel, extraClickedUri, gender)
+        HeaderSection(Modifier.weight(1f), navController, encodingClickedUrl, clickedCategory, aiViewModel, extraClickedUrl, gender)
         BodySection(Modifier.weight(5f),
             gender,
-            clickedUri = encodingClickedUri,
+            clickedUrl = encodingClickedUrl,
             clickedCategory = clickedCategory,
-            extraClickedUri = extraClickedUri,
+            extraClickedUrl = extraClickedUrl,
             closetViewModel = closetViewModel,
             onExtraClick = {
-                extraClickedUri = it
+                extraClickedUrl = it
             },
             changeWoman = { gender = true },
             changeMan = { gender = false }
@@ -338,10 +338,10 @@ fun AiImgGenScreen(
 fun HeaderSection(
     modifier: Modifier,
     navController: NavHostController,
-    clickedUri: String,
+    clickedUrl: String,
     clickedCategory: String,
     viewModel: AiViewModel,
-    extraClickedUri: String,
+    extraClickedUrl: String,
     gender: Boolean
 ) {
     Box(
@@ -358,19 +358,19 @@ fun HeaderSection(
                 viewModel.resetResponseData()
                 if (clickedCategory == "top") {
                     viewModel.sendServerRequest(
-                        topURL = clickedUri,
-                        bottomURL = extraClickedUri,
+                        topURL = clickedUrl,
+                        bottomURL = extraClickedUrl,
                         gender = modelGender,
                     )
                 } else if (clickedCategory == "bottom") {
                     viewModel.sendServerRequest(
-                        topURL = extraClickedUri,
-                        bottomURL = clickedUri,
+                        topURL = extraClickedUrl,
+                        bottomURL = clickedUrl,
                         gender = modelGender,
                     )
                 }
-                val encodeClickedUri = encodeUrl(clickedUri)
-                navController.navigate("insert/$encodeClickedUri")
+                val encodeClickedUrl = encodeUrl(clickedUrl)
+                navController.navigate("insert/$encodeClickedUrl/$clickedCategory")
             }
         }
     }
@@ -380,9 +380,9 @@ fun HeaderSection(
 fun BodySection(
     modifier: Modifier,
     gender: Boolean,
-    clickedUri: String,
+    clickedUrl: String,
     clickedCategory: String,
-    extraClickedUri: String,
+    extraClickedUrl: String,
     closetViewModel: ClosetViewModel,
     onExtraClick: (String) -> Unit,
     changeWoman: () -> Unit,
@@ -409,16 +409,16 @@ fun BodySection(
             }
             SideSection(
                 Modifier.weight(1f),
-                clickedUri = clickedUri,
+                clickedUrl = clickedUrl,
                 clickedCategory = clickedCategory,
-                extraClickedUri = extraClickedUri
+                extraClickedUrl = extraClickedUrl
             )
         }
         Row(
             modifier = Modifier.weight(2f)
         ) {
-            ImageGridSection(clickedCategory, closetViewModel) { _, uri, _ ->
-                onExtraClick(uri)
+            ImageGridSection(clickedCategory, closetViewModel) { _, url, _ ->
+                onExtraClick(url)
             }
         }
     }
@@ -427,14 +427,14 @@ fun BodySection(
 @Composable
 fun SideSection(
     modifier: Modifier,
-    clickedUri: String,
+    clickedUrl: String,
     clickedCategory: String,
-    extraClickedUri: String
+    extraClickedUrl: String
 ) {
     Column(modifier = modifier) {
         FunTextButton(buttonText = "판매옷") { }
         GlideImage(
-            imageModel = clickedUri,
+            imageModel = clickedUrl,
             modifier = Modifier.size(80.dp)
         )
         when (clickedCategory) {
@@ -442,7 +442,7 @@ fun SideSection(
             "bottom" -> FunTextButton(buttonText = "상의 선택") { }
         }
         GlideImage(
-            imageModel = extraClickedUri,
+            imageModel = extraClickedUrl,
             modifier = Modifier.size(80.dp)
         )
     }
@@ -451,13 +451,13 @@ fun SideSection(
 @Composable
 fun ImageGridSection(
     clickedCategory: String,
-    closetViewModel: ClosetViewModel,
+    closetViewModelUrl: ClosetViewModel,
     onExtraClick: (StorageReference, String, String) -> Unit
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
         when (clickedCategory) {
-            "top" -> ImageGrid("bottom", onExtraClick, closetViewModel)
-            "bottom" -> ImageGrid("top", onExtraClick, closetViewModel)
+            "top" -> ImageGrid("bottom", onExtraClick, closetViewModelUrl)
+            "bottom" -> ImageGrid("top", onExtraClick, closetViewModelUrl)
         }
     }
 }

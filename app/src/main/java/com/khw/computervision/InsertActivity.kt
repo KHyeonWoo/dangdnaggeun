@@ -247,24 +247,28 @@ import java.time.LocalDateTime
 //}
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InsertScreen(
     navController: NavHostController,
-    encodingClickedUri: String,
+    encodingClickedUrl: String,
+    clickedCategory: String,
     viewModel: AiViewModel
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val context = LocalContext.current
+
+        val responseData by viewModel.responseData.observeAsState()
+
         var newPopupDetails by remember {
             mutableStateOf(
                 PopupDetails(
                     UserIDManager.userID.value,
                     "",
-                    encodingClickedUri,
+                    encodingClickedUrl,
+                    "",
+                    clickedCategory,
                     0,
                     "",
                     0f,
@@ -287,46 +291,23 @@ fun InsertScreen(
                     " 옷 ",
                     "모델"
                 )
-                MultiChoiceSegmentedButtonRow {
-                    options.forEachIndexed { index, label ->
-                        SegmentedButton(
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = options.size
-                            ),
-                            colors = SegmentedButtonDefaults.colors(
-                                activeContainerColor = colorDang,
-                                activeContentColor = Color.White,
-                                inactiveContainerColor = Color.White,
-                                inactiveContentColor = Color.White,
-                                activeBorderColor = colorDang,
-                                inactiveBorderColor = colorDang,
-                            ),
-                            onCheckedChange = {
-                                checkedOption =
-                                    if (label == " 옷 ") {
-                                        0
-                                    } else {
-                                        1
-                                    }
-                            },
-                            checked = index == checkedOption
-                        ) {
-                            Text(label)
-                        }
-                    }
-                }
+                ChoiceSegButton(options, checkedOption) { checkedOption = it }
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                val coroutineScope = rememberCoroutineScope()
-                Row(
-                    modifier = Modifier.weight(1f),
-                ) {
-                    FunTextButton("저장") {
-                        navController.popBackStack()
-                        saveEvent(coroutineScope, context, newPopupDetails)
-                        ReLoadingManager.reLoading()
+                responseData?.let { aiUrl ->
+                    newPopupDetails.imageUrl = aiUrl
+                    val coroutineScope = rememberCoroutineScope()
+                    val context = LocalContext.current
+
+                    Row(
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        FunTextButton("저장") {
+                            navController.popBackStack()
+                            saveEvent(coroutineScope, context, newPopupDetails)
+                            ReLoadingManager.reLoading()
+                        }
                     }
                 }
             }
@@ -339,13 +320,12 @@ fun InsertScreen(
         ) {
             if (checkedOption == 0) {
                 GlideImage(
-                    imageModel = encodingClickedUri,
+                    imageModel = encodingClickedUrl,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit
                 )
             } else {
 
-                val responseData by viewModel.responseData.observeAsState()
                 responseData?.let { aiUrl ->
                     val replaceAiUrl = aiUrl.replace("\"", "")
                     val painter = rememberAsyncImagePainter(replaceAiUrl)
@@ -388,6 +368,43 @@ fun InsertScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt: (Int) -> Unit) {
+
+
+    MultiChoiceSegmentedButtonRow {
+        options.forEachIndexed { index, label ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = options.size
+                ),
+                colors = SegmentedButtonDefaults.colors(
+                    activeContainerColor = colorDang,
+                    activeContentColor = Color.White,
+                    inactiveContainerColor = Color.White,
+                    inactiveContentColor = Color.White,
+                    activeBorderColor = colorDang,
+                    inactiveBorderColor = colorDang,
+                ),
+                onCheckedChange = {
+                    if (label == options[0]) {
+                        changeCheckedOpt(0)
+                    } else {
+                        changeCheckedOpt(1)
+
+                    }
+                },
+                checked = index == checkedOption
+            ) {
+                Text(label)
+            }
+        }
+    }
+
+}
+
 private fun saveEvent(
     coroutineScope: CoroutineScope,
     context: Context,
@@ -402,7 +419,9 @@ private fun saveEvent(
         "InsertUser" to UserIDManager.userID.value,
         "name" to newPopupDetails.name,
         "date" to dateTimeNow,
-        "imageUrl" to newPopupDetails.imageUri,
+        "imageUrl" to newPopupDetails.imageUrl,
+        "aiUrl" to newPopupDetails.imageUrl,
+        "category" to newPopupDetails.category,
         "price" to newPopupDetails.price,
         "dealMethod" to newPopupDetails.dealMethod,
         "rating" to newPopupDetails.rating,

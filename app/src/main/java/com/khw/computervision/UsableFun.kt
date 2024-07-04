@@ -33,7 +33,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -293,10 +292,12 @@ fun GetProduct(reLoading: Boolean, getProductEvent: (Map<String, Map<String, Str
                         "date" to (document.getString("date") ?: ""),
                         "dealMethod" to (document.getString("dealMethod") ?: ""),
                         "imageUrl" to (document.getString("imageUrl") ?: ""),
+                        "aiUrl" to (document.getString("aiUrl") ?: ""),
                         "price" to (document.get("price")?.toString() ?: ""),
-                        "productDescription" to (document.getString("productDescription")
-                            ?: ""),
+                        "productDescription" to (document.getString("productDescription") ?: ""),
                         "rating" to (document.get("rating")?.toString() ?: ""),
+                        "liked" to (document.get("liked")?.toString() ?: ""),
+                        "viewCount" to (document.get("viewCount")?.toString() ?: ""),
                         "state" to (document.get("state")?.toString() ?: ""),
                     )
                     document.id to fields
@@ -340,44 +341,44 @@ fun deleteFirestoreData(collectionName: String, documentId: String, successEvent
 
 class ClosetViewModel : ViewModel() {
     private val _topsRefData = MutableLiveData<List<StorageReference>>()
-    private val _topsUriData = MutableLiveData<List<String>>()
+    private val _topsUrlData = MutableLiveData<List<String>>()
     val topsRefData: LiveData<List<StorageReference>> get() = _topsRefData
-    val topsUriData: LiveData<List<String>> get() = _topsUriData
+    val topsUrlData: LiveData<List<String>> get() = _topsUrlData
 
     private val _bottomsRefData = MutableLiveData<List<StorageReference>>()
-    private val _bottomsUriData = MutableLiveData<List<String>>()
+    private val _bottomsUrlData = MutableLiveData<List<String>>()
     val bottomsRefData: LiveData<List<StorageReference>> get() = _bottomsRefData
-    val bottomsUriData: LiveData<List<String>> get() = _bottomsUriData
+    val bottomsUrlData: LiveData<List<String>> get() = _bottomsUrlData
 
     fun getItemsFromFirebase(storageRef: StorageReference) {
         viewModelScope.launch {
-            fetchItems(storageRef.child("top"), _topsRefData, _topsUriData)
-            fetchItems(storageRef.child("bottom"), _bottomsRefData, _bottomsUriData)
+            fetchItems(storageRef.child("top"), _topsRefData, _topsUrlData)
+            fetchItems(storageRef.child("bottom"), _bottomsRefData, _bottomsUrlData)
         }
     }
 
     private suspend fun fetchItems(
         categoryRef: StorageReference,
         refLiveData: MutableLiveData<List<StorageReference>>,
-        uriLiveData: MutableLiveData<List<String>>
+        urlLiveData: MutableLiveData<List<String>>
     ) {
         resetResponseData()
         val itemsRef = mutableListOf<StorageReference>()
-        val itemsUri = mutableListOf<String>()
+        val itemsUrl = mutableListOf<String>()
 
         try {
             val listResult = categoryRef.listAll().await()
             listResult.items.forEach { clothRef ->
                 try {
-                    val uri = clothRef.downloadUrl.await().toString()
+                    val url = clothRef.downloadUrl.await().toString()
                     itemsRef.add(clothRef)
-                    itemsUri.add(uri)
+                    itemsUrl.add(url)
                 } catch (e: Exception) {
                     // Handle individual downloadUrl failure if needed
                 }
             }
             refLiveData.postValue(itemsRef)
-            uriLiveData.postValue(itemsUri)
+            urlLiveData.postValue(itemsUrl)
         } catch (e: Exception) {
             // Handle listAll failure if needed
         }
@@ -386,9 +387,9 @@ class ClosetViewModel : ViewModel() {
     // Method to reset responseData
     private fun resetResponseData() {
         _topsRefData.value = listOf()
-        _topsUriData.value = listOf()
+        _topsUrlData.value = listOf()
         _bottomsRefData.value = listOf()
-        _bottomsUriData.value = listOf()
+        _bottomsUrlData.value = listOf()
     }
 }
 
@@ -405,10 +406,10 @@ fun ImageGrid(
         closetViewModel.bottomsRefData.observeAsState(emptyList())
     }
 
-    val itemsUri: List<String> by if (category == "top") {
-        closetViewModel.topsUriData.observeAsState(emptyList())
+    val itemsUrl: List<String> by if (category == "top") {
+        closetViewModel.topsUrlData.observeAsState(emptyList())
     } else {
-        closetViewModel.bottomsUriData.observeAsState(emptyList())
+        closetViewModel.bottomsUrlData.observeAsState(emptyList())
     }
 
     Column(
@@ -417,11 +418,11 @@ fun ImageGrid(
             .verticalScroll(rememberScrollState())
             .padding(top = 4.dp, start = 2.dp)
     ) {
-        itemsRef.zip(itemsUri).chunked(5).forEach { rowItems ->
+        itemsRef.zip(itemsUrl).chunked(5).forEach { rowItems ->
             Row(modifier = Modifier.fillMaxWidth()) {
-                rowItems.forEach { (ref, uri) ->
+                rowItems.forEach { (ref, url) ->
                     ImageItem(
-                        uri = uri,
+                        url = url,
                         ref = ref,
                         category = category,
                         onImageClick = onImageClick
@@ -434,19 +435,19 @@ fun ImageGrid(
 
 @Composable
 fun ImageItem(
-    uri: String,
+    url: String,
     ref: StorageReference,
     category: String,
     onImageClick: (StorageReference, String, String) -> Unit
 ) {
     Column {
         GlideImage(
-            imageModel = uri,
+            imageModel = url,
             contentDescription = "Image",
             modifier = Modifier
                 .size(80.dp)
                 .clickable {
-                    onImageClick(ref, uri, category)
+                    onImageClick(ref, url, category)
                 },
             contentScale = ContentScale.FillBounds
         )

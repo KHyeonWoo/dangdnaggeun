@@ -316,14 +316,14 @@ import java.io.ByteArrayOutputStream
 //}
 
 @Composable
-fun DecorateScreen(navController: NavHostController, encodedClickedUri: String, closetViewModel: ClosetViewModel) {
+fun DecorateScreen(navController: NavHostController, encodedClickedUrl: String, closetViewModel: ClosetViewModel) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
         var uploadTrigger by remember { mutableStateOf(false) }
         var clickedCategory by remember { mutableStateOf<String?>(null) }
         var uploadServerResult by remember { mutableStateOf("") }
-        var displayedImageUri by remember { mutableStateOf(encodedClickedUri) }
+        var displayedImageUrl by remember { mutableStateOf(encodedClickedUrl) }
 
         Column(
             modifier = Modifier
@@ -332,7 +332,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String, 
         ) {
 //            LogoScreen("Decorate") { navController.popBackStack() }
             Spacer(modifier = Modifier.weight(1f))
-            if (displayedImageUri.isNotEmpty()) {
+            if (displayedImageUrl.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -340,8 +340,8 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String, 
 
                     //url에 특수문자 되있는 경우가 있어 encode함
                     FunTextButton("다음") {
-                        val encodedUri = encodeUrl(displayedImageUri)
-                        navController.navigate("aiImgGen/$encodedUri/$clickedCategory")
+                        val encodedUrl = encodeUrl(displayedImageUrl)
+                        navController.navigate("aiImgGen/$encodedUrl/$clickedCategory")
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
@@ -357,7 +357,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String, 
         ) {
             Text(text = uploadServerResult)
             GlideImage(
-                imageModel = displayedImageUri,
+                imageModel = displayedImageUrl,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Fit
             )
@@ -386,7 +386,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUri: String, 
 
             CustomTabRow(uploadTrigger, isLoading, closetViewModel) { _, onClickedUri, onClickedCategory ->
                 clickedCategory = onClickedCategory
-                displayedImageUri = onClickedUri // 이미지 클릭 시 화면에 표시할 이미지 URI 업데이트
+                displayedImageUrl = onClickedUri // 이미지 클릭 시 화면에 표시할 이미지 URI 업데이트
             }
         }
     }

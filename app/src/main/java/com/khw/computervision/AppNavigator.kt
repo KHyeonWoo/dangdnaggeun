@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
@@ -98,35 +97,37 @@ class AppNavigator : ComponentActivity() {
                             DecorateScreen(navController, "", closetViewModel)
                         }
                         composable(
-                            "aiImgGen/{encodedClickedUri}/{clickedCategory}",
+                            "aiImgGen/{encodedClickedUrl}/{clickedCategory}",
                             arguments = listOf(
-                                navArgument("encodedClickedUri") { type = NavType.StringType },
+                                navArgument("encodedClickedUrl") { type = NavType.StringType },
                                 navArgument("clickedCategory") { type = NavType.StringType }
                             )
                         ) { backStackEntry ->
                             AiImgGenScreen(
                                 navController,
-                                backStackEntry.arguments?.getString("encodedClickedUri") ?: "",
+                                backStackEntry.arguments?.getString("encodedClickedUrl") ?: "",
                                 backStackEntry.arguments?.getString("clickedCategory") ?: "",
                                 aiViewModel,
                                 closetViewModel
                             )
                         }
                         composable(
-                            "insert/{encodedClickedUri}",
+                            "insert/{encodedClickedUrl}/{clickedCategory}",
                             arguments = listOf(
-                                navArgument("encodedClickedUri") { type = NavType.StringType }
+                                navArgument("encodedClickedUrl") { type = NavType.StringType },
+                                navArgument("clickedCategory") { type = NavType.StringType }
                             )
                         ) { backStackEntry ->
                             InsertScreen(
                                 navController,
-                                backStackEntry.arguments?.getString("encodedClickedUri") ?: "",
+                                backStackEntry.arguments?.getString("encodedClickedUrl") ?: "",
+                                backStackEntry.arguments?.getString("clickedCategory") ?: "",
                                 aiViewModel
                             )
                         }
                         composable(
-                            "profile/{profileUri}",
-                            arguments = listOf(navArgument("profileUri") {
+                            "profile/{profileUrl}",
+                            arguments = listOf(navArgument("profileUrl") {
                                 type = NavType.StringType
                             })
                         ) { _ ->
@@ -152,7 +153,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
         BottomNavItem("", Icons.AutoMirrored.Filled.List, ""),
         BottomNavItem("decorate", Icons.Default.AddCircle, "판매글 등록"),
         BottomNavItem("messageList", Icons.Default.MailOutline, ""),
-        BottomNavItem("profile/{profileUri}", Icons.Default.AccountCircle, "")
+        BottomNavItem("profile/{profileUrl}", Icons.Default.AccountCircle, "")
     )
 
     BottomNavigation(

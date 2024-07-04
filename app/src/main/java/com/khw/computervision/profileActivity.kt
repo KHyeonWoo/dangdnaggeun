@@ -9,9 +9,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,9 +29,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.google.android.gms.location.LocationServices
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +45,7 @@ fun ProfileScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     val geocoder = remember { Geocoder(context, Locale.KOREA) }
     val coroutineScope = rememberCoroutineScope()
-    var profileUri: String? by remember { mutableStateOf(null) }
+    var profileUrl: String? by remember { mutableStateOf(null) }
 
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -77,10 +72,10 @@ fun ProfileScreen(
     ) {
         Text(text = "Profile Screen")
         LaunchedEffect(Unit) {
-            profileUri = getProfile()
+            profileUrl = getProfile()
         }
 
-        profileUri?.let {
+        profileUrl?.let {
             GlideImage(
                 imageModel = it,
                 contentDescription = "Image",
