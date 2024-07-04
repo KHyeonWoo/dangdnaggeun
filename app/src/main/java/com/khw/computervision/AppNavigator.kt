@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,14 +20,18 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -36,6 +41,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import coil.compose.AsyncImagePainter.State.Empty.painter
+import coil.compose.ImagePainter
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.gson.Gson
@@ -171,43 +178,62 @@ class AppNavigator : ComponentActivity() {
     }
 }
 
-data class BottomNavItem(val route: String, val icon: ImageVector, val label: String)
+data class BottomNavItem(
+    val route: String,
+    val icon: ImageVector? = null,
+    val iconPainter: Painter? = null,
+    val label: String
+)
 
 @Composable
 fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
 
     val items = listOf(
-        BottomNavItem("sales", Icons.Default.Home, ""),
-        BottomNavItem("closet", Icons.AutoMirrored.Filled.List, ""),
-        BottomNavItem("decorate", Icons.Default.AddCircle, "판매글 등록"),
-        BottomNavItem("messageList", Icons.Default.MailOutline, ""),
-        BottomNavItem("profile/{profileUrl}", Icons.Default.AccountCircle, "")
+        BottomNavItem("sales", icon = Icons.Default.Home, iconPainter = null, "홈"),
+        BottomNavItem(
+            "closet",
+            icon = null,
+            iconPainter = painterResource(id = R.drawable.closet_icon),
+            "옷장"
+        ),
+        BottomNavItem("decorate", icon = Icons.Default.AddCircle, iconPainter = null, "판매글 등록"),
+        BottomNavItem("messageList", icon = Icons.Default.MailOutline, iconPainter = null, "메시지"),
+        BottomNavItem(
+            "profile/{profileUrl}",
+            icon = Icons.Default.Person,
+            iconPainter = null,
+            "프로필"
+        )
     )
 
     BottomNavigation(
-        backgroundColor = colorDang,
+        backgroundColor = Color.White,
         modifier = Modifier
-            .height(70.dp)
-            .clip(
-                RoundedCornerShape(
-                    topStart = 15.dp,
-                    topEnd = 15.dp
-                )
+            .height(60.dp)
+            .border(
+                2.dp,
+                color = colorDang,
+                shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
             )
     ) {
         val currentRoute = currentRoute(navController)
         items.forEach { item ->
             BottomNavigationItem(
                 icon = {
-                    Icon(
-                        item.icon,
-                        contentDescription = item.label,
-                        modifier = if (item.label == "판매글 등록") {
-                            Modifier.size(50.dp)
-                        } else {
-                            Modifier.size(40.dp)
-                        }
-                    )
+                    when {
+                        item.icon != null -> Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                            modifier = Modifier.size(30.dp)
+                        )
+
+                        item.iconPainter != null -> Icon(
+                            painter = item.iconPainter,
+                            contentDescription = item.label,
+                            modifier = Modifier.size(25.dp)
+                        )
+                    }
+
                 },
                 label = {
                     Text(
@@ -215,8 +241,8 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                         maxLines = if (item.label == "판매글 등록") Int.MAX_VALUE else 1,
                     )
                 },
-                selectedContentColor = Color.White,
-                unselectedContentColor = Color.White.copy(alpha = 0.6f),
+                selectedContentColor = colorDang,
+                unselectedContentColor = Color.Black.copy(alpha = .5f),
                 selected = currentRoute == item.route,
                 onClick = {
                     val route = if (item.route.contains("{messageMap}")) {
@@ -240,7 +266,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                         .padding(2.dp)
                         .weight(1.5f) // Adjust the size for "판매글 등록"
                 } else {
-                    Modifier.padding(10.dp)
+                    Modifier.padding(5.dp)
                 }
             )
         }

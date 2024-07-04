@@ -2,6 +2,7 @@ package com.khw.computervision
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,8 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
@@ -45,11 +49,12 @@ fun CustomImageGridPage(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color.White),
+       horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 나의 옷장 타이틀과 버튼
         TopBar(title = "나의 옷장", onBackClick = onBackClick, onAddClick = onAddClick)
-        HorizontalDivider(color = colorDang)
+        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
         // 상의 섹션
         SectionHeader(title = "상의")
         if (isLoading) {
@@ -62,6 +67,7 @@ fun CustomImageGridPage(
             )
         }
 
+        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
         // 하의 섹션
         SectionHeader(title = "하의")
         if (isLoading) {
@@ -90,7 +96,7 @@ fun TopBar(title: String, onBackClick: () -> Unit, onAddClick: () -> Unit) {
         }
         Text(
             text = title,
-            fontSize = 24.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = colorDang,
             modifier = Modifier.weight(1f),
@@ -104,18 +110,22 @@ fun TopBar(title: String, onBackClick: () -> Unit, onAddClick: () -> Unit) {
 
 @Composable
 fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color(0xFFFFA726),
-        modifier = Modifier
-            .padding(8.dp)
-            .background(Color(0xFFFFE0B2))
-            .padding(8.dp)
-            .fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
+    Box(modifier = Modifier
+        .padding(8.dp)
+        .background(color = Color.Transparent)
+        .padding(8.dp)
+        .width(300.dp)
+        .height(30.dp)
+        .border(2.dp, color = colorDang, shape = RoundedCornerShape(10.dp)),
+        contentAlignment = Alignment.Center) {
+        Text(
+            text = title,
+            fontSize = 15.sp,
+            color = Color.Gray ,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+    }
 }
 @Composable
 fun ImageGridLimited(
