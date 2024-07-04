@@ -314,7 +314,9 @@ private fun getUserDataAndNavigate(
                 //userID에 저장된 옷장 데이터 호출
                 closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))
                 //등록된 상품 데이터 호출
-                productsViewModel.getItemsFromFireStore()
+                productsViewModel.getProductsFromFireStore()
+                //user가 좋아요로 등록한 데이터 호출
+                productsViewModel.getLikedFromFireStore()
                 Log.d("FinalAddress", UserIDManager.userAddress.value)
                 navController.navigate("sales")
             }

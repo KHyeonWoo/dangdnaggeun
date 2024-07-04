@@ -70,14 +70,15 @@ class AppNavigator : ComponentActivity() {
                         composable("login") { LoginScreen(navController, closetViewModel, productsViewModel) }
                         composable("sales") { SaleScreen(navController, productsViewModel) }
                         composable(
-                            "detailProduct/{productId}",
-                            arguments = listOf(navArgument("productId") {
+                            "detailProduct/{productKey}",
+                            arguments = listOf(navArgument("productKey") {
                                 type = NavType.StringType
                             })
                         ) { backStackEntry ->
                             DetailScreen(
                                 navController,
-                                backStackEntry.arguments?.getString("productId")
+                                productsViewModel,
+                                backStackEntry.arguments?.getString("productKey")
                             )
                         }
 //                        composable(
