@@ -16,7 +16,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
@@ -28,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -71,21 +69,29 @@ class AppNavigator : ComponentActivity() {
                         startDestination = "login",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable("closet") {     CustomImageGridPage(
-                            isLoading = false,
-                            closetViewModel = closetViewModel,
-                            onImageClick = { storageReference, string1, string2 ->
-                                // onImageClick 로직 추가
-                            },
-                            onBackClick = {
-                                // 뒤로 가기 로직 추가
-                                navController.popBackStack()
-                            },
-                            onAddClick = {
-                                // 추가 버튼 클릭 시 로직 추가
-                            }
-                        )}
-                        composable("login") { LoginScreen(navController, closetViewModel, productsViewModel) }
+                        composable("closet") {
+                            CustomImageGridPage(
+                                isLoading = false,
+                                closetViewModel = closetViewModel,
+                                onImageClick = { storageReference, string1, string2 ->
+                                    // onImageClick 로직 추가
+                                },
+                                onBackClick = {
+                                    // 뒤로 가기 로직 추가
+                                    navController.popBackStack()
+                                },
+                                onAddClick = {
+                                    // 추가 버튼 클릭 시 로직 추가
+                                }
+                            )
+                        }
+                        composable("login") {
+                            LoginScreen(
+                                navController,
+                                closetViewModel,
+                                productsViewModel
+                            )
+                        }
                         composable("sales") { SaleScreen(navController, productsViewModel) }
                         composable(
                             "detailProduct/{productKey}",
@@ -192,7 +198,17 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
         val currentRoute = currentRoute(navController)
         items.forEach { item ->
             BottomNavigationItem(
-                icon = { Icon(item.icon, contentDescription = item.label, modifier = Modifier.size(50.dp))},
+                icon = {
+                    Icon(
+                        item.icon,
+                        contentDescription = item.label,
+                        modifier = if (item.label == "판매글 등록") {
+                            Modifier.size(50.dp)
+                        } else {
+                            Modifier.size(40.dp)
+                        }
+                    )
+                },
                 label = {
                     Text(
                         item.label,
@@ -220,7 +236,9 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                     }
                 },
                 modifier = if (item.label == "판매글 등록") {
-                    Modifier.padding(10.dp).weight(2f) // Adjust the size for "판매글 등록"
+                    Modifier
+                        .padding(2.dp)
+                        .weight(1.5f) // Adjust the size for "판매글 등록"
                 } else {
                     Modifier.padding(10.dp)
                 }

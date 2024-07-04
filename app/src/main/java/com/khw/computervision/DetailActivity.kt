@@ -163,7 +163,7 @@ fun DetailScreen(
                 val likedData by productsViewModel.likedData.observeAsState()
                 likedData?.let { likedList ->
                     productKey?.let { productName ->
-                        if (productName in likedList) {
+                        if (productName in likedList.keys) {
                             Image(
                                 painter = painterResource(id = R.drawable.baseline_favorite_24),
                                 contentDescription = "unLiked",
@@ -186,7 +186,7 @@ fun DetailScreen(
 
                                     coroutineScope.launch(Dispatchers.IO) {
                                         val likedProduct = hashMapOf(
-                                            "liked" to true
+                                            "liked" to "true"
                                         )
                                         Firebase.firestore.collection("${UserIDManager.userID.value}liked")
                                             .document(productName)

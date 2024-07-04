@@ -333,7 +333,7 @@ class ProductViewModel : ViewModel() {
         resetLikedData()
         try {
 
-            val likedResult = Firebase.firestore.collection("${UserIDManager.userID}liked").get().await()
+            val likedResult = Firebase.firestore.collection("${UserIDManager.userID.value}liked").get().await()
             // 데이터 가져오기가 성공하면, 문서 ID와 필드들을 맵으로 만듭니다.
             val newLickedList = likedResult.documents.associate { document ->
                 val fields = mapOf(
@@ -344,7 +344,7 @@ class ProductViewModel : ViewModel() {
             likedData.postValue(newLickedList)
         } catch (e: Exception) {
             // 데이터 가져오기가 실패하면, 에러 메시지를 토스트로 보여줍니다.
-            //Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
         }
     }
 
