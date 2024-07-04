@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,21 +10,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import coil.compose.rememberAsyncImagePainter
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 //class DetailActivity : ComponentActivity() {
 //    override fun onCreate(savedInstanceState: Bundle?) {
@@ -127,48 +134,93 @@ import com.google.firebase.firestore.firestore
 //}
 
 @Composable
-fun DetailScreen(navController: NavHostController, productId: String?) {
-    var productMap by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-
-    LaunchedEffect(productId) {
-        if (productId != null) {
-            Firebase.firestore.collection("product").document(productId).get()
-                .addOnSuccessListener { document ->
-                    if (document != null) {
-                        productMap = mapOf(
-                            "InsertUser" to (document.getString("InsertUser") ?: ""),
-                            "name" to (document.getString("name") ?: ""),
-                            "date" to (document.getString("date") ?: ""),
-                            "dealMethod" to (document.getString("dealMethod") ?: ""),
-                            "imageUrl" to (document.getString("imageUrl") ?: ""),
-                            "price" to (document.get("price")?.toString() ?: ""),
-                            "productDescription" to (document.getString("productDescription")
-                                ?: ""),
-                            "rating" to (document.get("rating")?.toString() ?: ""),
-                            "state" to (document.get("state")?.toString() ?: ""),
-                        )
-                    }
-                }
-        }
-    }
+fun DetailScreen(
+    navController: NavHostController,
+    productsViewModel: ProductViewModel,
+    productKey: String?
+) {
+    val productData by productsViewModel.productsData.observeAsState()
+    val productMap = productData?.get(productKey)
 
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        LogoScreen("Detail") { navController.popBackStack() }
-        Image(
-            painter = painterResource(id = R.drawable.character4),
-            contentDescription = "",
-            modifier = Modifier
-                .padding(20.dp)
-                .size(320.dp)
-        )
-        UserInfoSection(productMap)
-        Divider(color = colorDang, thickness = 2.dp)
-        PriceAndMethodSection(productMap)
-        Divider(color = colorDang, thickness = 2.dp)
-        ProductDescriptionSection(productMap)
+
+        if (productMap != null) {
+
+            var checkedOption by remember { mutableIntStateOf(0) }
+            val options = listOf(
+                "옷",
+                "모델"
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                val coroutineScope = rememberCoroutineScope()
+                ChoiceSegButton(options, checkedOption) { checkedOption = it }
+                val likedData by productsViewModel.likedData.observeAsState()
+                likedData?.let { likedList ->
+                    productKey?.let { productName ->
+                        if (productName in likedList) {
+                            Image(
+                                painter = painterResource(id = R.drawable.baseline_favorite_24),
+                                contentDescription = "unLiked",
+                                modifier = Modifier.clickable {
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        Firebase.firestore.collection("${UserIDManager.userID.value}liked")
+                                            .document(productKey)
+                                            .delete()
+                                            .addOnSuccessListener {}
+                                            .addOnFailureListener {}
+                                        productsViewModel.getLikedFromFireStore()
+                                    }
+                                })
+
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.baseline_favorite_border_24),
+                                contentDescription = "liked",
+                                modifier = Modifier.clickable {
+
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        val likedProduct = hashMapOf(
+                                            "liked" to true
+                                        )
+                                        Firebase.firestore.collection("${UserIDManager.userID.value}liked")
+                                            .document(productName)
+                                            .set(likedProduct)
+                                            .addOnSuccessListener {}
+                                            .addOnFailureListener {}
+                                            .await()
+                                        productsViewModel.getLikedFromFireStore()
+                                    }
+                                })
+                        }
+                    }
+                }
+            }
+
+
+            val painter = if (checkedOption == 0) {
+                rememberAsyncImagePainter(productMap["imageUrl"])
+            } else {
+                rememberAsyncImagePainter(productMap["aiUrl"])
+            }
+            Image(
+                painter = painter,
+                contentDescription = "",
+                modifier = Modifier
+                    .padding(20.dp)
+                    .size(320.dp)
+            )
+            UserInfoSection(productMap)
+            HorizontalDivider(thickness = 2.dp, color = colorDang)
+            PriceAndMethodSection(productMap)
+            HorizontalDivider(thickness = 2.dp, color = colorDang)
+            ProductDescriptionSection(productMap)
+        }
     }
 }
 

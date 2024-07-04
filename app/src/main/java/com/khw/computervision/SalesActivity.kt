@@ -204,13 +204,13 @@ fun ImageList(
     productsViewModel: ProductViewModel,
     categoryOption: String
 ) {
-    val responseData by productsViewModel.productsData.observeAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        responseData?.entries?.chunked(3)?.forEach { chunkedProduct ->
+        val productData by productsViewModel.productsData.observeAsState()
+        productData?.entries?.chunked(3)?.forEach { chunkedProduct ->
             Row (
                 modifier = Modifier
                     .fillMaxWidth(),
