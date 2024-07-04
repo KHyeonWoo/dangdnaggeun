@@ -95,5 +95,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     // 이게 뭔진 모르지만 일단 종속성 추가- kh
     implementation ("com.google.accompanist:accompanist-placeholder-material:0.24.13-rc")
+    //  권한 설정하는 종속성 - kh
+    implementation ("com.google.accompanist:accompanist-permissions:0.24.13-rc")
 
 }
