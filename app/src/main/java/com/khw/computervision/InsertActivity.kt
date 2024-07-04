@@ -296,7 +296,7 @@ fun InsertScreen(
                 Spacer(modifier = Modifier.weight(1f))
 
                 responseData?.let { aiUrl ->
-                    newPopupDetails.imageUrl = aiUrl
+                    newPopupDetails.aiUrl = aiUrl
                     val coroutineScope = rememberCoroutineScope()
                     val context = LocalContext.current
 
@@ -327,8 +327,7 @@ fun InsertScreen(
             } else {
 
                 responseData?.let { aiUrl ->
-                    val replaceAiUrl = aiUrl.replace("\"", "")
-                    val painter = rememberAsyncImagePainter(replaceAiUrl)
+                    val painter = rememberAsyncImagePainter(aiUrl)
                     Image(
                         painter = painter,
                         contentDescription = null,
@@ -420,7 +419,7 @@ private fun saveEvent(
         "name" to newPopupDetails.name,
         "date" to dateTimeNow,
         "imageUrl" to newPopupDetails.imageUrl,
-        "aiUrl" to newPopupDetails.imageUrl,
+        "aiUrl" to newPopupDetails.aiUrl,
         "category" to newPopupDetails.category,
         "price" to newPopupDetails.price,
         "dealMethod" to newPopupDetails.dealMethod,

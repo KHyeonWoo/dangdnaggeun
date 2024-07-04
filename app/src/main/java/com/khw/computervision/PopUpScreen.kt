@@ -341,7 +341,7 @@ data class PopupDetails(
     val userID: String,
     val name: String = "",
     var imageUrl: String = "",
-    val aiUrl: String = "",
+    var aiUrl: String = "",
     val category: String = "",
     val price: Int = 0,
     val dealMethod: String = "",

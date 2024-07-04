@@ -1,15 +1,10 @@
 package com.khw.computervision
 
-import android.content.Intent
-import android.os.Bundle
-import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,27 +15,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.ktx.storage
-import com.khw.computervision.ui.theme.ComputerVisionTheme
-import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.tasks.await
 
 //class SalesActivity : ComponentActivity() {
@@ -195,12 +182,13 @@ fun SaleScreen(navController: NavHostController) {
             ChoiceSegButton(options, checkedOption) { checkedOption = it }
         }
         if (checkedOption == 0) {
-            ImageList(navController, ReLoadingManager.reLoadingValue.value)
+            ImageList(navController, "top", ReLoadingManager.reLoadingValue.value)
         } else {
-            ImageList(navController, ReLoadingManager.reLoadingValue.value)
+            ImageList(navController, "bottom", ReLoadingManager.reLoadingValue.value)
         }
     }
 }
+
 suspend fun getProfile(): String? {
     val storageRef = Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
     return try {
@@ -211,7 +199,7 @@ suspend fun getProfile(): String? {
 }
 
 @Composable
-fun ImageList(navController: NavHostController, reLoading: Boolean) {
+fun ImageList(navController: NavHostController, categoryOption: String, reLoading: Boolean) {
     var productMap: Map<String, Map<String, String>> by remember { mutableStateOf(emptyMap()) }
     GetProduct(reLoading) { productMap = it }
 
@@ -227,16 +215,44 @@ fun ImageList(navController: NavHostController, reLoading: Boolean) {
         ) {
             for ((key, value) in productMap) {
                 Column(
-                    modifier = Modifier.clickable {
-                        navController.navigate("detailProduct/$key")
-                    }) {
-                    for ((fieldKey, fieldValue) in value) {
-                        if (fieldKey == "imageUrl") {
-                            GlideImage(
-                                imageModel = fieldValue,
-                                modifier = Modifier.size(90.dp, 160.dp),
-                                contentDescription = "Image"
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate("detailProduct/$key")
+                        }
+                ) {
+                    if (value["category"] == categoryOption) {
+                        val painter = rememberAsyncImagePainter(value["imageUrl"])
+                        Row(
+                            modifier = Modifier
+                                .size(120.dp, 200.dp)
+                                .border(2.dp, color = colorDang, shape = RoundedCornerShape(8.dp))
+                        ) {
+                            Image(
+                                painter = painter,
+                                contentDescription = "Image",
+                                contentScale = ContentScale.Fit
                             )
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(2.dp, color = colorDang, shape = RoundedCornerShape(8.dp))
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(2.dp)
+                            ) {
+                                value["viewCount"]?.let { Text(text = "조회수 : $it") }
+                                Spacer(modifier = Modifier.weight(1f))
+                                value["liked"]?.let { Text(text = "좋아요 : $it") }
+                            }
+                            Text(text = "상품명")
+                            value["name"]?.let { Text(text = it) }
+                            value["price"]?.let {
+                                Text(text = "$${it}원")
+                            }
                         }
                     }
                 }

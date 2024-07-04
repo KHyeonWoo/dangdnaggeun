@@ -293,6 +293,7 @@ fun GetProduct(reLoading: Boolean, getProductEvent: (Map<String, Map<String, Str
                         "dealMethod" to (document.getString("dealMethod") ?: ""),
                         "imageUrl" to (document.getString("imageUrl") ?: ""),
                         "aiUrl" to (document.getString("aiUrl") ?: ""),
+                        "category" to (document.getString("category") ?: ""),
                         "price" to (document.get("price")?.toString() ?: ""),
                         "productDescription" to (document.getString("productDescription") ?: ""),
                         "rating" to (document.get("rating")?.toString() ?: ""),
@@ -569,7 +570,7 @@ class AiViewModel : ViewModel() {
                     response: Response<ResponseBody>
                 ) {
                     if (response.isSuccessful) {
-                        _responseData.postValue(response.body()?.string())
+                        _responseData.postValue(response.body()?.string()?.replace("\"",""))
                     } else {
                         _responseData.postValue("Error: ${response.errorBody()?.string()}")
                     }
