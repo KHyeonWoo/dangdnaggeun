@@ -252,14 +252,15 @@ fun InsertScreen(
     navController: NavHostController,
     encodingClickedUrl: String,
     clickedCategory: String,
-    viewModel: AiViewModel
+    aiViewModel: AiViewModel,
+    productsViewModel: ProductViewModel
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        val responseData by viewModel.responseData.observeAsState()
+        val responseData by aiViewModel.responseData.observeAsState()
 
         var newPopupDetails by remember {
             mutableStateOf(
@@ -306,7 +307,7 @@ fun InsertScreen(
                         FunTextButton("저장") {
                             navController.popBackStack()
                             saveEvent(coroutineScope, context, newPopupDetails)
-                            ReLoadingManager.reLoading()
+                            productsViewModel.getItemsFromFireStore()
                         }
                     }
                 }

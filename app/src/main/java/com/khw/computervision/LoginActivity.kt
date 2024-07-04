@@ -25,7 +25,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,7 +44,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -155,7 +153,11 @@ import java.util.Locale
 //}
 
 @Composable
-fun LoginScreen(navController: NavController, closetViewModel: ClosetViewModel) {
+fun LoginScreen(
+    navController: NavController,
+    closetViewModel: ClosetViewModel,
+    productsViewModel: ProductViewModel
+) {
     val auth: FirebaseAuth = Firebase.auth
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
@@ -169,7 +171,7 @@ fun LoginScreen(navController: NavController, closetViewModel: ClosetViewModel) 
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            getLocationAndClosetAndNavigate(navController, closetViewModel, fusedLocationClient, geocoder, coroutineScope)
+            getUserDataAndNavigate(navController, closetViewModel, productsViewModel, fusedLocationClient, geocoder, coroutineScope)
         } else {
             Log.d("PermissionDenied", "Location permission was denied")
             UserIDManager.userAddress.value = "위치 권한이 거부되었습니다"
@@ -213,6 +215,7 @@ fun LoginScreen(navController: NavController, closetViewModel: ClosetViewModel) 
                     auth,
                     context,
                     closetViewModel,
+                    productsViewModel,
                     navController,
                     fusedLocationClient,
                     requestPermissionLauncher,
@@ -256,6 +259,7 @@ private fun loginUser(
     auth: FirebaseAuth,
     context: Context,
     closetViewModel: ClosetViewModel,
+    productsViewModel: ProductViewModel,
     navController: NavController,
     fusedLocationClient: FusedLocationProviderClient,
     requestPermissionLauncher: ActivityResultLauncher<String>,
@@ -274,9 +278,10 @@ private fun loginUser(
                             Manifest.permission.ACCESS_FINE_LOCATION
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        getLocationAndClosetAndNavigate(
+                        getUserDataAndNavigate(
                             navController,
                             closetViewModel,
+                            productsViewModel,
                             fusedLocationClient,
                             geocoder,
                             coroutineScope
@@ -292,9 +297,10 @@ private fun loginUser(
         }
 }
 
-private fun getLocationAndClosetAndNavigate(
+private fun getUserDataAndNavigate(
     navController: NavController,
     closetViewModel: ClosetViewModel,
+    productsViewModel: ProductViewModel,
     fusedLocationClient: FusedLocationProviderClient,
     geocoder: Geocoder,
     coroutineScope: CoroutineScope
@@ -305,7 +311,10 @@ private fun getLocationAndClosetAndNavigate(
             val updatedAddress = address ?: "주소를 찾을 수 없습니다."
             withContext(Dispatchers.Main) {
                 UserIDManager.userAddress.value = updatedAddress
+                //userID에 저장된 옷장 데이터 호출
                 closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))
+                //등록된 상품 데이터 호출
+                productsViewModel.getItemsFromFireStore()
                 Log.d("FinalAddress", UserIDManager.userAddress.value)
                 navController.navigate("sales")
             }

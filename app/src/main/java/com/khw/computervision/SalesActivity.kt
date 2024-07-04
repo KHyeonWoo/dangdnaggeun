@@ -3,7 +3,6 @@ package com.khw.computervision
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,14 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -166,7 +165,7 @@ import kotlinx.coroutines.tasks.await
 //    }
 //}
 @Composable
-fun SaleScreen(navController: NavHostController) {
+fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewModel) {
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -183,9 +182,9 @@ fun SaleScreen(navController: NavHostController) {
             ChoiceSegButton(options, checkedOption) { checkedOption = it }
         }
         if (checkedOption == 0) {
-            ImageList(navController, "top", ReLoadingManager.reLoadingValue.value)
+            ImageList(navController, productsViewModel, "top")
         } else {
-            ImageList(navController, "bottom", ReLoadingManager.reLoadingValue.value)
+            ImageList(navController, productsViewModel, "bottom")
         }
     }
 }
@@ -200,61 +199,78 @@ suspend fun getProfile(): String? {
 }
 
 @Composable
-fun ImageList(navController: NavHostController, categoryOption: String, reLoading: Boolean) {
-    var productMap: Map<String, Map<String, String>> by remember { mutableStateOf(emptyMap()) }
-    GetProduct(reLoading) { productMap = it }
-
+fun ImageList(
+    navController: NavHostController,
+    productsViewModel: ProductViewModel,
+    categoryOption: String
+) {
+    val responseData by productsViewModel.productsData.observeAsState()
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            for ((key, value) in productMap) {
-                Column(
-                    modifier = Modifier
-                        .clickable {
-                            navController.navigate("detailProduct/$key")
-                        }
-                ) {
-                    if (value["category"] == categoryOption) {
-                        val painter = rememberAsyncImagePainter(value["imageUrl"])
-                        Row(
-                            modifier = Modifier
-                                .size(120.dp, 200.dp)
-                                .border(2.dp, color = colorDang, shape = RoundedCornerShape(8.dp))
-                        ) {
+        responseData?.entries?.chunked(3)?.forEach { chunkedProduct ->
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                for ((key, value) in chunkedProduct) {
+                    Column(
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .clickable {
+                                navController.navigate("detailProduct/$key")
+                            }
+                    ) {
+                        if (value["category"] == categoryOption) {
+                            val painter = rememberAsyncImagePainter(value["imageUrl"])
                             Image(
                                 painter = painter,
                                 contentDescription = "Image",
                                 contentScale = ContentScale.FillBounds,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(2.dp, color = colorDang, shape = RoundedCornerShape(8.dp))
-                                .align(Alignment.CenterHorizontally)
-                        ) {
-                            Row(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(2.dp)
+                                    .size(120.dp, 180.dp)
+                                    .border(
+                                        2.dp,
+                                        color = colorDang,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                            )
+
+                            Column(
+                                modifier = Modifier
+                                    .size(120.dp, 120.dp)
+                                    .border(
+                                        2.dp,
+                                        color = colorDang,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
                             ) {
-                                value["viewCount"]?.let { Text(text = "조회수 : $it") }
-                                Spacer(modifier = Modifier.weight(1f))
-                                value["liked"]?.let { Text(text = "좋아요 : $it") }
-                            }
-                            Text(text = "상품명")
-                            value["name"]?.let { Text(text = it) }
-                            value["price"]?.let {
-                                Text(text = "$${it}원")
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 4.dp)
+                                ) {
+                                    Column {
+                                        Text(text = "상품명")
+                                        value["name"]?.let { Text(text = it) }
+                                        value["price"]?.let {
+                                            Text(text = "$${it}원")
+                                        }
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(end = 4.dp)
+                                        ) {
+                                            value["viewCount"]?.let { Text(text = "조회수 : $it") }
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            value["liked"]?.let { Text(text = "좋아요 : $it") }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
