@@ -50,8 +50,9 @@ class AppNavigator : ComponentActivity() {
         setContent {
             ComputerVisionTheme {
                 val navController = rememberNavController()
-                val aiViewModel: AiViewModel = viewModel() // ViewModel 인스턴스 생성
-                val closetViewModel: ClosetViewModel = viewModel() // ViewModel 인스턴스 생성
+                val aiViewModel: AiViewModel = viewModel() // aiViewModel 인스턴스 생성
+                val closetViewModel: ClosetViewModel = viewModel() // closetViewModel 인스턴스 생성
+                val productsViewModel: ProductViewModel = viewModel() // productsViewModel 인스턴스 생성
 
                 Scaffold(
                     topBar = {
@@ -70,17 +71,18 @@ class AppNavigator : ComponentActivity() {
                         startDestination = "login",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable("login") { LoginScreen(navController, closetViewModel) }
-                        composable("sales") { SaleScreen(navController) }
+                        composable("login") { LoginScreen(navController, closetViewModel, productsViewModel) }
+                        composable("sales") { SaleScreen(navController, productsViewModel) }
                         composable(
-                            "detailProduct/{productId}",
-                            arguments = listOf(navArgument("productId") {
+                            "detailProduct/{productKey}",
+                            arguments = listOf(navArgument("productKey") {
                                 type = NavType.StringType
                             })
                         ) { backStackEntry ->
                             DetailScreen(
                                 navController,
-                                backStackEntry.arguments?.getString("productId")
+                                productsViewModel,
+                                backStackEntry.arguments?.getString("productKey")
                             )
                         }
 //                        composable(
@@ -126,7 +128,8 @@ class AppNavigator : ComponentActivity() {
                                 navController,
                                 backStackEntry.arguments?.getString("encodedClickedUrl") ?: "",
                                 backStackEntry.arguments?.getString("clickedCategory") ?: "",
-                                aiViewModel
+                                aiViewModel,
+                                productsViewModel
                             )
                         }
                         composable(

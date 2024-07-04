@@ -252,14 +252,15 @@ fun InsertScreen(
     navController: NavHostController,
     encodingClickedUrl: String,
     clickedCategory: String,
-    viewModel: AiViewModel
+    aiViewModel: AiViewModel,
+    productsViewModel: ProductViewModel
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        val responseData by viewModel.responseData.observeAsState()
+        val responseData by aiViewModel.responseData.observeAsState()
 
         var newPopupDetails by remember {
             mutableStateOf(
@@ -292,7 +293,6 @@ fun InsertScreen(
                     "모델"
                 )
                 ChoiceSegButton(options, checkedOption) { checkedOption = it }
-
                 Spacer(modifier = Modifier.weight(1f))
 
                 responseData?.let { aiUrl ->
@@ -306,7 +306,7 @@ fun InsertScreen(
                         FunTextButton("저장") {
                             navController.popBackStack()
                             saveEvent(coroutineScope, context, newPopupDetails)
-                            ReLoadingManager.reLoading()
+                            productsViewModel.getProductsFromFireStore()
                         }
                     }
                 }
@@ -379,6 +379,7 @@ fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt:
                     index = index,
                     count = options.size
                 ),
+                icon = {},
                 colors = SegmentedButtonDefaults.colors(
                     activeContainerColor = colorDang,
                     activeContentColor = Color.White,
@@ -397,7 +398,11 @@ fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt:
                 },
                 checked = index == checkedOption
             ) {
-                Text(label)
+                if (checkedOption == index) {
+                    Text(label, color = Color.White)
+                } else {
+                    Text(label, color = colorDang)
+                }
             }
         }
     }
