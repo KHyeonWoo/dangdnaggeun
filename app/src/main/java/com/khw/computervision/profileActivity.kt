@@ -122,6 +122,12 @@ fun ProfileScreen(
             context.startActivity(productIntent)
         }
 
+        FunButton("내가 좋아요 누른 제품", image = R.drawable.list_icon) {
+            val productIntent = Intent(context, LikeActivity::class.java)
+            productIntent.putExtra("userID", UserIDManager.userID.value)
+            context.startActivity(productIntent)
+        }
+
 //        FunButton("내게 온 메세지 : ${messageMap.size}", null) {
 //            val userIntent = Intent(context, MessageListActivity::class.java)
 //            userIntent.putExtra("messageList", mapToBundle(messageMap))

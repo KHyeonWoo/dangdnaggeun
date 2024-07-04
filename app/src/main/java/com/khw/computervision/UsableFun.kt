@@ -577,7 +577,6 @@ fun encodeUrl(url: String): String {
 }
 // 20240703 신동환 - 현재 위치 확인하는 함수입니다
 
-
 fun getLocation(
     fusedLocationProviderClient: FusedLocationProviderClient,
     onLocationReceived: (Location) -> Unit
@@ -604,6 +603,7 @@ fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
             val subLocality = address.subLocality ?: ""
             val thoroughfare = address.thoroughfare ?: ""
             val subThoroughfare = address.subThoroughfare ?: ""
+            val addressLine = address.getAddressLine(0) ?: ""
 
             // 여기에 로그 추가
             Log.d("AddressLookup", "Address components:")
@@ -612,8 +612,7 @@ fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
             Log.d("AddressLookup", "subLocality: $subLocality")
             Log.d("AddressLookup", "thoroughfare: $thoroughfare")
             Log.d("AddressLookup", "subThoroughfare: $subThoroughfare")
-            Log.d("AddressLookup", "Full address: ${address.getAddressLine(0)}")
-
+            Log.d("AddressLookup", "Full address: $addressLine")
 
             val result = "$adminArea $subLocality $thoroughfare"
             Log.d("AddressLookup", "Final result: $result")
