@@ -225,7 +225,6 @@ fun ImageGridLimited(
                             .weight(1f)
                             .aspectRatio(1f) // 정사각형 비율 유지
                             .padding(4.dp) // 패딩 추가
-                            .clickable { onImageClick(ref, url, category) }
                     ) {
                         ImageItem(
                             url = url,
