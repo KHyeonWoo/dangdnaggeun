@@ -189,17 +189,17 @@ fun SaleScreen(navController: NavHostController) {
         }
         ImageList(navController, ReLoadingManager.reLoadingValue.value)
 
-        Spacer(modifier = Modifier.weight(1f))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Spacer(modifier = Modifier.weight(1f))
-            FunTextButton("+ 글쓰기") {
-                navController.navigate("decorate")
-            }
-            Spacer(modifier = Modifier.weight(1f))
-        }
+//        Spacer(modifier = Modifier.weight(1f))
+//        Row(
+//            modifier = Modifier.fillMaxWidth(),
+//            horizontalArrangement = Arrangement.Center
+//        ) {
+//            Spacer(modifier = Modifier.weight(1f))
+//            FunTextButton("+ 글쓰기") {
+//                navController.navigate("decorate")
+//            }
+//            Spacer(modifier = Modifier.weight(1f))
+//        }
     }
 }
 suspend fun getProfile(): String? {

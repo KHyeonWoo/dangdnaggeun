@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -11,6 +12,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.List
@@ -20,8 +22,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -143,23 +148,36 @@ data class BottomNavItem(val route: String, val icon: ImageVector, val label: St
 @Composable
 fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
     val items = listOf(
-        BottomNavItem("sales", Icons.Default.Search, "Home"),
-        BottomNavItem("", Icons.Default.List, "Closet"),
-        BottomNavItem("decorate", Icons.Default.AddCircle, "SalesList"),
-        BottomNavItem("messageList", Icons.Default.MailOutline, "Message"),
-        BottomNavItem("profile/{profileUri}", Icons.Default.AccountCircle, "Profile")
+        BottomNavItem("sales", Icons.Default.Search, ""),
+        BottomNavItem("", Icons.AutoMirrored.Filled.List, ""),
+        BottomNavItem("decorate", Icons.Default.AddCircle, "판매글 등록"),
+        BottomNavItem("messageList", Icons.Default.MailOutline, ""),
+        BottomNavItem("profile/{profileUri}", Icons.Default.AccountCircle, "")
     )
-    BottomNavigation {
+
+    BottomNavigation(
+        backgroundColor = colorDang,
+        modifier = Modifier.height(56.dp)
+    ) {
         val currentRoute = currentRoute(navController)
         items.forEach { item ->
             BottomNavigationItem(
                 icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) },
+                label = {
+                    Text(
+                        item.label,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis // 텍스트가 길 경우 줄임표(...)를 표시합니다.
+                    )
+                },
+                selectedContentColor = Color.White,
+                unselectedContentColor = Color.White.copy(alpha = 0.6f),
                 selected = currentRoute == item.route,
                 onClick = {
                     val route = if (item.route.contains("{messageMap}")) {
                         val emptyMessageMap = emptyMap<String, String>()
-                        val messageMapJson = URLEncoder.encode(Gson().toJson(emptyMessageMap), "UTF-8")
+                        val messageMapJson =
+                            URLEncoder.encode(Gson().toJson(emptyMessageMap), "UTF-8")
                         item.route.replace("{messageMap}", messageMapJson)
                     } else {
                         item.route
@@ -171,7 +189,8 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                         launchSingleTop = true
                         restoreState = true
                     }
-                }
+                },
+                modifier = Modifier.padding(10.dp) // 각 항목에 여백을 추가하여 크기를 조절합니다.
             )
         }
     }
@@ -212,7 +231,11 @@ fun getMessage(): Map<String, String> {
             .get()
             .addOnSuccessListener { result ->
                 value = result.documents.associate {
-                    it.id to "보낸일시: ${it.getString("date").orEmpty()}\n보낸사람: ${it.getString("sendUser").orEmpty()}\n메세지: ${it.getString("message").orEmpty()}"
+                    it.id to "보낸일시: ${
+                        it.getString("date").orEmpty()
+                    }\n보낸사람: ${it.getString("sendUser").orEmpty()}\n메세지: ${
+                        it.getString("message").orEmpty()
+                    }"
                 }
             }
             .addOnFailureListener { exception ->
