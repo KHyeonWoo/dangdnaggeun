@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -230,7 +231,8 @@ fun ImageList(navController: NavHostController, categoryOption: String, reLoadin
                             Image(
                                 painter = painter,
                                 contentDescription = "Image",
-                                contentScale = ContentScale.Fit
+                                contentScale = ContentScale.FillBounds,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
 
@@ -238,6 +240,7 @@ fun ImageList(navController: NavHostController, categoryOption: String, reLoadin
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .border(2.dp, color = colorDang, shape = RoundedCornerShape(8.dp))
+                                .align(Alignment.CenterHorizontally)
                         ) {
                             Row(
                                 modifier = Modifier
