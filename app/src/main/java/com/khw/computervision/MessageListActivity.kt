@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -51,34 +52,43 @@ fun MessageScreen(messageMap: Map<String, String>, profileUrl: String?) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        LogoScreen(activityName = "MessageList") { }
-
         Spacer(modifier = Modifier.weight(0.1f))
 
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier.width(350.dp),
+            contentAlignment = Alignment.Center
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(modifier = Modifier.weight(2.5f)) {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.arrow_back_icon),
-                            contentDescription = null,
-                            tint = colorDang,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
+
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.arrow_back_icon),
+                        contentDescription = null,
+                        tint = colorDang,
+                        modifier = Modifier.size(40.dp)
+                    )
                 }
-                Box(modifier = Modifier.weight(8f)) {
-                    SearchTextField {}
+
+
+
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.search_icon),
+                        contentDescription = null,
+                        tint = colorDang,
+                        modifier = Modifier.size(40.dp)
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.weight(0.2f))
-        Divider(thickness = 1.dp, modifier = Modifier.width(350.dp), color = colorDang)
+
+        Spacer(modifier = Modifier.weight(0.1f))
+        HorizontalDivider(modifier = Modifier.width(350.dp), thickness = 1.dp, color = colorDang)
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -90,7 +100,7 @@ fun MessageScreen(messageMap: Map<String, String>, profileUrl: String?) {
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
+                Spacer(modifier = Modifier.height(5.dp))
                 for ((key, value) in messageMap) {
                     Box(
                         modifier = Modifier
@@ -117,23 +127,13 @@ fun MessageScreen(messageMap: Map<String, String>, profileUrl: String?) {
                     }
 
                     Spacer(modifier = Modifier.height(5.dp))
-                    Divider(
-                        thickness = 1.dp,
+                    HorizontalDivider(
                         modifier = Modifier.width(350.dp),
+                        thickness = 1.dp,
                         color = colorDang
                     )
                 }
             }
         }
-        Spacer(modifier = Modifier.weight(0.3f))
     }
 }
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    ComputerVisionTheme {
-//        val sampleMap = mapOf("key1" to "value1", "key2" to "value2")
-//        MessageScreen(sampleMap, "User's Image")
-//    }
-//}

@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
@@ -14,13 +16,15 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -148,8 +152,9 @@ data class BottomNavItem(val route: String, val icon: ImageVector, val label: St
 
 @Composable
 fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
+
     val items = listOf(
-        BottomNavItem("sales", Icons.Default.Search, ""),
+        BottomNavItem("sales", Icons.Default.Home, ""),
         BottomNavItem("", Icons.AutoMirrored.Filled.List, ""),
         BottomNavItem("decorate", Icons.Default.AddCircle, "판매글 등록"),
         BottomNavItem("messageList", Icons.Default.MailOutline, ""),
@@ -158,17 +163,24 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
 
     BottomNavigation(
         backgroundColor = colorDang,
-        modifier = Modifier.height(56.dp)
+        modifier = Modifier
+            .height(70.dp)
+            .clip(
+                RoundedCornerShape(
+                    topStart = 15.dp,
+                    topEnd = 15.dp
+                )
+            )
     ) {
         val currentRoute = currentRoute(navController)
         items.forEach { item ->
             BottomNavigationItem(
-                icon = { Icon(item.icon, contentDescription = item.label) },
+                icon = { Icon(item.icon, contentDescription = item.label, modifier = Modifier.size(50.dp))},
                 label = {
                     Text(
                         item.label,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis // 텍스트가 길 경우 줄임표(...)를 표시합니다.
+                        // overflow = TextOverflow.Ellipsis // 텍스트가 길 경우 줄임표(...)를 표시합니다.
                     )
                 },
                 selectedContentColor = Color.White,
@@ -191,7 +203,8 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                         restoreState = true
                     }
                 },
-                modifier = Modifier.padding(10.dp) // 각 항목에 여백을 추가하여 크기를 조절합니다.
+                modifier = Modifier
+                    .padding(5.dp) // 각 항목에 여백을 추가하여 크기를 조절합니다.
             )
         }
     }
