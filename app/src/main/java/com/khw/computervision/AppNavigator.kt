@@ -71,6 +71,20 @@ class AppNavigator : ComponentActivity() {
                         startDestination = "login",
                         modifier = Modifier.padding(innerPadding)
                     ) {
+                        composable("closet") {     CustomImageGridPage(
+                            isLoading = false,
+                            closetViewModel = closetViewModel,
+                            onImageClick = { storageReference, string1, string2 ->
+                                // onImageClick 로직 추가
+                            },
+                            onBackClick = {
+                                // 뒤로 가기 로직 추가
+                                navController.popBackStack()
+                            },
+                            onAddClick = {
+                                // 추가 버튼 클릭 시 로직 추가
+                            }
+                        )}
                         composable("login") { LoginScreen(navController, closetViewModel, productsViewModel) }
                         composable("sales") { SaleScreen(navController, productsViewModel) }
                         composable(
@@ -158,7 +172,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
 
     val items = listOf(
         BottomNavItem("sales", Icons.Default.Home, ""),
-        BottomNavItem("", Icons.AutoMirrored.Filled.List, ""),
+        BottomNavItem("closet", Icons.AutoMirrored.Filled.List, ""),
         BottomNavItem("decorate", Icons.Default.AddCircle, "판매글 등록"),
         BottomNavItem("messageList", Icons.Default.MailOutline, ""),
         BottomNavItem("profile/{profileUrl}", Icons.Default.AccountCircle, "")
@@ -182,8 +196,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                 label = {
                     Text(
                         item.label,
-                        maxLines = 1,
-                        // overflow = TextOverflow.Ellipsis // 텍스트가 길 경우 줄임표(...)를 표시합니다.
+                        maxLines = if (item.label == "판매글 등록") Int.MAX_VALUE else 1,
                     )
                 },
                 selectedContentColor = Color.White,
@@ -206,8 +219,11 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                         restoreState = true
                     }
                 },
-                modifier = Modifier
-                    .padding(5.dp) // 각 항목에 여백을 추가하여 크기를 조절합니다.
+                modifier = if (item.label == "판매글 등록") {
+                    Modifier.padding(10.dp).weight(2f) // Adjust the size for "판매글 등록"
+                } else {
+                    Modifier.padding(10.dp)
+                }
             )
         }
     }
