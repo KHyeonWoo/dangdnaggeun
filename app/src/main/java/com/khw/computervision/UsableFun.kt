@@ -304,9 +304,7 @@ class ProductViewModel : ViewModel() {
                     "price" to (document.get("price")?.toString() ?: ""),
                     "productDescription" to (document.getString("productDescription") ?: ""),
                     "rating" to (document.get("rating")?.toString() ?: ""),
-                    "liked" to (document.get("liked")?.toString() ?: ""),
-                    "viewCount" to (document.get("viewCount")?.toString() ?: ""),
-                    "state" to (document.get("state")?.toString() ?: ""),
+                    "liked" to (document.get("liked")?.toString() ?: "")
                 )
                 document.id to fields
             }
@@ -318,8 +316,13 @@ class ProductViewModel : ViewModel() {
 
     }
 
-    private val _likedData = MutableLiveData<Map<String, Map<String, String>>>()
-    val likedData: LiveData<Map<String, Map<String, String>>> get() = _likedData
+    // Method to reset responseData
+    private fun resetProductsData() {
+        _productsData.value = mapOf()
+    }
+
+    private val _likedData = MutableLiveData<List<String>>()
+    val likedData: LiveData<List<String>> get() = _likedData
 
     fun getLikedFromFireStore() {
         viewModelScope.launch {
@@ -328,18 +331,15 @@ class ProductViewModel : ViewModel() {
     }
 
     private suspend fun fetchLikes(
-        likedData: MutableLiveData<Map<String, Map<String, String>>>
+        likedData: MutableLiveData<List<String>>
     ) {
         resetLikedData()
         try {
-
-            val likedResult = Firebase.firestore.collection("${UserIDManager.userID.value}liked").get().await()
+            val likedResult =
+                Firebase.firestore.collection("${UserIDManager.userID.value}liked").get().await()
             // 데이터 가져오기가 성공하면, 문서 ID와 필드들을 맵으로 만듭니다.
-            val newLickedList = likedResult.documents.associate { document ->
-                val fields = mapOf(
-                    "liked" to (document.getString("liked") ?: "false")
-                )
-                document.id to fields
+            val newLickedList = likedResult.documents.map { document ->
+                document.id
             }
             likedData.postValue(newLickedList)
         } catch (e: Exception) {
@@ -349,12 +349,43 @@ class ProductViewModel : ViewModel() {
     }
 
     // Method to reset responseData
-    private fun resetProductsData() {
-        _productsData.value = mapOf()
-    }
-    // Method to reset responseData
     private fun resetLikedData() {
-        _likedData.value = mapOf()
+        _likedData.value = listOf()
+    }
+
+    private val _totalLikedData = MutableLiveData<Map<String, Map<String, String>>>()
+    val totalLikedData: LiveData<Map<String, Map<String, String>>> get() = _totalLikedData
+
+    fun getTotalLikedFromFireStore() {
+        viewModelScope.launch {
+            fetchTotalLikes(_totalLikedData)
+        }
+    }
+
+    private suspend fun fetchTotalLikes(
+        totalLikedData: MutableLiveData<Map<String, Map<String, String>>>
+    ) {
+        resetTotalLikedData()
+        try {
+            val totalLikedResult = Firebase.firestore.collection("favoriteProduct").get().await()
+            // 데이터 가져오기가 성공하면, 문서 ID와 필드들을 맵으로 만듭니다.
+            val newTotalLikedMap = totalLikedResult.documents.associate { document ->
+                val fields = mapOf(
+                    "liked" to (document.get("liked")?.toString() ?: ""),
+                    "viewCount" to (document.get("viewCount")?.toString() ?: ""),
+                )
+                document.id to fields
+            }
+            totalLikedData.postValue(newTotalLikedMap)
+        } catch (e: Exception) {
+            // 데이터 가져오기가 실패하면, 에러 메시지를 토스트로 보여줍니다.
+            //Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Method to reset responseData
+    private fun resetTotalLikedData() {
+        _likedData.value = listOf()
     }
 }
 
