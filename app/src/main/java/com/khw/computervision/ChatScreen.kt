@@ -29,6 +29,7 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDateTime
 
+
 @Composable
 fun ChatScreen() {
     val otherUserID = "test@intel.com"
@@ -77,7 +78,7 @@ fun ChatList(modifier: Modifier, database: DatabaseReference) {
                 messageData?.forEach { (key, value) ->
                     chatMessage.add(
                         Post(
-                            date = key as String,
+                            date = key,
                             userID = value["userID"] as String,
                             message = value["message"] as String
                         )
@@ -85,11 +86,9 @@ fun ChatList(modifier: Modifier, database: DatabaseReference) {
                 }
                 chatMessages.value = arrayListOf()
                 chatMessages.value = chatMessage.toList()
-//                Log.d("변화 리스너2", chatMessages.value.toString())
             }
 
             override fun onCancelled(error: DatabaseError) {
-//                Log.d(TAG, "loadMessage:onCancelled", error.toException())
             }
         }
         database.addValueEventListener(postListener)
@@ -105,8 +104,7 @@ fun ChatList(modifier: Modifier, database: DatabaseReference) {
     }
 }
 
-class Post(var date: String, var userID: String, var message: String) {
-}
+data class Post(var date: String, var userID: String, var message: String)
 
 @Composable
 fun ChatInput(modifier: Modifier, database: DatabaseReference) {
@@ -138,15 +136,11 @@ fun ChatInput(modifier: Modifier, database: DatabaseReference) {
 }
 
 fun writeNewUser(database: DatabaseReference, userId: String, message: String) {
-    val user = Message(
-        userId,
-        message
+    val user = Post(
+        LocalDateTime.now().toLocalDate().toString().replace("-", "") +
+                LocalDateTime.now().toLocalTime().toString().replace(":", "")
+                    .substring(0, 6), userId, message
     )
 
     database.setValue(user)
 }
-
-data class Message(
-    val userID: String? = null,
-    val message: String? = null
-)
