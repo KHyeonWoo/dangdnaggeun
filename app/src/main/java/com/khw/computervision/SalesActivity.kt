@@ -26,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.tasks.await
@@ -210,17 +211,25 @@ fun ImageList(
             .verticalScroll(rememberScrollState())
     ) {
         val productData by productsViewModel.productsData.observeAsState()
-        productData?.entries?.chunked(3)?.forEach { chunkedProduct ->
+        productData?.entries?.chunked(2)?.forEach { chunkedProduct ->
             Row (
                 modifier = Modifier
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 for ((key, value) in chunkedProduct) {
+                    val productFavoriteData by productsViewModel.totalLikedData.observeAsState()
+                    val totalLiked = productFavoriteData?.get(key)
                     Column(
                         modifier = Modifier
                             .padding(20.dp)
                             .clickable {
+                                Firebase.firestore.collection("favoriteProduct")
+                                    .document(key)
+                                    .update("viewCount",
+                                        totalLiked?.get("viewCount")?.let { it.toInt() + 1 } ?: 1
+                                    )
+                                productsViewModel.getTotalLikedFromFireStore()
                                 navController.navigate("detailProduct/$key")
                             }
                     ) {
@@ -265,9 +274,10 @@ fun ImageList(
                                                 .fillMaxWidth()
                                                 .padding(end = 4.dp)
                                         ) {
-                                            value["viewCount"]?.let { Text(text = "조회수 : $it") }
+
+                                            totalLiked?.get("viewCount")?.let { Text(text = "조회수 : $it") }
                                             Spacer(modifier = Modifier.weight(1f))
-                                            value["liked"]?.let { Text(text = "좋아요 : $it") }
+                                            totalLiked?.get("liked")?.let { Text(text = "좋아요 : $it") }
                                         }
                                     }
                                 }
