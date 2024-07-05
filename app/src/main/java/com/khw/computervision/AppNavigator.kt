@@ -89,7 +89,8 @@ class AppNavigator : ComponentActivity() {
                                 },
                                 onAddClick = {
                                     // 추가 버튼 클릭 시 로직 추가
-                                }
+                                },
+                                navController
                             )
                         }
                         composable("login") {

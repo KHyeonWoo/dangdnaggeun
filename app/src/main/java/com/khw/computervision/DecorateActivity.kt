@@ -393,7 +393,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUrl: String, 
 }
 
 
-private fun sendImageToServer(
+fun sendImageToServer(
     bitmap: Bitmap,
     successEvent: (String) -> Unit
 ) {
