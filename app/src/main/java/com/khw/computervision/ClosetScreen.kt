@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -90,7 +91,10 @@ fun CustomImageGridPage(
             .background(Color.White)
     ) {
         // 나의 옷장 타이틀과 버튼
-        TopBar(title = "나의 옷장", onBackClick = onBackClick, onAddClick = { showImagePicker = true })
+        TopBar(title = "나의 옷장",
+            onBackClick = onBackClick,
+            onAddClick = { showImagePicker = true },
+            addIcon = Icons.Default.Add)
         HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
         // 상의 섹션
         SectionHeader(title = "상의")
@@ -121,31 +125,7 @@ fun CustomImageGridPage(
     }
 }
 
-@Composable
-fun TopBar(title: String, onBackClick: () -> Unit, onAddClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        IconButton(onClick = onBackClick) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = colorDang)
-        }
-        Text(
-            text = title,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = colorDang,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
-        )
-        IconButton(onClick = onAddClick) {
-            Icon(Icons.Default.Add, contentDescription = "Add", tint = colorDang)
-        }
-    }
-}
+
 
 @Composable
 fun LaunchImagePicker(onImageSelected: (Bitmap) -> Unit) {
