@@ -183,6 +183,9 @@ class AppNavigator : ComponentActivity() {
                         composable("myLiked") {
                             MyLikedScreen(productsViewModel)
                         }
+                        composable("chatScreen") {
+                            ChatScreen()
+                        }
                     }
                 }
             }

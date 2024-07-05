@@ -116,20 +116,16 @@ fun ProfileScreen(navController: NavHostController) {
 
         FunButton("내가 올린 제품", image = R.drawable.list_icon) {
             navController.navigate("myUploaded")
-
-//            val productIntent = Intent(context, MyUploadedActivity::class.java)
-//            productIntent.putExtra("userID", UserIDManager.userID.value)
-//            context.startActivity(productIntent)
         }
 
         FunButton("내가 좋아요 누른 제품", image = R.drawable.list_icon) {
             navController.navigate("myLiked")
-
-//            val productIntent = Intent(context, LikeActivity::class.java)
-//            productIntent.putExtra("userID", UserIDManager.userID.value)
-//            context.startActivity(productIntent)
         }
 
+        FunButton("췟(업뎃중~~)", image = R.drawable.list_icon) {
+            navController.navigate("chatScreen")
+
+        }
 //        FunButton("내게 온 메세지 : ${messageMap.size}", null) {
 //            val userIntent = Intent(context, MessageListActivity::class.java)
 //            userIntent.putExtra("messageList", mapToBundle(messageMap))
