@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
@@ -83,7 +84,7 @@ class LikeActivity : ComponentActivity() {
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                TopBar(title = "좋아요", onBackClick = { /*TODO*/ }, onAddClick = { /*TODO*/ })
+                TopBar(title = "좋아요", onBackClick = { /*TODO*/ }, onAddClick = { /*TODO*/ }, Icons.Default.Add)
 
                 HorizontalDivider(
                     modifier = Modifier.width(350.dp),

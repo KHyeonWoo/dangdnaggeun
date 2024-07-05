@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -52,7 +54,7 @@ fun MessageScreen(messageMap: Map<String, String>, profileUrl: String?) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TopBar(title = "메시지", onBackClick = { /*TODO*/ }, onAddClick = { /*TODO*/})
+        TopBar(title = "메시지", onBackClick = { /*TODO*/ }, onAddClick = { /*TODO*/}, Icons.Default.ArrowBack)
 
 //        Box(
 //            modifier = Modifier.width(350.dp),
