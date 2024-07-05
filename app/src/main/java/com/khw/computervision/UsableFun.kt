@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -458,6 +459,7 @@ fun TopBar(
         IconButton(onClick = onBackClick) {
             androidx.compose.material.Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = colorDang)
         }
+
         androidx.compose.material.Text(
             text = title,
             fontSize = 24.sp,
@@ -466,9 +468,11 @@ fun TopBar(
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Center
         )
+
         IconButton(onClick = onAddClick) {
             androidx.compose.material.Icon(addIcon, contentDescription = "Add", tint = colorDang)
         }
+
     }
 }
 

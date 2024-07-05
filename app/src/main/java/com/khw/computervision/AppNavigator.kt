@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -191,12 +192,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
 
     val items = listOf(
         BottomNavItem("sales", icon = Icons.Default.Home, iconPainter = null, "홈"),
-        BottomNavItem(
-            "closet",
-            icon = null,
-            iconPainter = painterResource(id = R.drawable.closet_icon),
-            "옷장"
-        ),
+        BottomNavItem("closet",icon = null, iconPainter = painterResource(id = R.drawable.closet_icon), "옷장"),
         BottomNavItem("decorate", icon = Icons.Default.AddCircle, iconPainter = null, "판매글 등록"),
         BottomNavItem("messageList", icon = Icons.Default.MailOutline, iconPainter = null, "메시지"),
         BottomNavItem("profile/{profileUrl}", icon = Icons.Default.Person, iconPainter = null, "프로필")
@@ -235,6 +231,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                     Text(
                         item.label,
                         maxLines = if (item.label == "판매글 등록") Int.MAX_VALUE else 1,
+                        fontSize = 10.sp
                     )
                 },
                 selectedContentColor = colorDang,
