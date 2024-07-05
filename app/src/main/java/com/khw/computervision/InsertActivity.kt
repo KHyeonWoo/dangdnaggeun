@@ -414,31 +414,48 @@ private fun saveEvent(
     context: Context,
     newPopupDetails: PopupDetails
 ) {
-    val db = Firebase.firestore
-    val dateTimeNow =
-        LocalDateTime.now().toLocalDate().toString().replace("-", "") +
-                LocalDateTime.now().toLocalTime().toString().replace(":", "")
-                    .substring(0, 4)
-    val sendMessage = hashMapOf(
-        "InsertUser" to UserIDManager.userID.value,
-        "name" to newPopupDetails.name,
-        "date" to dateTimeNow,
-        "imageUrl" to newPopupDetails.imageUrl,
-        "aiUrl" to newPopupDetails.aiUrl,
-        "category" to newPopupDetails.category,
-        "price" to newPopupDetails.price,
-        "dealMethod" to newPopupDetails.dealMethod,
-        "rating" to newPopupDetails.rating,
-        "productDescription" to newPopupDetails.productDescription,
-        "state" to 1, //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
-        "liked" to 0,
-        "viewCount" to 0
-    )
-
     coroutineScope.launch(Dispatchers.IO) {
+
+        val db = Firebase.firestore
+        val dateTimeNow =
+            LocalDateTime.now().toLocalDate().toString().replace("-", "") +
+                    LocalDateTime.now().toLocalTime().toString().replace(":", "")
+                        .substring(0, 4)
+        val sendMessage = hashMapOf(
+            "InsertUser" to UserIDManager.userID.value,
+            "name" to newPopupDetails.name,
+            "date" to dateTimeNow,
+            "imageUrl" to newPopupDetails.imageUrl,
+            "aiUrl" to newPopupDetails.aiUrl,
+            "category" to newPopupDetails.category,
+            "price" to newPopupDetails.price,
+            "dealMethod" to newPopupDetails.dealMethod,
+            "rating" to newPopupDetails.rating,
+            "productDescription" to newPopupDetails.productDescription,
+            "state" to 1, //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+        )
+
         db.collection("product")
             .document(dateTimeNow)
             .set(sendMessage)
+            .addOnSuccessListener {
+                Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
+                Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Log.w(ContentValues.TAG, "Error writing document", e)
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            }
+
+
+        val favoriteProduct = hashMapOf(
+            "liked" to 0,
+            "viewCount" to 0
+        )
+
+        db.collection("favoriteProduct")
+            .document(dateTimeNow)
+            .set(favoriteProduct)
             .addOnSuccessListener {
                 Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
                 Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()

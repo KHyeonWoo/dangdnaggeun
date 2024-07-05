@@ -315,6 +315,7 @@ private fun getUserDataAndNavigate(
                 closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))
                 //등록된 상품 데이터 호출
                 productsViewModel.getProductsFromFireStore()
+                productsViewModel.getTotalLikedFromFireStore()
                 //user가 좋아요로 등록한 데이터 호출
                 productsViewModel.getLikedFromFireStore()
                 Log.d("FinalAddress", UserIDManager.userAddress.value)

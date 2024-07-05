@@ -163,18 +163,30 @@ fun DetailScreen(
                 val likedData by productsViewModel.likedData.observeAsState()
                 likedData?.let { likedList ->
                     productKey?.let { productName ->
-                        if (productName in likedList.keys) {
+
+                        val productFavoriteData by productsViewModel.totalLikedData.observeAsState()
+                        val totalLiked = productFavoriteData?.get(productKey)
+
+                        if (productName in likedList) {
                             Image(
                                 painter = painterResource(id = R.drawable.baseline_favorite_24),
                                 contentDescription = "unLiked",
                                 modifier = Modifier.clickable {
                                     coroutineScope.launch(Dispatchers.IO) {
+
                                         Firebase.firestore.collection("${UserIDManager.userID.value}liked")
                                             .document(productKey)
                                             .delete()
                                             .addOnSuccessListener {}
                                             .addOnFailureListener {}
                                         productsViewModel.getLikedFromFireStore()
+
+                                        Firebase.firestore.collection("favoriteProduct")
+                                            .document(productKey)
+                                            .update("liked",
+                                                totalLiked?.get("liked")?.let { it.toInt() - 1 } ?: 0
+                                            )
+                                        productsViewModel.getTotalLikedFromFireStore()
                                     }
                                 })
 
@@ -195,6 +207,13 @@ fun DetailScreen(
                                             .addOnFailureListener {}
                                             .await()
                                         productsViewModel.getLikedFromFireStore()
+
+                                        Firebase.firestore.collection("favoriteProduct")
+                                            .document(productKey)
+                                            .update(
+                                                "liked",
+                                                totalLiked?.get("liked")?.let { it.toInt() + 1 } ?: 1)
+                                        productsViewModel.getTotalLikedFromFireStore()
                                     }
                                 })
                         }
