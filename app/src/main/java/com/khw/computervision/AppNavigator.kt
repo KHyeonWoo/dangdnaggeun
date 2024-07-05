@@ -15,18 +15,14 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -41,8 +37,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import coil.compose.AsyncImagePainter.State.Empty.painter
-import coil.compose.ImagePainter
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.gson.Gson
@@ -78,17 +72,10 @@ class AppNavigator : ComponentActivity() {
                     ) {
                         composable("closet") {
                             CustomImageGridPage(
-                                isLoading = false,
                                 closetViewModel = closetViewModel,
-                                onImageClick = { storageReference, string1, string2 ->
-                                    // onImageClick 로직 추가
-                                },
                                 onBackClick = {
                                     // 뒤로 가기 로직 추가
                                     navController.popBackStack()
-                                },
-                                onAddClick = {
-                                    // 추가 버튼 클릭 시 로직 추가
                                 },
                                 navController
                             )

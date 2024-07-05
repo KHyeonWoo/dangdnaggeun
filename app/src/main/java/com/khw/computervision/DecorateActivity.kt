@@ -320,9 +320,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUrl: String, 
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        var uploadTrigger by remember { mutableStateOf(false) }
         var clickedCategory by remember { mutableStateOf<String?>(null) }
-        var uploadServerResult by remember { mutableStateOf("") }
         var displayedImageUrl by remember { mutableStateOf(encodedClickedUrl) }
 
         Column(
@@ -355,7 +353,6 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUrl: String, 
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = uploadServerResult)
             GlideImage(
                 imageModel = displayedImageUrl,
                 modifier = Modifier.fillMaxSize(),
@@ -375,8 +372,6 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUrl: String, 
                 inputImage = bitmap
 
                 sendImageToServer(bitmap) {
-                    uploadServerResult += it
-                    uploadTrigger = !uploadTrigger
                     inputImage = null
                     isLoading = false
                     closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))

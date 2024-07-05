@@ -5,15 +5,16 @@ import android.graphics.Bitmap
 import android.location.Geocoder
 import android.location.Location
 import android.net.Uri
-import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,10 +52,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
@@ -66,26 +63,9 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import com.skydoves.landscapist.glide.GlideImage
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.RequestBody
-import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Multipart
-import retrofit2.http.POST
-import retrofit2.http.Part
-import retrofit2.http.PartMap
 import java.io.ByteArrayOutputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeUnit
 
 
 val colorDang = Color(0xFFF3BB66)
@@ -322,14 +302,36 @@ fun ImageGrid(
             .verticalScroll(rememberScrollState())
             .padding(top = 4.dp, start = 2.dp)
     ) {
-        itemsRef.zip(itemsUrl).chunked(5).forEach { rowItems ->
-            Row(modifier = Modifier.fillMaxWidth()) {
+        val rowSize: Int = 4
+        itemsRef.zip(itemsUrl).chunked(rowSize).forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start, // 왼쪽 정렬
+                verticalAlignment = Alignment.Top
+            ) { // 상단 정렬
                 rowItems.forEach { (ref, url) ->
-                    ImageItem(
-                        url = url,
-                        ref = ref,
-                        category = category,
-                        onImageClick = onImageClick
+                    Row(
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f) // 정사각형 비율 유지
+                            .padding(4.dp)
+                    ) {
+                        ImageItem(
+                            url = url,
+                            ref = ref,
+                            category = category,
+                            onImageClick = onImageClick
+                        )
+                    }
+                }
+
+                // 빈 공간 채우기
+                repeat(rowSize - rowItems.size) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .padding(4.dp)
                     )
                 }
             }
@@ -456,7 +458,11 @@ fun TopBar(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = onBackClick) {
-            androidx.compose.material.Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = colorDang)
+            androidx.compose.material.Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = colorDang
+            )
         }
         androidx.compose.material.Text(
             text = title,
