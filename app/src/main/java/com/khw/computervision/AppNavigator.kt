@@ -89,7 +89,8 @@ class AppNavigator : ComponentActivity() {
                                 },
                                 onAddClick = {
                                     // 추가 버튼 클릭 시 로직 추가
-                                }
+                                },
+                                navController
                             )
                         }
                         composable("login") {
@@ -198,12 +199,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
         ),
         BottomNavItem("decorate", icon = Icons.Default.AddCircle, iconPainter = null, "판매글 등록"),
         BottomNavItem("messageList", icon = Icons.Default.MailOutline, iconPainter = null, "메시지"),
-        BottomNavItem(
-            "profile/{profileUrl}",
-            icon = Icons.Default.Person,
-            iconPainter = null,
-            "프로필"
-        )
+        BottomNavItem("profile/{profileUrl}", icon = Icons.Default.Person, iconPainter = null, "프로필")
     )
 
     BottomNavigation(
@@ -230,7 +226,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                         item.iconPainter != null -> Icon(
                             painter = item.iconPainter,
                             contentDescription = item.label,
-                            modifier = Modifier.size(25.dp)
+                            modifier = Modifier.padding(3.dp).size(25.dp)
                         )
                     }
 

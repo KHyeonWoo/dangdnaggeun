@@ -9,6 +9,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -38,9 +42,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
@@ -350,7 +357,6 @@ fun ImageGrid(
     onImageClick: (StorageReference, String, String) -> Unit,
     closetViewModel: ClosetViewModel
 ) {
-
     val itemsRef: List<StorageReference> by if (category == "top") {
         closetViewModel.topsRefData.observeAsState(emptyList())
     } else {
@@ -488,3 +494,33 @@ fun getAddressFromLocation(geocoder: Geocoder, location: Location): String? {
     }
 }
 
+@Composable
+fun TopBar(
+    title: String,
+    onBackClick: () -> Unit,
+    onAddClick: () -> Unit,
+    addIcon: ImageVector
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        IconButton(onClick = onBackClick) {
+            androidx.compose.material.Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = colorDang)
+        }
+        androidx.compose.material.Text(
+            text = title,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = colorDang,
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center
+        )
+        IconButton(onClick = onAddClick) {
+            androidx.compose.material.Icon(addIcon, contentDescription = "Add", tint = colorDang)
+        }
+    }
+}
