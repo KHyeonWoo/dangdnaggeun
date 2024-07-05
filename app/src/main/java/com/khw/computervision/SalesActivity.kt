@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,13 +15,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.DropdownMenu
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -171,22 +180,56 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
         modifier = Modifier.fillMaxSize(),
     ) {
         var checkedOption by remember { mutableIntStateOf(0) }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+        var sortOpt by remember { mutableStateOf("date") }
+        Box(
+            modifier = Modifier.fillMaxWidth()
         ) {
+            Row(modifier = Modifier.align(Alignment.Center)) {
 
-            val options = listOf(
-                "상의",
-                "하의"
-            )
-            ChoiceSegButton(options, checkedOption) { checkedOption = it }
+                val options = listOf(
+                    "상의",
+                    "하의"
+                )
+
+                ChoiceSegButton(options, checkedOption) { checkedOption = it }
+            }
+            Row(modifier = Modifier.align(Alignment.CenterEnd)) {
+                SortDropdownMenu({ sortOpt = "liked" }, { sortOpt = "date" })
+            }
         }
         if (checkedOption == 0) {
-            ImageList(navController, productsViewModel, "top")
+            ImageList(navController, productsViewModel, "top", sortOpt)
         } else {
-            ImageList(navController, productsViewModel, "bottom")
+            ImageList(navController, productsViewModel, "bottom", sortOpt)
         }
+    }
+}
+
+@Composable
+fun SortDropdownMenu(setLike: () -> Unit, setDate: () -> Unit) {
+    var sortDropdownVisble by remember { mutableStateOf(false) }
+    IconButton(onClick = { sortDropdownVisble = !sortDropdownVisble }) {
+        Icon(
+            imageVector = Icons.Default.ArrowDropDown,
+            contentDescription = "More",
+            modifier = Modifier.size(24.dp),
+            tint = colorDang
+        )
+    }
+
+    DropdownMenu(expanded = sortDropdownVisble, onDismissRequest = { sortDropdownVisble = false }) {
+        DropdownMenuItem(
+            text = { Text("인기순") },
+            onClick = {
+                setLike()
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("최신순") },
+            onClick = {
+                setDate()
+            }
+        )
     }
 }
 
@@ -203,7 +246,8 @@ suspend fun getProfile(): String? {
 fun ImageList(
     navController: NavHostController,
     productsViewModel: ProductViewModel,
-    categoryOption: String
+    categoryOption: String,
+    sortOpt: String
 ) {
     Column(
         modifier = Modifier
@@ -211,27 +255,49 @@ fun ImageList(
             .verticalScroll(rememberScrollState())
     ) {
         val productData by productsViewModel.productsData.observeAsState()
-        productData?.entries?.chunked(2)?.forEach { chunkedProduct ->
-            Row (
+        val productFavoriteData by productsViewModel.totalLikedData.observeAsState()
+        var sortedProductData by remember {
+            mutableStateOf(productData)
+        }
+
+        productData?.let { productMap ->
+            productFavoriteData?.let { productFavoriteMap ->
+                if (sortOpt == "liked") {
+                    val sortedLikedList =
+                        productFavoriteMap.entries.sortedBy { it.value[sortOpt] }.map { it.key }
+                    sortedProductData = sortedLikedList.mapNotNull { key ->
+                        productMap[key]?.let { key to it }
+                    }.toMap()
+                } else {
+                    sortedProductData = productData
+                }
+            }
+        }
+
+        sortedProductData?.entries?.chunked(2)?.forEach { chunkedProduct ->
+            Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 for ((key, value) in chunkedProduct) {
-                    val productFavoriteData by productsViewModel.totalLikedData.observeAsState()
                     val totalLiked = productFavoriteData?.get(key)
                     Column(
                         modifier = Modifier
-                            .padding(20.dp)
+                            .weight(1f)
                             .clickable {
-                                Firebase.firestore.collection("favoriteProduct")
+                                Firebase.firestore
+                                    .collection("favoriteProduct")
                                     .document(key)
                                     .update("viewCount",
-                                        totalLiked?.get("viewCount")?.let { it.toInt() + 1 } ?: 1
+                                        totalLiked
+                                            ?.get("viewCount")
+                                            ?.let { it.toInt() + 1 } ?: 1
                                     )
                                 productsViewModel.getTotalLikedFromFireStore()
                                 navController.navigate("detailProduct/$key")
-                            }
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (value["category"] == categoryOption) {
                             val painter = rememberAsyncImagePainter(value["imageUrl"])
@@ -240,7 +306,7 @@ fun ImageList(
                                 contentDescription = "Image",
                                 contentScale = ContentScale.FillBounds,
                                 modifier = Modifier
-                                    .size(120.dp, 180.dp)
+                                    .size(136.dp, 136.dp)
                                     .border(
                                         2.dp,
                                         color = colorDang,
@@ -250,7 +316,7 @@ fun ImageList(
 
                             Column(
                                 modifier = Modifier
-                                    .size(120.dp, 120.dp)
+                                    .size(136.dp, 80.dp)
                                     .border(
                                         2.dp,
                                         color = colorDang,
@@ -275,14 +341,19 @@ fun ImageList(
                                                 .padding(end = 4.dp)
                                         ) {
 
-                                            totalLiked?.get("viewCount")?.let { Text(text = "조회수 : $it") }
+                                            totalLiked?.get("viewCount")
+                                                ?.let { Text(text = "조회수 : $it") }
                                             Spacer(modifier = Modifier.weight(1f))
-                                            totalLiked?.get("liked")?.let { Text(text = "좋아요 : $it") }
+                                            totalLiked?.get("liked")
+                                                ?.let { Text(text = "좋아요 : $it") }
                                         }
                                     }
                                 }
                             }
                         }
+                    }
+                    if (chunkedProduct.size != 2) {
+                        Box(modifier = Modifier.weight(1f))
                     }
                 }
             }
