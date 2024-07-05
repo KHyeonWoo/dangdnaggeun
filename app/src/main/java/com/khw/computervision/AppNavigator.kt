@@ -73,7 +73,9 @@ class AppNavigator : ComponentActivity() {
                     ) {
                         composable(
                             "closet/{beforeScreen}",
-                            arguments = listOf(navArgument("beforeScreen") { type = NavType.StringType }
+                            arguments = listOf(navArgument("beforeScreen") {
+                                type = NavType.StringType
+                            }
                             )
 
                         ) { backStackEntry ->
@@ -125,11 +127,13 @@ class AppNavigator : ComponentActivity() {
                                 navArgument("encodedClickedUrl") { type = NavType.StringType },
                                 navArgument("clickedCategory") { type = NavType.StringType }
                             )
-                        ) {backStackEntry ->
-                            DecorateScreen(navController,
+                        ) { backStackEntry ->
+                            DecorateScreen(
+                                navController,
                                 backStackEntry.arguments?.getString("encodedClickedUrl") ?: "",
                                 backStackEntry.arguments?.getString("clickedCategory") ?: "",
-                                closetViewModel)
+                                closetViewModel
+                            )
                         }
                         composable(
                             "aiImgGen/{encodedClickedUrl}/{clickedCategory}",
@@ -167,11 +171,17 @@ class AppNavigator : ComponentActivity() {
                                 type = NavType.StringType
                             })
                         ) { _ ->
-                            ProfileScreen()
+                            ProfileScreen(navController)
                         }
                         composable("messageList") {
                             val messageMap = getMessage()
                             MessageScreen(messageMap, "User's Image")
+                        }
+                        composable("myUploaded") {
+                            MyUploadedScreen(productsViewModel)
+                        }
+                        composable("myLiked") {
+                            MyLikedScreen(productsViewModel)
                         }
                     }
                 }

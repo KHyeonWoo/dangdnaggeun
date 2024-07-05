@@ -162,9 +162,9 @@ fun ProfilePopup(
 
 
                 FunButton("내가 올린 제품", image = R.drawable.list_icon) {
-                    val productIntent = Intent(context, MyUploadedActivity::class.java)
-                    productIntent.putExtra("userID", UserIDManager.userID.value)
-                    context.startActivity(productIntent)
+//                    val productIntent = Intent(context, MyUploadedActivity::class.java)
+//                    productIntent.putExtra("userID", UserIDManager.userID.value)
+//                    context.startActivity(productIntent)
                 }
 
 //                FunButton("내게 온 메세지 : ${messageMap.size}", null) {

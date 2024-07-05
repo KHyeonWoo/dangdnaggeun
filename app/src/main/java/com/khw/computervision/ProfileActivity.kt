@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import androidx.navigation.NavHostController
 import com.google.android.gms.location.LocationServices
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.Dispatchers
@@ -36,10 +36,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(
-) {
+fun ProfileScreen(navController: NavHostController) {
     var addressText by remember { mutableStateOf("주소 정보가 여기에 표시됩니다") }
     val context = LocalContext.current
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
@@ -117,15 +115,19 @@ fun ProfileScreen(
         val messageMap = getMessage()
 
         FunButton("내가 올린 제품", image = R.drawable.list_icon) {
-            val productIntent = Intent(context, MyUploadedActivity::class.java)
-            productIntent.putExtra("userID", UserIDManager.userID.value)
-            context.startActivity(productIntent)
+            navController.navigate("myUploaded")
+
+//            val productIntent = Intent(context, MyUploadedActivity::class.java)
+//            productIntent.putExtra("userID", UserIDManager.userID.value)
+//            context.startActivity(productIntent)
         }
 
         FunButton("내가 좋아요 누른 제품", image = R.drawable.list_icon) {
-            val productIntent = Intent(context, LikeActivity::class.java)
-            productIntent.putExtra("userID", UserIDManager.userID.value)
-            context.startActivity(productIntent)
+            navController.navigate("myLiked")
+
+//            val productIntent = Intent(context, LikeActivity::class.java)
+//            productIntent.putExtra("userID", UserIDManager.userID.value)
+//            context.startActivity(productIntent)
         }
 
 //        FunButton("내게 온 메세지 : ${messageMap.size}", null) {

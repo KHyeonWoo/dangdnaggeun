@@ -17,7 +17,6 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.PartMap
-import java.io.ByteArrayOutputStream
 import java.util.concurrent.TimeUnit
 
 //240702 김현우 - 서버통신을 위한 함수 UsableFun으로 이동

@@ -1,8 +1,5 @@
 package com.khw.computervision
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,9 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,51 +37,40 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.ktx.Firebase
-import com.khw.computervision.ui.theme.ComputerVisionTheme
 import kotlin.math.roundToInt
 
-class LikeActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            ComputerVisionTheme {
-                LikeScreen(ReLoadingManager.reLoadingValue.value)
-            }
-        }
-    }
 
-    @Composable
-    fun LikeScreen(reLoading: Boolean) {
-        var productMap: Map<String, Map<String, String>> by remember { mutableStateOf(emptyMap()) }
-        GetProduct(reLoading) { productMap = it }
-        Box(
+@Composable
+fun MyLikedScreen(productsViewModel: ProductViewModel) {
+    val productData by productsViewModel.productsData.observeAsState()
+//    GetProduct(reLoading) { productMap = it }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5EB))
+    ) {
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF5F5EB))
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                TopBar(
-                    title = "좋아요",
-                    onBackClick = { /*TODO*/ },
-                    onAddClick = { /*TODO*/ },
-                    Icons.Default.Add
-                )
+            TopBar(
+                title = "좋아요",
+                onBackClick = { /*TODO*/ },
+                onAddClick = { /*TODO*/ },
+                Icons.Default.Add
+            )
 
-                HorizontalDivider(
-                    modifier = Modifier.width(350.dp),
-                    thickness = 1.dp,
-                    color = colorDang
-                )
+            HorizontalDivider(
+                modifier = Modifier.width(350.dp),
+                thickness = 1.dp,
+                color = colorDang
+            )
 
-                MyProductSwipeBox(productMap)
-            }
+            productData?.let { MyProductSwipeBox(it) }
         }
     }
+}
 
 //    @Composable
 //    private fun SearchScreen() {
@@ -129,95 +113,94 @@ class LikeActivity : ComponentActivity() {
 //        }
 //    }
 
-    @OptIn(ExperimentalMaterialApi::class)
-    @Composable
-    private fun MyProductSwipeBox(productMap: Map<String, Map<String, String>>) {
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun MyProductSwipeBox(productMap: Map<String, Map<String, String>>) {
 
-        for ((key, value) in productMap) {
-            if (value["InsertUser"] == UserIDManager.userID.value) {
-                val squareSize = 48.dp
-                val swipeState = rememberSwipeableState(0)
-                val sizePx = with(LocalDensity.current) { squareSize.toPx() }
-                val anchors =
-                    mapOf(0f to 0, -sizePx to 1) // Maps anchor points (in px) to states
+    for ((key, value) in productMap) {
+        if (value["InsertUser"] == UserIDManager.userID.value) {
+            val squareSize = 48.dp
+            val swipeState = rememberSwipeableState(0)
+            val sizePx = with(LocalDensity.current) { squareSize.toPx() }
+            val anchors =
+                mapOf(0f to 0, -sizePx to 1) // Maps anchor points (in px) to states
 
-                Box(
+            Box(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .width(350.dp)
+                    .swipeable(
+                        state = swipeState,
+                        anchors = anchors,
+                        thresholds = { _, _ -> FractionalThreshold(0.4f) },
+                        orientation = Orientation.Horizontal
+                    )
+                    .clip(RoundedCornerShape(15.dp))
+            ) {
+                Row(
                     modifier = Modifier
-                        .padding(8.dp)
-                        .width(350.dp)
-                        .swipeable(
-                            state = swipeState,
-                            anchors = anchors,
-                            thresholds = { _, _ -> FractionalThreshold(0.4f) },
-                            orientation = Orientation.Horizontal
-                        )
+                        .offset { IntOffset(swipeState.offset.value.roundToInt(), 0) }
+                        .height(110.dp)
+                        .padding(start = 4.dp)
                         .clip(RoundedCornerShape(15.dp))
+                        .background(colorDang)
                 ) {
-                    Row(
+                    Image(
+                        painter = painterResource(id = R.drawable.character2),
+                        contentDescription = "",
+                        contentScale = ContentScale.FillBounds,
                         modifier = Modifier
-                            .offset { IntOffset(swipeState.offset.value.roundToInt(), 0) }
-                            .height(110.dp)
-                            .padding(start = 4.dp)
-                            .clip(RoundedCornerShape(15.dp))
-                            .background(colorDang)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.character2),
-                            contentDescription = "",
-                            contentScale = ContentScale.FillBounds,
-                            modifier = Modifier
-                                .weight(3f)
-                                .padding(5.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.White)
-                        )
+                            .weight(3f)
+                            .padding(5.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
+                    )
 
-                        Box(
+                    Box(
+                        modifier = Modifier
+                            .weight(7f)
+                            .padding(5.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.White)
+                    ) {
+                        Column(
                             modifier = Modifier
-                                .weight(7f)
-                                .padding(5.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color.White)
+                                .fillMaxSize()
+                                .padding(10.dp, 0.dp)
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(10.dp, 0.dp)
-                            ) {
-                                for ((fieldKey, fieldValue) in value) {
-                                    if (fieldKey == "제품명" || fieldKey == "가격") {
-                                        Text(
-                                            text = fieldKey,
-                                            color = colorDang
-                                        )
-                                        Text(
-                                            text = fieldValue,
-                                            fontSize = 12.sp
-                                        )
-                                    }
+                            for ((fieldKey, fieldValue) in value) {
+                                if (fieldKey == "제품명" || fieldKey == "가격") {
+                                    Text(
+                                        text = fieldKey,
+                                        color = colorDang
+                                    )
+                                    Text(
+                                        text = fieldValue,
+                                        fontSize = 12.sp
+                                    )
                                 }
                             }
                         }
                     }
+                }
 
-                    if (swipeState.currentValue == 1) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp, 100.dp)
-                                .align(Alignment.CenterEnd),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete",
-                                tint = colorDang,
-                                modifier = Modifier.clickable {
-                                    deleteFirestoreData("product", key) {
-                                        ReLoadingManager.reLoading()
-                                    }
+                if (swipeState.currentValue == 1) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp, 100.dp)
+                            .align(Alignment.CenterEnd),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = colorDang,
+                            modifier = Modifier.clickable {
+                                deleteFirestoreData("product", key) {
+                                    ReLoadingManager.reLoading()
                                 }
-                            )
-                        }
+                            }
+                        )
                     }
                 }
             }
