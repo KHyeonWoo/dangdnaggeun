@@ -1,6 +1,8 @@
 package com.khw.computervision
 
+import android.app.Application
 import android.graphics.Bitmap
+import com.naver.maps.map.NaverMapSdk
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
@@ -88,4 +90,14 @@ fun sendImageToServer(
             }
         })
 }
+
+// 네이버지도 API용 Client입니다
+class YourApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        NaverMapSdk.getInstance(this).client =
+            NaverMapSdk.NaverCloudPlatformClient(BuildConfig.naverClientId)
+    }
+}
+
 

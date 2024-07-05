@@ -63,7 +63,17 @@ import java.time.LocalDateTime
 import java.util.Locale
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.TextField
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraUpdate
+import com.naver.maps.map.MapView
+import com.naver.maps.map.NaverMap
+import com.naver.maps.map.overlay.Marker
 
 @Composable
 fun ProfilePopup(
@@ -369,6 +379,10 @@ fun InsertPopup(
         text = {
             Column(
             ) {
+                var showMapPopup by remember { mutableStateOf(false) }
+                if (showMapPopup) {
+                    MapPopup(close = { showMapPopup = false })
+                }
                 Spacer(modifier = Modifier.height(20.dp))
                 OutlinedTextField(
                     value = name,
@@ -438,6 +452,12 @@ fun InsertPopup(
                         }
                     )
                 }
+                Row {
+                    Button(onClick = { showMapPopup = true }) {
+                        Text("지도 보기")
+                    }
+                    Text(text = "거래 위치: ${UserIDManager.userAddress.value}")
+                }
                 OutlinedTextField(
                     value = productDescription,
                     onValueChange = { productDescription = it },
@@ -478,4 +498,93 @@ fun InsertPopup(
         }
     )
 
+}
+
+//20240705 신동환 네이버 지도입니다
+@Composable
+fun MapPopup(close: () -> Unit) {
+    AlertDialog(onDismissRequest = { close() },
+        confirmButton = { /*TODO*/ },
+        title = { Text(text = "") },
+        text = {
+            Column {
+                NaverMapView()
+            }
+        },
+        dismissButton = {
+            Button(onClick = { close() }) {
+                Text("닫기")
+            }
+        })
+}
+
+@Composable
+fun NaverMapView() {
+    val context = LocalContext.current
+    var naverMap by remember { mutableStateOf<NaverMap?>(null) }
+    var currentLocation by remember { mutableStateOf<LatLng?>(null) }
+
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    fun updateMapWithLocation() {
+        val map = naverMap
+        val location = currentLocation
+        if (map != null && location != null) {
+            val cameraUpdate = CameraUpdate.scrollTo(location)
+            map.moveCamera(cameraUpdate)
+
+            // 현재 위치에 마커 추가
+            Marker().apply {
+                position = location
+                this.map = map
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        // 위치 권한 확인
+        val fineLocationPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        )
+        val coarseLocationPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+
+        if (fineLocationPermission == PackageManager.PERMISSION_GRANTED ||
+            coarseLocationPermission == PackageManager.PERMISSION_GRANTED
+        ) {
+            // 위치 가져오기
+            fusedLocationClient.lastLocation.addOnCompleteListener { task ->
+                if (task.isSuccessful && task.result != null) {
+                    val location = task.result
+                    currentLocation = LatLng(location.latitude, location.longitude)
+                    updateMapWithLocation()
+                } else {
+                    // 위치 정보를 가져오는 데 실패한 경우의 처리
+                    // 예: 기본 위치 설정 또는 사용자에게 오류 메시지 표시
+                    Log.e("NaverMapView", "Failed to get location", task.exception)
+                    // 여기에 기본 위치 설정이나 오류 메시지 표시 로직을 추가할 수 있습니다.
+                    // 예: currentLocation = LatLng(37.5665, 126.9780) // 서울 시청
+                }
+            }
+        } else {
+            // 권한 요청 로직 (Activity나 Fragment에서 처리해야 함)
+        }
+    }
+
+    AndroidView(
+        factory = { content ->
+            MapView(content).apply {
+                getMapAsync { map ->
+                    naverMap = map
+                    map.minZoom = 6.0
+                    map.maxZoom = 18.0
+                    updateMapWithLocation()
+                }
+            }
+        },
+        modifier = Modifier.fillMaxSize()
+    )
 }
