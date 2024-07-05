@@ -18,10 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.getValue
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,7 +72,7 @@ fun ChatList(modifier: Modifier, database: DatabaseReference) {
         val postListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val chatMessage = arrayListOf<Post>()
-                val messageData = snapshot.value as HashMap<*, HashMap<*, *>>?
+                val messageData = snapshot.getValue<HashMap<String, HashMap<String, String>>>()
                 // snapshot은 hashMap 형태로 오기때문에 객체 형태로 변환해줘야함
                 messageData?.forEach { (key, value) ->
                     chatMessage.add(
@@ -93,15 +95,17 @@ fun ChatList(modifier: Modifier, database: DatabaseReference) {
         database.addValueEventListener(postListener)
         val chatMessage by chatMessages.collectAsState()
         chatMessage.forEach {
-            Text(text = it.userID + " : " + it.message)
+            if(it.userID == UserIDManager.userID.value) {
+                Text(text = it.date + " : " + it.message, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+            } else {
+                Text(text = it.date + " : " + it.message)
+            }
         }
 
     }
 }
 
-class Post(date: String, userID: String, message: String) {
-    var userID: String = "null"
-    var message: String = "null"
+class Post(var date: String, var userID: String, var message: String) {
 }
 
 @Composable
