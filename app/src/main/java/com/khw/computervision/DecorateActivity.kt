@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -12,13 +13,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -316,76 +326,139 @@ import java.io.ByteArrayOutputStream
 //}
 
 @Composable
-fun DecorateScreen(navController: NavHostController, encodedClickedUrl: String, closetViewModel: ClosetViewModel) {
+fun DecorateScreen(
+    navController: NavHostController,
+    encodedClickedUrl: String,
+    closetViewModel: ClosetViewModel
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        var uploadTrigger by remember { mutableStateOf(false) }
         var clickedCategory by remember { mutableStateOf<String?>(null) }
+        var uploadServerResult by remember { mutableStateOf("") }
         var displayedImageUrl by remember { mutableStateOf(encodedClickedUrl) }
 
+        TopBar(
+            title = "",
+            onBackClick = { /*TODO*/ },
+            onAddClick = { val encodedUrl = encodeUrl(displayedImageUrl)
+                navController.navigate("aiImgGen/$encodedUrl/$clickedCategory") },
+            addIcon = Icons.Default.KeyboardArrowRight
+        )
+
+        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
+
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        ) {
-//            LogoScreen("Decorate") { navController.popBackStack() }
-            Spacer(modifier = Modifier.weight(1f))
-            if (displayedImageUrl.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Spacer(modifier = Modifier.weight(12f))
-
-                    //url에 특수문자 되있는 경우가 있어 encode함
-                    FunTextButton("다음") {
-                        val encodedUrl = encodeUrl(displayedImageUrl)
-                        navController.navigate("aiImgGen/$encodedUrl/$clickedCategory")
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(2f)
-                .padding(20.dp),
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            GlideImage(
-                imageModel = displayedImageUrl,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
+            Image(
+                painter = gifImageDecode(R.raw.dangkki_closetimage),
+                contentDescription = "mascot",
+                modifier = Modifier.size(400.dp)
             )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                "정면 사진 사용시 AI 이미지가",
+                fontSize = 20.sp,
+                color = colorDang
+            )
+            Text(
+                "더욱 좋아요!",
+                fontSize = 18.sp,
+                color = colorDang
+            )
+
+            Spacer(modifier = Modifier.weight(4f))
+
+            Text(
+                text = "여기를 클릭해서",
+                color = colorDang,
+                textDecoration = TextDecoration.Underline,
+                fontSize = 16.sp,
+                modifier = Modifier
+                    .clickable {
+                        navController.navigate("closet")
+                    }
+            )
+            Text(
+                text = "판매할 옷 이미지를 올리세요",
+                color = colorDang,
+                fontSize = 15.sp
+            )
+
+//            LogoScreen("Decorate") { navController.popBackStack() }
+//            Spacer(modifier = Modifier.weight(1f))
+
+//            if (displayedImageUrl.isNotEmpty()) {
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                ) {
+//                    Spacer(modifier = Modifier.weight(12f))
+//
+//                    //url에 특수문자 되있는 경우가 있어 encode함
+//                    FunTextButton("다음") {
+//                        val encodedUrl = encodeUrl(displayedImageUrl)
+//                        navController.navigate("aiImgGen/$encodedUrl/$clickedCategory")
+//                    }
+//
+//                    Spacer(modifier = Modifier.weight(1f))
+//                }
+//            }
         }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(2f),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            var inputImage by remember { mutableStateOf<Bitmap?>(null) }
-            var isLoading by remember { mutableStateOf(false) }
 
-            ImagePicker(onImageSelected = { bitmap ->
-                inputImage = bitmap
+//        Column(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .weight(2f)
+//                .padding(20.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Text(text = uploadServerResult)
+//            GlideImage(
+//                imageModel = displayedImageUrl,
+//                modifier = Modifier.fillMaxSize(),
+//                contentScale = ContentScale.Fit
+//            )
+//        }
 
-                sendImageToServer(bitmap) {
-                    inputImage = null
-                    isLoading = false
-                    closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))
-                }
-                isLoading = true
-            })
 
-            CustomTabRow(isLoading, closetViewModel) { _, onClickedUri, onClickedCategory ->
-                clickedCategory = onClickedCategory
-                displayedImageUrl = onClickedUri // 이미지 클릭 시 화면에 표시할 이미지 URI 업데이트
-            }
-        }
+//        Column(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .weight(2f),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            var inputImage by remember { mutableStateOf<Bitmap?>(null) }
+//            var isLoading by remember { mutableStateOf(false) }
+//
+//            ImagePicker(onImageSelected = { bitmap ->
+//                inputImage = bitmap
+//
+//                sendImageToServer(bitmap) {
+//                    uploadServerResult += it
+//                    uploadTrigger = !uploadTrigger
+//                    inputImage = null
+//                    isLoading = false
+//                    closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))
+//                }
+//                isLoading = true
+//            })
+
+//
+//            CustomTabRow(isLoading, closetViewModel) { _, onClickedUri, onClickedCategory ->
+//                clickedCategory = onClickedCategory
+//                displayedImageUrl = onClickedUri // 이미지 클릭 시 화면에 표시할 이미지 URI 업데이트
+//            }
     }
 }
+
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -438,6 +511,7 @@ private fun CustomTabRow(
             )
         }
     }
+
     HorizontalPager(
         count = pages.size,
         state = pagerState,
@@ -482,13 +556,12 @@ fun ImagePicker(
             }
         }
 
-    Text(text = "옷 추가",
-        color = Color.White,
+    Text(text = "옷추가",
+        color = colorDang,
         textAlign = TextAlign.Center,
         fontSize = 16.sp,
         modifier = Modifier
             .fillMaxWidth()
-            .background(colorDang)
             .clickable {
                 val cropOption = CropImageContractOptions(
                     CropImage.CancelledResult.uriContent,
@@ -498,3 +571,5 @@ fun ImagePicker(
             }
     )
 }
+
+
