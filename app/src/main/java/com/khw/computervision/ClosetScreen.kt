@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
@@ -78,7 +79,7 @@ fun CustomImageGridPage(
     ) {
         // 나의 옷장 타이틀과 버튼
         TopBar(title = "나의 옷장", onBackClick = onBackClick, onAddClick = { showImagePicker = true })
-        HorizontalDivider(color = colorDang)
+        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
         // 상의 섹션
         SectionHeader(title = "상의")
         if (isLoading) {
@@ -93,6 +94,7 @@ fun CustomImageGridPage(
             )
         }
 
+        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
         // 하의 섹션
         SectionHeader(title = "하의")
         if (isLoading) {
