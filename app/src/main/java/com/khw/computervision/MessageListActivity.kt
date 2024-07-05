@@ -52,41 +52,39 @@ fun MessageScreen(messageMap: Map<String, String>, profileUrl: String?) {
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.weight(0.1f))
+        TopBar(title = "메시지", onBackClick = { /*TODO*/ }, onAddClick = { /*TODO*/})
 
-        Box(
-            modifier = Modifier.width(350.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+//        Box(
+//            modifier = Modifier.width(350.dp),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                horizontalArrangement = Arrangement.SpaceBetween
+//            ) {
+//
+//                IconButton(onClick = { /*TODO*/ }) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.arrow_back_icon),
+//                        contentDescription = null,
+//                        tint = colorDang,
+//                        modifier = Modifier.size(40.dp)
+//                    )
+//                }
+//
+//
+//
+//                IconButton(onClick = { /*TODO*/ }) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.search_icon),
+//                        contentDescription = null,
+//                        tint = colorDang,
+//                        modifier = Modifier.size(40.dp)
+//                    )
+//                }
+//            }
+//        }
 
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.arrow_back_icon),
-                        contentDescription = null,
-                        tint = colorDang,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-
-
-
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.search_icon),
-                        contentDescription = null,
-                        tint = colorDang,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-            }
-        }
-
-
-        Spacer(modifier = Modifier.weight(0.1f))
         HorizontalDivider(modifier = Modifier.width(350.dp), thickness = 1.dp, color = colorDang)
 
         Box(
