@@ -71,14 +71,20 @@ class AppNavigator : ComponentActivity() {
                         startDestination = "login",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable("closet") {
-                            CustomImageGridPage(
+                        composable(
+                            "closet/{beforeScreen}",
+                            arguments = listOf(navArgument("beforeScreen") { type = NavType.StringType }
+                            )
+
+                        ) { backStackEntry ->
+                            ClosetScreen(
                                 closetViewModel = closetViewModel,
                                 onBackClick = {
                                     // 뒤로 가기 로직 추가
                                     navController.popBackStack()
                                 },
-                                navController
+                                navController,
+                                backStackEntry.arguments?.getString("beforeScreen")
                             )
                         }
                         composable("login") {
@@ -114,9 +120,16 @@ class AppNavigator : ComponentActivity() {
 //                            )
 //                        }
                         composable(
-                            "decorate"
-                        ) {
-                            DecorateScreen(navController, "", closetViewModel)
+                            "decorate/{encodedClickedUrl}/{clickedCategory}",
+                            arguments = listOf(
+                                navArgument("encodedClickedUrl") { type = NavType.StringType },
+                                navArgument("clickedCategory") { type = NavType.StringType }
+                            )
+                        ) {backStackEntry ->
+                            DecorateScreen(navController,
+                                backStackEntry.arguments?.getString("encodedClickedUrl") ?: "",
+                                backStackEntry.arguments?.getString("clickedCategory") ?: "",
+                                closetViewModel)
                         }
                         composable(
                             "aiImgGen/{encodedClickedUrl}/{clickedCategory}",
@@ -179,10 +192,25 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
 
     val items = listOf(
         BottomNavItem("sales", icon = Icons.Default.Home, iconPainter = null, "홈"),
-        BottomNavItem("closet",icon = null, iconPainter = painterResource(id = R.drawable.closet_icon), "옷장"),
-        BottomNavItem("decorate", icon = Icons.Default.AddCircle, iconPainter = null, "판매글 등록"),
+        BottomNavItem(
+            "closet/bottomNav",
+            icon = null,
+            iconPainter = painterResource(id = R.drawable.closet_icon),
+            "옷장"
+        ),
+        BottomNavItem(
+            "decorate/encodedClickedUrl/clickedCategory",
+            icon = Icons.Default.AddCircle,
+            iconPainter = null,
+            "판매글 등록"
+        ),
         BottomNavItem("messageList", icon = Icons.Default.MailOutline, iconPainter = null, "메시지"),
-        BottomNavItem("profile/{profileUrl}", icon = Icons.Default.Person, iconPainter = null, "프로필")
+        BottomNavItem(
+            "profile/{profileUrl}",
+            icon = Icons.Default.Person,
+            iconPainter = null,
+            "프로필"
+        )
     )
 
     BottomNavigation(
@@ -209,7 +237,9 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                         item.iconPainter != null -> Icon(
                             painter = item.iconPainter,
                             contentDescription = item.label,
-                            modifier = Modifier.padding(3.dp).size(25.dp)
+                            modifier = Modifier
+                                .padding(3.dp)
+                                .size(25.dp)
                         )
                     }
 

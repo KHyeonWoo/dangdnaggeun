@@ -46,10 +46,11 @@ import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
 
 @Composable
-fun CustomImageGridPage(
+fun ClosetScreen(
     closetViewModel: ClosetViewModel,
     onBackClick: () -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    beforeScreen: String?
 ) {
     BackHandler {
         navController.navigateUp()
@@ -126,7 +127,12 @@ fun CustomImageGridPage(
             ImageGrid(
                 category = "top",
                 onImageClick = { ref, url, _ ->
-                    expandedImage = Pair(ref, url)
+                    if (beforeScreen == "decorate") {
+                        val encodedUrl = encodeUrl(url)
+                        navController.navigate("decorate/$encodedUrl/top")
+                    } else if (beforeScreen == "bottomNav") {
+                        expandedImage = Pair(ref, url)
+                    }
                 },
                 closetViewModel = closetViewModel
             )
@@ -144,7 +150,12 @@ fun CustomImageGridPage(
             ImageGrid(
                 category = "bottom",
                 onImageClick = { ref, url, _ ->
-                    expandedImage = Pair(ref, url)
+                    if (beforeScreen == "decorate") {
+                        val encodedUrl = encodeUrl(url)
+                        navController.navigate("decorate/$encodedUrl/bottom")
+                    } else if (beforeScreen == "bottomNav") {
+                        expandedImage = Pair(ref, url)
+                    }
                 },
                 closetViewModel = closetViewModel
             )
