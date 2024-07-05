@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import android.content.ContentValues
+import android.graphics.Bitmap
 import android.location.Geocoder
 import android.location.Location
 import android.net.Uri
@@ -81,6 +82,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.PartMap
+import java.io.ByteArrayOutputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
@@ -102,42 +104,6 @@ object UserIDManager {
     var userID: MutableState<String> =
         mutableStateOf("")
     var userAddress: MutableState<String> = mutableStateOf("주소 정보가 여기에 표시됩니다.")
-}
-
-//240702 김현우 - 서버통신을 위한 함수 UsableFun으로 이동
-interface ApiService {
-    @Multipart
-    @POST("/infer")
-    fun uploadImage(
-        @Part image: MultipartBody.Part,
-        @PartMap data: Map<String, @JvmSuppressWildcards RequestBody>
-    ): Call<ResponseBody>
-
-    @Multipart
-    @POST("/tryon")
-    fun uploadList(
-        @PartMap data: Map<String, @JvmSuppressWildcards RequestBody>
-    ): Call<ResponseBody>
-}
-
-object RetrofitClient {
-    private const val BASE_URL = "http://192.168.45.140:8080/"
-
-    private val client = OkHttpClient.Builder()
-        .readTimeout(120, TimeUnit.SECONDS)
-        .connectTimeout(120, TimeUnit.SECONDS)
-        .build()
-
-
-    val instance: ApiService by lazy {
-        val retrofit = Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-        retrofit.create(ApiService::class.java)
-    }
 }
 
 @Composable
@@ -323,25 +289,6 @@ fun GetProduct(
     }
 }
 
-
-fun mapToBundle(map: Map<String, String>): Bundle {
-    val bundle = Bundle()
-    for ((key, value) in map) {
-        bundle.putString(key, value)
-    }
-    return bundle
-}
-
-
-// Bundle을 Map으로 변환하는 함수
-fun bundleToMap(bundle: Bundle): Map<String, String> {
-    val map = mutableMapOf<String, String>()
-    for (key in bundle.keySet()) {
-        map[key] = bundle.getString(key).orEmpty()
-    }
-    return map
-}
-
 fun deleteFirestoreData(collectionName: String, documentId: String, successEvent: () -> Unit) {
     Firebase.firestore.collection(collectionName).document(documentId)
         .delete()
@@ -523,4 +470,10 @@ fun TopBar(
             androidx.compose.material.Icon(addIcon, contentDescription = "Add", tint = colorDang)
         }
     }
+}
+
+fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+    return byteArrayOutputStream.toByteArray()
 }

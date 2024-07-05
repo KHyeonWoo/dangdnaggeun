@@ -384,7 +384,7 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUrl: String, 
                 isLoading = true
             })
 
-            CustomTabRow(uploadTrigger, isLoading, closetViewModel) { _, onClickedUri, onClickedCategory ->
+            CustomTabRow(isLoading, closetViewModel) { _, onClickedUri, onClickedCategory ->
                 clickedCategory = onClickedCategory
                 displayedImageUrl = onClickedUri // 이미지 클릭 시 화면에 표시할 이미지 URI 업데이트
             }
@@ -392,46 +392,9 @@ fun DecorateScreen(navController: NavHostController, encodedClickedUrl: String, 
     }
 }
 
-
-fun sendImageToServer(
-    bitmap: Bitmap,
-    successEvent: (String) -> Unit
-) {
-    val image = bitmapToByteArray(bitmap) // 실제 이미지 파일 경로
-    val requestFile = RequestBody.create("image/*".toMediaTypeOrNull(), image)
-    val imagePart = MultipartBody.Part.createFormData(
-        "image",
-        "${UserIDManager.userID.value}.png",
-        requestFile
-    )
-    val userIdPart =
-        RequestBody.create("text/plain".toMediaTypeOrNull(), UserIDManager.userID.value)
-
-    val dataMap = mapOf("userID" to userIdPart)
-
-    RetrofitClient.instance.uploadImage(imagePart, dataMap)
-        .enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(
-                call: Call<ResponseBody>,
-                response: Response<ResponseBody>
-            ) {
-                if (response.isSuccessful) {
-                    successEvent("성공: ${response.body()}")
-                } else {
-                    successEvent("에러 메시지: ${response.errorBody()?.string()}")
-                }
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                successEvent("요청이 실패했습니다: ${t.message}")
-            }
-        })
-}
-
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 private fun CustomTabRow(
-    uploadTrigger: Boolean,
     isLoading: Boolean,
     closetViewModel: ClosetViewModel,
     onImageClick: (StorageReference, String, String) -> Unit,
@@ -539,10 +502,4 @@ fun ImagePicker(
                 imageCropLauncher.launch(cropOption)
             }
     )
-}
-
-private fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
-    val byteArrayOutputStream = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
-    return byteArrayOutputStream.toByteArray()
 }
