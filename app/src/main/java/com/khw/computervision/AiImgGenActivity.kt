@@ -5,11 +5,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,10 +25,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.google.firebase.storage.StorageReference
 import com.skydoves.landscapist.glide.GlideImage
@@ -318,7 +327,16 @@ fun AiImgGenScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        HeaderSection(Modifier.weight(1f), navController, encodingClickedUrl, clickedCategory, aiViewModel, extraClickedUrl, gender)
+        HeaderSection(
+            Modifier.weight(1f),
+            navController,
+            encodingClickedUrl,
+            clickedCategory,
+            aiViewModel,
+            extraClickedUrl,
+            gender
+        )
+
         BodySection(Modifier.weight(5f),
             gender,
             clickedUrl = encodingClickedUrl,
@@ -344,37 +362,60 @@ fun HeaderSection(
     extraClickedUrl: String,
     gender: Boolean
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.align(Alignment.BottomEnd)
-        ) {
-            val modelGender = if (gender) "2" else "1"
 
-            FunTextButton(buttonText = "다음") {
-
-                viewModel.resetResponseData()
-                if (clickedCategory == "top") {
-                    viewModel.sendServerRequest(
-                        topURL = clickedUrl,
-                        bottomURL = extraClickedUrl,
-                        gender = modelGender,
-                    )
-                } else if (clickedCategory == "bottom") {
-                    viewModel.sendServerRequest(
-                        topURL = extraClickedUrl,
-                        bottomURL = clickedUrl,
-                        gender = modelGender,
-                    )
-                }
-                val encodeClickedUrl = encodeUrl(clickedUrl)
-                navController.navigate("insert/$encodeClickedUrl/$clickedCategory")
+    val modelGender = if (gender) "2" else "1"
+    TopBar(
+        title = "판매할 옷으로 모델을 꾸미세요!",
+        onBackClick = { navController.popBackStack() },
+        onAddClick = {
+            viewModel.resetResponseData()
+            if (clickedCategory == "top") {
+                viewModel.sendServerRequest(
+                    topURL = clickedUrl,
+                    bottomURL = extraClickedUrl,
+                    gender = modelGender,
+                )
+            } else if (clickedCategory == "bottom") {
+                viewModel.sendServerRequest(
+                    topURL = extraClickedUrl,
+                    bottomURL = clickedUrl,
+                    gender = modelGender,
+                )
             }
-        }
-    }
+            val encodeClickedUrl = encodeUrl(clickedUrl)
+            navController.navigate("insert/$encodeClickedUrl/$clickedCategory")
+        },
+        addIcon = Icons.Default.KeyboardArrowRight
+    )
+    HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
+
+//        Row(
+//            modifier = Modifier.align(Alignment.BottomEnd)
+//        ) {
+//            val modelGender = if (gender) "2" else "1"
+//
+//            FunTextButton(buttonText = "다음") {
+//
+//                viewModel.resetResponseData()
+//                if (clickedCategory == "top") {
+//                    viewModel.sendServerRequest(
+//                        topURL = clickedUrl,
+//                        bottomURL = extraClickedUrl,
+//                        gender = modelGender,
+//                    )
+//                } else if (clickedCategory == "bottom") {
+//                    viewModel.sendServerRequest(
+//                        topURL = extraClickedUrl,
+//                        bottomURL = clickedUrl,
+//                        gender = modelGender,
+//                    )
+//                }
+//                val encodeClickedUrl = encodeUrl(clickedUrl)
+//                navController.navigate("insert/$encodeClickedUrl/$clickedCategory")
+//            }
+//        }
 }
+
 
 @Composable
 fun BodySection(
@@ -394,33 +435,41 @@ fun BodySection(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier.weight(3f)
-        ) {
-            Column(modifier = Modifier.weight(2f)) {
-                GenderSelection(Modifier.weight(1f), gender, { changeWoman() }, { changeMan() })
-                Image(
-                    painter = painterResource(id = R.drawable.character2),
-                    contentDescription = "AIModel",
-                    modifier = Modifier.weight(9f),
-                    alignment = Alignment.Center,
-                    contentScale = ContentScale.Fit
-                )
-            }
-            SideSection(
-                Modifier.weight(1f),
-                clickedUrl = clickedUrl,
-                clickedCategory = clickedCategory,
-                extraClickedUrl = extraClickedUrl
+        GenderSelection(Modifier.weight(1f), gender, { changeWoman() }, { changeMan() })
+
+        if (gender) {
+            Image(
+                painter = painterResource(id = R.drawable.model_women),
+                contentDescription = "AIModel",
+                modifier = Modifier.weight(5f),
+                alignment = Alignment.Center,
+                contentScale = ContentScale.Fit
+            )
+        } else {
+            Image(
+                painter = painterResource(id = R.drawable.model_men),
+                contentDescription = "AIModel",
+                modifier = Modifier.weight(5f),
+                alignment = Alignment.Center,
+                contentScale = ContentScale.Fit
             )
         }
-        Row(
-            modifier = Modifier.weight(2f)
-        ) {
-            ImageGridSection(clickedCategory, closetViewModel) { _, url, _ ->
-                onExtraClick(url)
-            }
-        }
+
+        SideSection(
+            Modifier.weight(2f),
+            clickedUrl = clickedUrl,
+            clickedCategory = clickedCategory,
+            extraClickedUrl = extraClickedUrl
+        )
+
+
+//        Row(
+//            modifier = Modifier.weight(2f)
+//        ) {
+//            ImageGridSection(clickedCategory, closetViewModel) { _, url, _ ->
+//                onExtraClick(url)
+//            }
+//        }
     }
 }
 
@@ -431,20 +480,36 @@ fun SideSection(
     clickedCategory: String,
     extraClickedUrl: String
 ) {
-    Column(modifier = modifier) {
-        FunTextButton(buttonText = "판매옷") { }
-        GlideImage(
-            imageModel = clickedUrl,
-            modifier = Modifier.size(80.dp)
-        )
-        when (clickedCategory) {
-            "top" -> FunTextButton(buttonText = "하의 선택") { }
-            "bottom" -> FunTextButton(buttonText = "상의 선택") { }
+
+    HorizontalDivider(color = colorDang, modifier = Modifier
+        .width(350.dp)
+        .padding(16.dp))
+    Row(
+        modifier = modifier
+    ) {
+        Spacer(modifier = Modifier.weight(1f))
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            FunTextButton(buttonText = "판매옷") { }
+            GlideImage(
+                imageModel = clickedUrl,
+                modifier = Modifier.size(80.dp)
+            )
         }
-        GlideImage(
-            imageModel = extraClickedUrl,
-            modifier = Modifier.size(80.dp)
-        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            when (clickedCategory) {
+                "top" -> FunTextButton(buttonText = "하의 선택") { }
+                "bottom" -> FunTextButton(buttonText = "상의 선택") { }
+            }
+            GlideImage(
+                imageModel = extraClickedUrl,
+                modifier = Modifier.size(80.dp)
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
@@ -472,13 +537,14 @@ fun GenderSelection(
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
         GenderOption(
             label = "여",
             isSelected = gender,
             onCheckedChange = { changeWoman() }
         )
+
         GenderOption(
             label = "남",
             isSelected = !gender,
@@ -497,7 +563,8 @@ fun GenderOption(
         Text(
             text = label,
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            color = colorDang
+            color = colorDang,
+            fontSize = 12.sp
         )
         Checkbox(
             checked = isSelected,
@@ -505,7 +572,7 @@ fun GenderOption(
             colors = CheckboxDefaults.colors(
                 checkedColor = colorDang,
                 uncheckedColor = colorDang,
-                checkmarkColor = Color.White
+                checkmarkColor = Color.White,
             )
         )
     }

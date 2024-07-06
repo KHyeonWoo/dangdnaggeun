@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Tab
@@ -322,7 +323,7 @@ fun DecorateScreen(
     ) {
         TopBar(
             title = "",
-            onBackClick = { /*TODO*/ },
+            onBackClick = { navController.popBackStack()},
             onAddClick = {
                 val encodedUrl = encodeUrl(encodedClickedUrl)
                 navController.navigate("aiImgGen/$encodedUrl/$clickedCategory") },
@@ -336,16 +337,18 @@ fun DecorateScreen(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if(encodedClickedUrl == ""){
-                Image(
-                    painter = gifImageDecode(R.raw.dangkki_closetimage),
-                    contentDescription = "mascot",
-                    modifier = Modifier.aspectRatio(1f)
-                )
-            } else{
+            Spacer(modifier = Modifier.weight(1f))
+
+            if(encodedClickedUrl != ""){
                 val painter = rememberAsyncImagePainter(encodedClickedUrl)
                 Image(
                     painter = painter,
+                    contentDescription = "mascot",
+                    modifier = Modifier.aspectRatio(1f)
+                )
+            } else {
+                Image(
+                    painter = gifImageDecode(R.raw.dangkki_closetimage),
                     contentDescription = "mascot",
                     modifier = Modifier.aspectRatio(1f)
                 )
@@ -382,6 +385,9 @@ fun DecorateScreen(
                 color = colorDang,
                 fontSize = 15.sp
             )
+        }
+    }
+}
 
 //            LogoScreen("Decorate") { navController.popBackStack() }
 //            Spacer(modifier = Modifier.weight(1f))
@@ -401,7 +407,7 @@ fun DecorateScreen(
 //                    Spacer(modifier = Modifier.weight(1f))
 //                }
 //            }
-        }
+
 
 //        Column(
 //            modifier = Modifier
@@ -446,8 +452,7 @@ fun DecorateScreen(
 //                clickedCategory = onClickedCategory
 //                displayedImageUrl = onClickedUri // 이미지 클릭 시 화면에 표시할 이미지 URI 업데이트
 //            }
-    }
-}
+
 
 
 @OptIn(ExperimentalPagerApi::class)
