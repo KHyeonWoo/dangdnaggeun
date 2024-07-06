@@ -173,18 +173,24 @@ class AppNavigator : ComponentActivity() {
                         ) { _ ->
                             ProfileScreen(navController)
                         }
-                        composable("messageList") {
-                            val messageMap = getMessage()
-                            MessageScreen(messageMap, "User's Image")
-                        }
+//                        composable("messageList") {
+//                            val messageMap = getMessage()
+//                            MessageScreen(messageMap, "User's Image")
+//                        }
                         composable("myUploaded") {
                             MyUploadedScreen(productsViewModel)
                         }
                         composable("myLiked") {
                             MyLikedScreen(productsViewModel)
                         }
-                        composable("chatScreen") {
-                            ChatScreen()
+                        composable("chatListScreen") {
+                            ChatListScreen(navController)
+                        }
+                        composable("messageScreen/{otherUserID}",
+                            arguments = listOf(
+                                navArgument("otherUserID") { type = NavType.StringType },
+                            )) {backStackEntry ->
+                            MessageScreen(backStackEntry.arguments?.getString("otherUserID") ?: "")
                         }
                     }
                 }

@@ -122,8 +122,12 @@ fun ProfileScreen(navController: NavHostController) {
             navController.navigate("myLiked")
         }
 
-        FunButton("췟(업뎃중~~)", image = R.drawable.list_icon) {
-            navController.navigate("chatScreen")
+        FunButton("췟팅창(테스트용용~~)", image = R.drawable.list_icon) {
+            navController.navigate("messageScreen/test@intel.com")
+
+        }
+        FunButton("췟리스트(업뎃중~~)", image = R.drawable.list_icon) {
+            navController.navigate("chatListScreen")
 
         }
 //        FunButton("내게 온 메세지 : ${messageMap.size}", null) {
