@@ -30,18 +30,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDateTime
 
 @Composable
-fun ChatScreen() {
-    val otherUserID = "test@intel.com"
+fun MessageScreen(otherUserID: String) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        val database = databaseRef(otherUserID)
-        ChatList(Modifier.align(Alignment.TopStart), database)
-        ChatInput(Modifier.align(Alignment.BottomCenter), database)
+        val database = messageRef(otherUserID)
+        MessageList(Modifier.align(Alignment.TopStart), database)
+        ChatInput(Modifier.align(Alignment.BottomCenter), database, otherUserID)
     }
 }
 
-fun databaseRef(otherUserID: String): DatabaseReference {
+fun messageRef(otherUserID: String): DatabaseReference {
     var chatRef = if (UserIDManager.userID.value >= otherUserID) {
         UserIDManager.userID.value + "&" + otherUserID
     } else {
@@ -62,23 +61,24 @@ fun databaseRef(otherUserID: String): DatabaseReference {
 }
 
 @Composable
-fun ChatList(modifier: Modifier, database: DatabaseReference) {
+fun MessageList(modifier: Modifier, database: DatabaseReference) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        var chatMessages = MutableStateFlow<List<Post>>(emptyList())
+        var chatMessages = MutableStateFlow<List<Message>>(emptyList())
         val postListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val chatMessage = arrayListOf<Post>()
+                val chatMessage = arrayListOf<Message>()
                 val messageData = snapshot.getValue<HashMap<String, HashMap<String, String>>>()
                 // snapshot은 hashMap 형태로 오기때문에 객체 형태로 변환해줘야함
                 messageData?.forEach { (key, value) ->
                     chatMessage.add(
-                        Post(
+                        Message(
                             date = key as String,
-                            userID = value["userID"] as String,
+                            sendUserID = value["sendUserID"] as String,
+                            receiveUserID = value["receiveUserID"] as String,
                             message = value["message"] as String
                         )
                     )
@@ -95,8 +95,12 @@ fun ChatList(modifier: Modifier, database: DatabaseReference) {
         database.addValueEventListener(postListener)
         val chatMessage by chatMessages.collectAsState()
         chatMessage.forEach {
-            if(it.userID == UserIDManager.userID.value) {
-                Text(text = it.date + " : " + it.message, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+            if (it.sendUserID == UserIDManager.userID.value) {
+                Text(
+                    text = it.date + " : " + it.message,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.End
+                )
             } else {
                 Text(text = it.date + " : " + it.message)
             }
@@ -105,11 +109,9 @@ fun ChatList(modifier: Modifier, database: DatabaseReference) {
     }
 }
 
-class Post(var date: String, var userID: String, var message: String) {
-}
 
 @Composable
-fun ChatInput(modifier: Modifier, database: DatabaseReference) {
+fun ChatInput(modifier: Modifier, database: DatabaseReference, otherUserID: String) {
     Row(
         modifier = modifier
     ) {
@@ -117,17 +119,18 @@ fun ChatInput(modifier: Modifier, database: DatabaseReference) {
 
         OutlinedTextField(
             value = sendMessage ?: "",
-            onValueChange = { sendMessage = it }
+            onValueChange = { sendMessage = it },
         )
         Button(onClick = {
             sendMessage?.let {
+                val date =
+                    LocalDateTime.now().toLocalDate().toString().replace("-", "") +
+                            LocalDateTime.now().toLocalTime().toString().replace(":", "")
+                                .substring(0, 6)
                 writeNewUser(
-                    database.child(
-                        LocalDateTime.now().toLocalDate().toString().replace("-", "") +
-                                LocalDateTime.now().toLocalTime().toString().replace(":", "")
-                                    .substring(0, 6)
-                    ), UserIDManager.userID.value, it
+                    database.child(date), date, UserIDManager.userID.value, otherUserID, it
                 )
+                sendMessage = null
             }
         }) {
             Text(text = "Send")
@@ -137,16 +140,26 @@ fun ChatInput(modifier: Modifier, database: DatabaseReference) {
 
 }
 
-fun writeNewUser(database: DatabaseReference, userId: String, message: String) {
+fun writeNewUser(
+    database: DatabaseReference,
+    date: String,
+    sendUserId: String,
+    receiveUserID: String,
+    message: String
+) {
     val user = Message(
-        userId,
+        date,
+        sendUserId,
+        receiveUserID,
         message
     )
 
     database.setValue(user)
 }
 
-data class Message(
-    val userID: String? = null,
-    val message: String? = null
+class Message(
+    var date: String,
+    var sendUserID: String,
+    var receiveUserID: String,
+    var message: String
 )
