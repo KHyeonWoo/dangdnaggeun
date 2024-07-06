@@ -187,11 +187,16 @@ class AppNavigator : ComponentActivity() {
                         composable("chatListScreen") {
                             ChatListScreen(navController, chatViewModel)
                         }
-                        composable("messageScreen/{otherUserID}",
+                        composable("messageScreen/{otherUserID}/{otherUserProfile}",
                             arguments = listOf(
                                 navArgument("otherUserID") { type = NavType.StringType },
-                            )) {backStackEntry ->
-                            MessageScreen(chatViewModel, backStackEntry.arguments?.getString("otherUserID") ?: "")
+                                navArgument("otherUserProfile") { type = NavType.StringType }
+                            )) { backStackEntry ->
+                            MessageScreen(
+                                chatViewModel,
+                                backStackEntry.arguments?.getString("otherUserID") ?: "",
+                                backStackEntry.arguments?.getString("otherUserProfile") ?: ""
+                            )
                         }
                     }
                 }
@@ -224,7 +229,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
             iconPainter = null,
             "판매글 등록"
         ),
-        BottomNavItem("messageList", icon = Icons.Default.MailOutline, iconPainter = null, "메시지"),
+        BottomNavItem("chatListScreen", icon = Icons.Default.MailOutline, iconPainter = null, "메시지"),
         BottomNavItem(
             "profile/{profileUrl}",
             icon = Icons.Default.Person,

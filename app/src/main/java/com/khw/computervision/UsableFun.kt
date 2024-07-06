@@ -63,7 +63,9 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -161,6 +163,14 @@ fun TextBox(text: String) {
     )
 }
 
+suspend fun getProfile(userID: String): String? {
+    val storageRef = Firebase.storage.reference.child("${userID}/profile.jpg")
+    return try {
+        storageRef.downloadUrl.await().toString()
+    } catch (e: Exception) {
+        null
+    }
+}
 
 @Composable
 fun gifImageDecode(name: Int): AsyncImagePainter {

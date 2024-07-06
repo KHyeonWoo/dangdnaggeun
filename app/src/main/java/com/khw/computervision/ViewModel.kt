@@ -324,16 +324,18 @@ class ChatViewModel : ViewModel() {
         message: String
     ) {
         val chatRef = replaceUserIDToRef(messageRef)
-        val user = Message(
+        val date =
             LocalDateTime.now().toLocalDate().toString().replace("-", "") +
                     LocalDateTime.now().toLocalTime().toString().replace(":", "")
-                        .substring(0, 6),
+                        .substring(0, 6)
+        val user = Message(
+            date,
             sendUserId,
             receiveUserID,
             message
         )
 
-        database.child(chatRef).setValue(user)
+        database.child(chatRef).child(date).setValue(user)
     }
     private fun resetMessageData() {
         _messageData.value = arrayListOf()

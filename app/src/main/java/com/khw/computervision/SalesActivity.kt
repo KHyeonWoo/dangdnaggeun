@@ -277,15 +277,6 @@ fun SortDropdownMenu(setLike: () -> Unit, setDate: () -> Unit) {
     }
 }
 
-suspend fun getProfile(): String? {
-    val storageRef = Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
-    return try {
-        storageRef.downloadUrl.await().toString()
-    } catch (e: Exception) {
-        null
-    }
-}
-
 @Composable
 fun ImageList(
     navController: NavHostController,

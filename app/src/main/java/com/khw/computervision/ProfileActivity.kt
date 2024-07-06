@@ -2,7 +2,6 @@ package com.khw.computervision
 
 // 이전의 ProfilePopup을 ProfileScreen으로 변환
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -70,7 +69,7 @@ fun ProfileScreen(navController: NavHostController) {
     ) {
         Text(text = "Profile Screen")
         LaunchedEffect(Unit) {
-            profileUrl = getProfile()
+            profileUrl = getProfile(UserIDManager.userID.value)
         }
 
         profileUrl?.let {
@@ -123,7 +122,7 @@ fun ProfileScreen(navController: NavHostController) {
         }
 
         FunButton("췟팅창(테스트용용~~)", image = R.drawable.list_icon) {
-            navController.navigate("messageScreen/test@intel.com")
+            navController.navigate("messageScreen/test@intel.com/zz")
 
         }
         FunButton("췟리스트(업뎃중~~)", image = R.drawable.list_icon) {

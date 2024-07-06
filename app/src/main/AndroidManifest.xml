@@ -29,7 +29,8 @@
             android:name=".AppNavigator"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.ComputerVision">
+            android:theme="@style/Theme.ComputerVision"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -60,9 +61,9 @@
 <!--        <activity-->
 <!--            android:name=".AiImgGenActivity"-->
 <!--            android:theme="@style/Theme.ComputerVision"/>-->
-        <activity
-            android:name=".LikeActivity"
-            android:theme="@style/Theme.ComputerVision"/>
+<!--        <activity-->
+<!--            android:name=".LikeActivity"-->
+<!--            android:theme="@style/Theme.ComputerVision"/>-->
 
         <activity android:name="com.canhub.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat"/>
