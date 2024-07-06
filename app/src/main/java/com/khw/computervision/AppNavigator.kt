@@ -53,6 +53,7 @@ class AppNavigator : ComponentActivity() {
                 val aiViewModel: AiViewModel = viewModel() // aiViewModel 인스턴스 생성
                 val closetViewModel: ClosetViewModel = viewModel() // closetViewModel 인스턴스 생성
                 val productsViewModel: ProductViewModel = viewModel() // productsViewModel 인스턴스 생성
+                val chatViewModel: ChatViewModel = viewModel() // chatViewModel 인스턴스 생성
 
                 Scaffold(
                     topBar = {
@@ -184,13 +185,13 @@ class AppNavigator : ComponentActivity() {
                             MyLikedScreen(productsViewModel)
                         }
                         composable("chatListScreen") {
-                            ChatListScreen(navController)
+                            ChatListScreen(navController, chatViewModel)
                         }
                         composable("messageScreen/{otherUserID}",
                             arguments = listOf(
                                 navArgument("otherUserID") { type = NavType.StringType },
                             )) {backStackEntry ->
-                            MessageScreen(backStackEntry.arguments?.getString("otherUserID") ?: "")
+                            MessageScreen(chatViewModel, backStackEntry.arguments?.getString("otherUserID") ?: "")
                         }
                     }
                 }

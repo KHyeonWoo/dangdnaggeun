@@ -4,6 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.getValue
+import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
@@ -15,6 +20,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.time.LocalDateTime
 
 
 class ProductViewModel : ViewModel() {
@@ -132,7 +138,6 @@ class ProductViewModel : ViewModel() {
 }
 
 
-
 class ClosetViewModel : ViewModel() {
     private val _topsRefData = MutableLiveData<List<StorageReference>>()
     private val _topsUrlData = MutableLiveData<List<String>>()
@@ -234,4 +239,112 @@ class AiViewModel : ViewModel() {
     fun resetResponseData() {
         _responseData.value = null
     }
+}
+
+
+class ChatViewModel : ViewModel() {
+    private val database =
+        Firebase.database("https://dangdanggeun-1b552-default-rtdb.asia-southeast1.firebasedatabase.app").reference
+
+    private val _chatData = MutableLiveData<List<Chat>>(emptyList())
+    val chatData: LiveData<List<Chat>> get() = _chatData
+
+    fun getChatData() {
+        resetChatData()
+        val userIDValue = replaceUserIDToRef(UserIDManager.userID.value)
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val chatList = arrayListOf<Chat>()
+                val chatData =
+                    snapshot.getValue<HashMap<String, HashMap<String, HashMap<String, String>>>>()
+                chatData?.forEach { (key, value) ->
+                    if (key.contains(userIDValue)) {
+                        value.forEach { (date, messageData) ->
+                            if (date == value.keys.maxOrNull()) {
+                                chatList.add(
+                                    Chat(
+                                        sendUserID = messageData["sendUserID"] as String,
+                                        receiveUserID = messageData["receiveUserID"] as String,
+                                        lastMessageDate = date as String,
+                                        lastMessage = messageData["message"] as String
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+                _chatData.postValue(chatList.toList())
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Log.d(TAG, "loadMessage:onCancelled", error.toException())
+            }
+        }
+        database.addValueEventListener(postListener)
+    }
+
+    private fun resetChatData() {
+        _chatData.value = arrayListOf()
+    }
+
+    private val _messageData = MutableLiveData<List<Message>>(emptyList())
+    val messageData: LiveData<List<Message>> get() = _messageData
+
+    fun getMessageData(messageRef: String) {
+        resetMessageData()
+        val chatRef = replaceUserIDToRef(messageRef)
+        val postListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val chatMessage = arrayListOf<Message>()
+                val messageData = snapshot.getValue<HashMap<String, HashMap<String, String>>>()
+                messageData?.forEach { (key, value) ->
+                    chatMessage.add(
+                        Message(
+                            date = key as String,
+                            sendUserID = value["sendUserID"] as String,
+                            receiveUserID = value["receiveUserID"] as String,
+                            message = value["message"] as String
+                        )
+                    )
+                }
+                _messageData.postValue(chatMessage.toList())
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Log.d(TAG, "loadMessage:onCancelled", error.toException())
+            }
+        }
+        database.child(chatRef).addValueEventListener(postListener)
+    }
+
+    fun writeNewUser(
+        messageRef: String,
+        sendUserId: String,
+        receiveUserID: String,
+        message: String
+    ) {
+        val chatRef = replaceUserIDToRef(messageRef)
+        val user = Message(
+            LocalDateTime.now().toLocalDate().toString().replace("-", "") +
+                    LocalDateTime.now().toLocalTime().toString().replace(":", "")
+                        .substring(0, 6),
+            sendUserId,
+            receiveUserID,
+            message
+        )
+
+        database.child(chatRef).setValue(user)
+    }
+    private fun resetMessageData() {
+        _messageData.value = arrayListOf()
+    }
+}
+
+fun replaceUserIDToRef(ref: String): String {
+    return ref.replace(".", "")
+        .replace("#", "")
+        .replace("$", "")
+        .replace("[", "")
+        .replace("]", "")
+        .replace("@", "")
 }
