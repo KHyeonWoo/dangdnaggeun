@@ -365,7 +365,7 @@ private fun HeaderSection(
     val context = LocalContext.current
     val modelGender = if (gender) "2" else "1"
     TopBar(
-        title = "판매할 옷으로 모델을 꾸미세요!",
+        title = "AI 모델",
         onBackClick = { navController.popBackStack() },
         onAddClick = {
             if(encodingExtraClickedUrl != " "){
@@ -574,7 +574,7 @@ fun GenderOption(
         Text(
             text = label,
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            color = colorDang,
+            color = Color.Black,
             fontSize = 12.sp
         )
         Checkbox(
@@ -583,7 +583,7 @@ fun GenderOption(
             colors = CheckboxDefaults.colors(
                 checkedColor = colorDang,
                 uncheckedColor = colorDang,
-                checkmarkColor = Color.White,
+                checkmarkColor = Color.Black,
             )
         )
     }
