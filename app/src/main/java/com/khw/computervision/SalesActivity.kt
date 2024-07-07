@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -51,8 +52,6 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
-import kotlinx.coroutines.tasks.await
 
 //class SalesActivity : ComponentActivity() {
 //    override fun onCreate(savedInstanceState: Bundle?) {
@@ -233,16 +232,25 @@ fun SearchDropdownMenu(searchEvent: (String) -> Unit) {
     DropdownMenu(
         expanded = searchDropdownVisble,
         onDismissRequest = { searchDropdownVisble = false }) {
-        Row() {
+        Row(
+            modifier = Modifier
+                .width(200.dp)
+                .height(40.dp)
+        ) {
             var searchText: String by remember { mutableStateOf("") }
             CustomOutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
+                modifier = Modifier.weight(6f)
             )
-            Image(imageVector = Icons.Default.Search, contentDescription = "Search",
-                modifier = Modifier.clickable {
-                    searchEvent(searchText)
-                }
+            Image(
+                imageVector = Icons.Default.Search, contentDescription = "Search",
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .weight(1f)
+                    .clickable {
+                        searchEvent(searchText)
+                    }
             )
         }
     }
@@ -426,9 +434,8 @@ fun CustomOutlinedTextField(
 ) {
     Box(
         modifier = modifier
-            .width(200.dp)
-            .height(40.dp)
-            .padding(vertical = 4.dp) // 텍스트 상하 여백 줄이기
+            .fillMaxSize()
+            .padding(horizontal = 4.dp) // 텍스트 상하 여백 줄이기
     ) {
         BasicTextField(
             value = value,
@@ -436,13 +443,16 @@ fun CustomOutlinedTextField(
             enabled = enabled,
             readOnly = readOnly,
             textStyle = TextStyle(
-                fontSize = 12.sp, // 원하는 글자 크기로 설정
+                fontSize = 16.sp, // 원하는 글자 크기로 설정
                 color = Color.Black
             ),
             singleLine = singleLine,
             maxLines = maxLines,
             keyboardOptions = keyboardOptions,
             cursorBrush = SolidColor(Color.Black),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp),
             decorationBox = { innerTextField ->
                 // OutlinedTextField 스타일의 테두리를 적용
                 OutlinedTextFieldDefaults.DecorationBox(
@@ -457,7 +467,10 @@ fun CustomOutlinedTextField(
                     enabled = enabled,
                     isError = isError,
                     interactionSource = remember { MutableInteractionSource() },
-                    colors = OutlinedTextFieldDefaults.colors(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = colorDang,  // 테두리 색상을 하얀색으로 설정
+                        focusedBorderColor = colorDang     // 포커스된 상태의 테두리 색상을 하얀색으로 설정
+                    ),
                     contentPadding = PaddingValues(0.dp) // 내부 여백을 0으로 설정
                 )
             }

@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
@@ -25,11 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -314,8 +308,7 @@ import kotlinx.coroutines.launch
 fun DecorateScreen(
     navController: NavHostController,
     encodedClickedUrl: String,
-    clickedCategory: String,
-    closetViewModel: ClosetViewModel
+    clickedCategory: String
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -326,7 +319,7 @@ fun DecorateScreen(
             onBackClick = { navController.popBackStack()},
             onAddClick = {
                 val encodedUrl = encodeUrl(encodedClickedUrl)
-                navController.navigate("aiImgGen/$encodedUrl/$clickedCategory") },
+                navController.navigate("aiImgGen/$encodedUrl/$clickedCategory/ ") },
             addIcon = Icons.Default.KeyboardArrowRight
         )
 
@@ -339,7 +332,7 @@ fun DecorateScreen(
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
-            if(encodedClickedUrl != ""){
+            if(encodedClickedUrl != " "){
                 val painter = rememberAsyncImagePainter(encodedClickedUrl)
                 Image(
                     painter = painter,
@@ -354,37 +347,37 @@ fun DecorateScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
             Text(
-                "정면 사진 사용시 AI 이미지가",
+                "정면 사진 사용시 AI 이미지가\n더욱 좋아요!",
                 fontSize = 20.sp,
-                color = colorDang
+                color = colorDang,
+                textAlign = TextAlign.Center
             )
-            Text(
-                "더욱 좋아요!",
-                fontSize = 18.sp,
-                color = colorDang
-            )
+//            Text(
+//                "더욱 좋아요!",
+//                fontSize = 18.sp,
+//                color = colorDang
+//            )
 
-            Spacer(modifier = Modifier.weight(4f))
+            Spacer(modifier = Modifier.weight(5f))
 
             Text(
-                text = "여기를 클릭해서",
+                text = "여기를 클릭해서\n판매할 옷 이미지를 올리세요",
                 color = colorDang,
                 textDecoration = TextDecoration.Underline,
                 fontSize = 16.sp,
                 modifier = Modifier
                     .clickable {
-//                        val encodedUrl = encodeUrl(displayedImageUrl)
-                        navController.navigate("closet/decorate")
-                    }
+                        navController.navigate("closet/decorate/ / ")
+                    },
+                textAlign = TextAlign.Center
             )
-            Text(
-                text = "판매할 옷 이미지를 올리세요",
-                color = colorDang,
-                fontSize = 15.sp
-            )
+            Spacer(modifier = Modifier.weight(1f))
+//            Text(
+//                text = "판매할 옷 이미지를 올리세요",
+//                color = colorDang,
+//                fontSize = 15.sp
+//            )
         }
     }
 }

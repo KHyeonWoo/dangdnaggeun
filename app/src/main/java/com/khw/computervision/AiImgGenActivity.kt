@@ -1,18 +1,19 @@
 package com.khw.computervision
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -25,9 +26,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -316,10 +317,9 @@ fun AiImgGenScreen(
     navController: NavHostController,
     encodingClickedUrl: String,
     clickedCategory: String,
-    aiViewModel: AiViewModel,
-    closetViewModel: ClosetViewModel
+    encodingExtraClickedUrl: String,
+    aiViewModel: AiViewModel
 ) {
-    var extraClickedUrl by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf(true) }
 
     Column(
@@ -328,62 +328,66 @@ fun AiImgGenScreen(
         verticalArrangement = Arrangement.Center
     ) {
         HeaderSection(
-            Modifier.weight(1f),
             navController,
             encodingClickedUrl,
             clickedCategory,
             aiViewModel,
-            extraClickedUrl,
+            encodingExtraClickedUrl,
             gender
         )
 
         BodySection(Modifier.weight(5f),
             gender,
-            clickedUrl = encodingClickedUrl,
-            clickedCategory = clickedCategory,
-            extraClickedUrl = extraClickedUrl,
-            closetViewModel = closetViewModel,
-            onExtraClick = {
-                extraClickedUrl = it
-            },
             changeWoman = { gender = true },
             changeMan = { gender = false }
         )
+
+        BottomSection(
+            Modifier.weight(2f),
+            navController,
+            clickedUrl = encodingClickedUrl,
+            clickedCategory = clickedCategory,
+            encodingExtraClickedUrl = encodingExtraClickedUrl
+        )
+
     }
 }
 
 @Composable
 fun HeaderSection(
-    modifier: Modifier,
     navController: NavHostController,
     clickedUrl: String,
     clickedCategory: String,
-    viewModel: AiViewModel,
-    extraClickedUrl: String,
+    aiViewModel: AiViewModel,
+    encodingExtraClickedUrl: String,
     gender: Boolean
 ) {
-
+    val context = LocalContext.current
     val modelGender = if (gender) "2" else "1"
     TopBar(
         title = "판매할 옷으로 모델을 꾸미세요!",
         onBackClick = { navController.popBackStack() },
         onAddClick = {
-            viewModel.resetResponseData()
-            if (clickedCategory == "top") {
-                viewModel.sendServerRequest(
-                    topURL = clickedUrl,
-                    bottomURL = extraClickedUrl,
-                    gender = modelGender,
-                )
-            } else if (clickedCategory == "bottom") {
-                viewModel.sendServerRequest(
-                    topURL = extraClickedUrl,
-                    bottomURL = clickedUrl,
-                    gender = modelGender,
-                )
+            if(encodingExtraClickedUrl != " "){
+                aiViewModel.resetResponseData()
+                if (clickedCategory == "top") {
+                    aiViewModel.sendServerRequest(
+                        topURL = clickedUrl,
+                        bottomURL = encodingExtraClickedUrl,
+                        gender = modelGender,
+                    )
+                } else if (clickedCategory == "bottom") {
+                    aiViewModel.sendServerRequest(
+                        topURL = encodingExtraClickedUrl,
+                        bottomURL = clickedUrl,
+                        gender = modelGender,
+                    )
+                }
+                val encodeClickedUrl = encodeUrl(clickedUrl)
+                navController.navigate("insert/$encodeClickedUrl/$clickedCategory")
+            } else {
+                Toast.makeText(context, "모델에 입힐 이미지를 선택해주세요", Toast.LENGTH_SHORT).show()
             }
-            val encodeClickedUrl = encodeUrl(clickedUrl)
-            navController.navigate("insert/$encodeClickedUrl/$clickedCategory")
         },
         addIcon = Icons.Default.KeyboardArrowRight
     )
@@ -421,11 +425,6 @@ fun HeaderSection(
 fun BodySection(
     modifier: Modifier,
     gender: Boolean,
-    clickedUrl: String,
-    clickedCategory: String,
-    extraClickedUrl: String,
-    closetViewModel: ClosetViewModel,
-    onExtraClick: (String) -> Unit,
     changeWoman: () -> Unit,
     changeMan: () -> Unit
 ) {
@@ -455,13 +454,6 @@ fun BodySection(
             )
         }
 
-        SideSection(
-            Modifier.weight(2f),
-            clickedUrl = clickedUrl,
-            clickedCategory = clickedCategory,
-            extraClickedUrl = extraClickedUrl
-        )
-
 
 //        Row(
 //            modifier = Modifier.weight(2f)
@@ -474,40 +466,69 @@ fun BodySection(
 }
 
 @Composable
-fun SideSection(
+fun BottomSection(
     modifier: Modifier,
+    navController: NavHostController,
     clickedUrl: String,
     clickedCategory: String,
-    extraClickedUrl: String
+    encodingExtraClickedUrl: String
 ) {
 
-    HorizontalDivider(color = colorDang, modifier = Modifier
-        .width(350.dp)
-        .padding(16.dp))
+    HorizontalDivider(
+        color = colorDang, modifier = Modifier
+            .width(350.dp)
+            .padding(16.dp)
+    )
     Row(
-        modifier = modifier
+        modifier = modifier.fillMaxSize(),
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier
+                .weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
             FunTextButton(buttonText = "판매옷") { }
             GlideImage(
                 imageModel = clickedUrl,
-                modifier = Modifier.size(80.dp)
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .aspectRatio(1f)
             )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier
+                .weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             when (clickedCategory) {
                 "top" -> FunTextButton(buttonText = "하의 선택") { }
                 "bottom" -> FunTextButton(buttonText = "상의 선택") { }
             }
-            GlideImage(
-                imageModel = extraClickedUrl,
-                modifier = Modifier.size(80.dp)
-            )
+            if(encodingExtraClickedUrl != " ") {
+                GlideImage(
+                    imageModel = encodingExtraClickedUrl,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                )
+            } else {
+                Image(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "",
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .clickable {
+                            val encodedUrl = encodeUrl(clickedUrl)
+                            navController.navigate("closet/aiImgGen/$encodedUrl/$clickedCategory")
+                        }
+                )
+            }
         }
         Spacer(modifier = Modifier.weight(1f))
     }

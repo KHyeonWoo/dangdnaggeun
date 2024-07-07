@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -50,7 +51,9 @@ fun ClosetScreen(
     closetViewModel: ClosetViewModel,
     onBackClick: () -> Unit,
     navController: NavHostController,
-    beforeScreen: String?
+    beforeScreen: String?,
+    decorateClickedUrl: String?,
+    decorateClickedCategory: String?
 ) {
     BackHandler {
         navController.navigateUp()
@@ -124,18 +127,27 @@ fun ClosetScreen(
         ) {
             SectionHeader(title = "상의")
 
-            ImageGrid(
-                category = "top",
-                onImageClick = { ref, url, _ ->
-                    if (beforeScreen == "decorate") {
+            if(decorateClickedCategory != "bottom") {
+                ImageGrid(
+                    category = "top",
+                    onImageClick = { ref, url, _ ->
                         val encodedUrl = encodeUrl(url)
-                        navController.navigate("decorate/$encodedUrl/top")
-                    } else if (beforeScreen == "bottomNav") {
-                        expandedImage = Pair(ref, url)
-                    }
-                },
-                closetViewModel = closetViewModel
-            )
+                        if (beforeScreen == "decorate") {
+                            navController.navigate("decorate/$encodedUrl/top")
+                        } else if (beforeScreen == "bottomNav") {
+                            expandedImage = Pair(ref, url)
+                        } else if (beforeScreen == "aiImgGen") {
+                            val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
+                            navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
+                        }
+                    },
+                    closetViewModel = closetViewModel
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+                Text(text = "하의를 선택하세요", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
 
         Column(
@@ -147,18 +159,27 @@ fun ClosetScreen(
             // 하의 섹션
             SectionHeader(title = "하의")
 
-            ImageGrid(
-                category = "bottom",
-                onImageClick = { ref, url, _ ->
-                    if (beforeScreen == "decorate") {
+            if(decorateClickedCategory != "top") {
+                ImageGrid(
+                    category = "bottom",
+                    onImageClick = { ref, url, _ ->
                         val encodedUrl = encodeUrl(url)
-                        navController.navigate("decorate/$encodedUrl/bottom")
-                    } else if (beforeScreen == "bottomNav") {
-                        expandedImage = Pair(ref, url)
-                    }
-                },
-                closetViewModel = closetViewModel
-            )
+                        if (beforeScreen == "decorate") {
+                            navController.navigate("decorate/$encodedUrl/bottom")
+                        } else if (beforeScreen == "bottomNav") {
+                            expandedImage = Pair(ref, url)
+                        } else if (beforeScreen == "aiImgGen") {
+                            val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
+                            navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
+                        }
+                    },
+                    closetViewModel = closetViewModel
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+                Text(text = "상의를 선택하세요", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
     }
 

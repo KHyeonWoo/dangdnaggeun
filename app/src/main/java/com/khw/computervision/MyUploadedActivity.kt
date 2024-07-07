@@ -22,8 +22,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,11 +35,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 
 @Composable
@@ -84,14 +80,9 @@ private fun SearchScreen() {
                     .height(40.dp)
                     .padding(top = 10.dp)
             )
-            OutlinedTextField(
+            CustomOutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colorDang,
-                    unfocusedBorderColor = colorDang,
-                ),
-                textStyle = TextStyle(color = Color.Black, fontSize = 8.sp),
                 modifier = Modifier
                     .height(40.dp)
                     .weight(3f)

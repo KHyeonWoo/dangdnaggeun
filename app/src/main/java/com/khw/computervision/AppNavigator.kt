@@ -30,7 +30,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -74,10 +73,11 @@ class AppNavigator : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding)
                     ) {
                         composable(
-                            "closet/{beforeScreen}",
-                            arguments = listOf(navArgument("beforeScreen") {
-                                type = NavType.StringType
-                            }
+                            "closet/{beforeScreen}/{encodedClickedUrl}/{clickedCategory}",
+                            arguments = listOf(
+                                navArgument("beforeScreen") { type = NavType.StringType },
+                                navArgument("encodedClickedUrl") { type = NavType.StringType },
+                                navArgument("clickedCategory") { type = NavType.StringType }
                             )
 
                         ) { backStackEntry ->
@@ -88,7 +88,9 @@ class AppNavigator : ComponentActivity() {
                                     navController.popBackStack()
                                 },
                                 navController,
-                                backStackEntry.arguments?.getString("beforeScreen")
+                                backStackEntry.arguments?.getString("beforeScreen"),
+                                backStackEntry.arguments?.getString("encodedClickedUrl"),
+                                backStackEntry.arguments?.getString("clickedCategory")
                             )
                         }
                         composable("login") {
@@ -111,18 +113,6 @@ class AppNavigator : ComponentActivity() {
                                 backStackEntry.arguments?.getString("productKey")
                             )
                         }
-//                        composable(
-//                            "decorate/{encodedClickedUri}",
-//                            arguments = listOf(navArgument("encodedClickedUri") {
-//                                type = NavType.StringType
-//                            })
-//                        ) { backStackEntry ->
-//                            DecorateScreen(
-//                                navController,
-//                                backStackEntry.arguments?.getString("encodedClickedUri") ?: "",
-//                                closetViewModel
-//                            )
-//                        }
                         composable(
                             "decorate/{encodedClickedUrl}/{clickedCategory}",
                             arguments = listOf(
@@ -132,24 +122,24 @@ class AppNavigator : ComponentActivity() {
                         ) { backStackEntry ->
                             DecorateScreen(
                                 navController,
-                                backStackEntry.arguments?.getString("encodedClickedUrl") ?: "",
-                                backStackEntry.arguments?.getString("clickedCategory") ?: "",
-                                closetViewModel
+                                backStackEntry.arguments?.getString("encodedClickedUrl") ?: " ",
+                                backStackEntry.arguments?.getString("clickedCategory") ?: " "
                             )
                         }
                         composable(
-                            "aiImgGen/{encodedClickedUrl}/{clickedCategory}",
+                            "aiImgGen/{encodedClickedUrl}/{clickedCategory}/{encodedExtraClickedUrl}",
                             arguments = listOf(
                                 navArgument("encodedClickedUrl") { type = NavType.StringType },
-                                navArgument("clickedCategory") { type = NavType.StringType }
+                                navArgument("clickedCategory") { type = NavType.StringType },
+                                navArgument("encodedExtraClickedUrl") { type = NavType.StringType }
                             )
                         ) { backStackEntry ->
                             AiImgGenScreen(
                                 navController,
                                 backStackEntry.arguments?.getString("encodedClickedUrl") ?: "",
                                 backStackEntry.arguments?.getString("clickedCategory") ?: "",
-                                aiViewModel,
-                                closetViewModel
+                                backStackEntry.arguments?.getString("encodedExtraClickedUrl") ?: "",
+                                aiViewModel
                             )
                         }
                         composable(
@@ -219,18 +209,23 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
     val items = listOf(
         BottomNavItem("sales", icon = Icons.Default.Home, iconPainter = null, "홈"),
         BottomNavItem(
-            "closet/bottomNav",
+            "closet/bottomNav/ / ",
             icon = null,
             iconPainter = painterResource(id = R.drawable.closet_icon),
             "옷장"
         ),
         BottomNavItem(
-            "decorate/encodedClickedUrl/clickedCategory",
+            "decorate/ / ",
             icon = Icons.Default.AddCircle,
             iconPainter = null,
             "판매글 등록"
         ),
-        BottomNavItem("chatListScreen", icon = Icons.Default.MailOutline, iconPainter = null, "메시지"),
+        BottomNavItem(
+            "chatListScreen",
+            icon = Icons.Default.MailOutline,
+            iconPainter = null,
+            "메시지"
+        ),
         BottomNavItem(
             "profile/{profileUrl}",
             icon = Icons.Default.Person,
@@ -319,7 +314,7 @@ fun currentRoute(navController: NavController): String? {
 @Composable
 fun shouldShowBottomBar(navController: NavController): Boolean {
     val currentRoute = currentRoute(navController)
-    return currentRoute != "login"
+    return currentRoute !in listOf("login", "messageScreen/{otherUserID}/{otherUserProfile}")
 }
 
 @Composable
