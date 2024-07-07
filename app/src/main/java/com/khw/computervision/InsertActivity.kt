@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -255,116 +254,133 @@ fun InsertScreen(
     aiViewModel: AiViewModel,
     productsViewModel: ProductViewModel
 ) {
+    val aiResponseData by aiViewModel.responseData.observeAsState()
+
+    var newPopupDetails by remember {
+        mutableStateOf(
+            PopupDetails(
+                UserIDManager.userID.value,
+                "",
+                encodingClickedUrl,
+                "",
+                clickedCategory,
+                0,
+                "",
+                0f,
+                ""
+            )
+        )
+    }
+    var checkedOption by remember { mutableIntStateOf(0) }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        val responseData by aiViewModel.responseData.observeAsState()
+        HeaderSection(
+            Modifier.weight(1f),
+            navController,
+            aiResponseData,
+            productsViewModel,
+            newPopupDetails,
+            checkedOption
+        ) {
+            checkedOption = it
+        }
+        ImageSection(Modifier.weight(3f), aiResponseData, checkedOption, encodingClickedUrl)
 
-        var newPopupDetails by remember {
-            mutableStateOf(
-                PopupDetails(
-                    UserIDManager.userID.value,
-                    "",
-                    encodingClickedUrl,
-                    "",
-                    clickedCategory,
-                    0,
-                    "",
-                    0f,
-                    ""
-                )
+        StateScreen(
+            newPopupDetails,
+            Modifier.weight(2f)
+        ) { newPopupDetails = it }
+    }
+}
+
+
+@Composable
+fun ImageSection(
+    modifier: Modifier,
+    aiResponseData: String?,
+    checkedOption: Int,
+    encodingClickedUrl: String
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (checkedOption == 0) {
+            GlideImage(
+                imageModel = encodingClickedUrl,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
             )
-        }
-        var checkedOption by remember { mutableIntStateOf(0) }
-        Column(
-            modifier = Modifier
-                .weight(1f)
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Spacer(modifier = Modifier.weight(2f))
+        } else {
 
-                val options = listOf(
-                    " 옷 ",
-                    "모델"
-                )
-                ChoiceSegButton(options, checkedOption) { checkedOption = it }
-                Spacer(modifier = Modifier.weight(1f))
-
-                responseData?.let { aiUrl ->
-                    newPopupDetails.aiUrl = aiUrl
-                    val coroutineScope = rememberCoroutineScope()
-                    val context = LocalContext.current
-
-                    Row(
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        FunTextButton("저장") {
-                            navController.popBackStack()
-                            saveEvent(coroutineScope, context, newPopupDetails)
-                            productsViewModel.getProductsFromFireStore()
-                        }
-                    }
-                }
-            }
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(3f),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (checkedOption == 0) {
-                GlideImage(
-                    imageModel = encodingClickedUrl,
+            aiResponseData?.let { aiUrl ->
+                val painter = rememberAsyncImagePainter(aiUrl)
+                Image(
+                    painter = painter,
+                    contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit
                 )
-            } else {
-
-                responseData?.let { aiUrl ->
-                    val painter = rememberAsyncImagePainter(aiUrl)
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
-                    //glide로 하니까 이미지 로드가 안됨 ㅜㅜㅜㅜ
-//                GlideImage(
-//                    imageModel = replaceAiUrl,
-//                    modifier = Modifier.fillMaxSize(),
-//                    contentScale = ContentScale.Fit
-//                )
-
-                } ?: run {
-                    CircularProgressIndicator()
-                }
-            }
-        }
-        var popupVisibleState by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .weight(2f)
-                .clickable {
-                    popupVisibleState = true
-                }
-        ) {
-            StateScreen(newPopupDetails)
-
-            if (popupVisibleState) {
-                InsertPopup(newPopupDetails, {
-                    newPopupDetails = it
-                }, {
-                    popupVisibleState = false
-                })
+            } ?: run {
+                CircularProgressIndicator()
             }
         }
     }
+
+}
+
+@Composable
+fun HeaderSection(
+    modifier: Modifier,
+    navController: NavHostController,
+    aiResponseData: String?,
+    productsViewModel: ProductViewModel,
+    newPopupDetails: PopupDetails,
+    checkedOption: Int,
+    changeCheckedOpt: (Int) -> Unit
+) {
+    Column(
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Spacer(modifier = Modifier.weight(2f))
+
+            val options = listOf(
+                " 옷 ",
+                "모델"
+            )
+            ChoiceSegButton(options, checkedOption) { changeCheckedOpt(it) }
+            Spacer(modifier = Modifier.weight(1f))
+
+            aiResponseData?.let { aiUrl ->
+                newPopupDetails.aiUrl = aiUrl
+                val coroutineScope = rememberCoroutineScope()
+                val context = LocalContext.current
+
+                Row(
+                    modifier = Modifier.weight(1f),
+                ) {
+                    FunTextButton("저장") {
+                        navController.popBackStack()
+                        saveEvent(coroutineScope, context, newPopupDetails)
+                        productsViewModel.getProductsFromFireStore()
+                    }
+                }
+            } ?: run {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+    }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -468,56 +484,77 @@ private fun saveEvent(
 }
 
 @Composable
-private fun StateScreen(newPopupDetails: PopupDetails) {
+private fun StateScreen(
+    newPopupDetails: PopupDetails,
+    modifier: Modifier,
+    updateDetail: (PopupDetails) -> Unit
+) {
+
+    var popupVisibleState by remember { mutableStateOf(false) }
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
-    ) {
-        Divider(color = colorDang, thickness = 2.dp)
-        Row {
-            Text(text = "제품명: ", color = colorDang)
-            Text(text = newPopupDetails.name)
-        }
-        Divider(color = colorDang, thickness = 2.dp)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-        ) {
-            Text(text = "가격", modifier = Modifier.weight(1f), color = colorDang)
-            Text(text = " ${newPopupDetails.price}", modifier = Modifier.weight(1f))
-
-            Text(text = "거래방법", modifier = Modifier.weight(1f), color = colorDang)
-            Text(text = " ${newPopupDetails.dealMethod}", modifier = Modifier.weight(1f))
-
-            Row(
-                modifier = Modifier.weight(3f)
-            ) {
-                Spacer(modifier = Modifier.size(16.dp, 0.dp))
-                Text(text = "상태", color = colorDang)
-                Spacer(modifier = Modifier.size(16.dp, 0.dp))
-                RatingBar(
-                    value = newPopupDetails.rating,
-                    style = RatingBarStyle.Fill(),
-                    stepSize = StepSize.HALF,
-                    onValueChange = {},
-                    size = 16.dp,
-                    spaceBetween = 2.dp,
-                    onRatingChanged = {
-                        Log.d("TAG", "onRatingChanged: $it")
-                    }
-                )
+        modifier = modifier
+            .clickable {
+                popupVisibleState = true
             }
-        }
-        Divider(color = colorDang, thickness = 2.dp)
-
-        Row(
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp)
-                .horizontalScroll(rememberScrollState())
         ) {
-            Text(text = " \n ${newPopupDetails.productDescription}")
+            Divider(color = colorDang, thickness = 2.dp)
+            Row {
+                Text(text = "제품명: ", color = colorDang)
+                Text(text = newPopupDetails.name)
+            }
+            Divider(color = colorDang, thickness = 2.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+            ) {
+                Text(text = "가격", modifier = Modifier.weight(1f), color = colorDang)
+                Text(text = " ${newPopupDetails.price}", modifier = Modifier.weight(1f))
+
+                Text(text = "거래방법", modifier = Modifier.weight(1f), color = colorDang)
+                Text(text = " ${newPopupDetails.dealMethod}", modifier = Modifier.weight(1f))
+
+                Row(
+                    modifier = Modifier.weight(3f)
+                ) {
+                    Spacer(modifier = Modifier.size(16.dp, 0.dp))
+                    Text(text = "상태", color = colorDang)
+                    Spacer(modifier = Modifier.size(16.dp, 0.dp))
+                    RatingBar(
+                        value = newPopupDetails.rating,
+                        style = RatingBarStyle.Fill(),
+                        stepSize = StepSize.HALF,
+                        onValueChange = {},
+                        size = 16.dp,
+                        spaceBetween = 2.dp,
+                        onRatingChanged = {
+                            Log.d("TAG", "onRatingChanged: $it")
+                        }
+                    )
+                }
+            }
+            Divider(color = colorDang, thickness = 2.dp)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .horizontalScroll(rememberScrollState())
+            ) {
+                Text(text = " \n ${newPopupDetails.productDescription}")
+            }
+        }
+
+        if (popupVisibleState) {
+            InsertPopup(newPopupDetails, {
+                updateDetail(it)
+            }, {
+                popupVisibleState = false
+            })
         }
     }
 }

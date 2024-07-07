@@ -127,7 +127,7 @@ fun ClosetScreen(
         ) {
             SectionHeader(title = "상의")
 
-            if(decorateClickedCategory != "bottom") {
+            if(decorateClickedCategory != "top") {
                 ImageGrid(
                     category = "top",
                     onImageClick = { ref, url, _ ->
@@ -159,7 +159,7 @@ fun ClosetScreen(
             // 하의 섹션
             SectionHeader(title = "하의")
 
-            if(decorateClickedCategory != "top") {
+            if(decorateClickedCategory != "bottom") {
                 ImageGrid(
                     category = "bottom",
                     onImageClick = { ref, url, _ ->
