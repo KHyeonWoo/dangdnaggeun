@@ -3,7 +3,6 @@ package com.khw.computervision
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
@@ -24,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -45,7 +43,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
-import com.canhub.cropper.CropImageView
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
@@ -63,11 +60,33 @@ fun ClosetScreen(
         navController.navigateUp()
     }
 
-    var expandedImage by remember { mutableStateOf<Pair<StorageReference, String>?>(null) }
-    var showImagePicker by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
-    val context = LocalContext.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        HeaderSection(Modifier.weight(1f), closetViewModel, onBackClick)
+        BodySection(
+            navController,
+            Modifier.weight(8f),
+            closetViewModel,
+            beforeScreen,
+            decorateClickedUrl,
+            decorateClickedCategory
+        )
 
+    }
+
+}
+@Composable
+fun HeaderSection(
+    modifier: Modifier,
+    closetViewModel: ClosetViewModel,
+    onBackClick: () -> Unit
+) {
+    var isLoading by remember { mutableStateOf(false) }
+    var showImagePicker by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     val imageCropLauncher =
         rememberLauncherForActivityResult(CropImageContract()) { result ->
             if (result.isSuccessful) {
@@ -93,24 +112,28 @@ fun ClosetScreen(
             }
         }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
+    // 나의 옷장 타이틀과 버튼
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
     ) {
-        HeaderSection(Modifier.weight(1f), isLoading, onBackClick, imageCropLauncher)
-        BodySection(navController,
-            Modifier.weight(8f),
-            closetViewModel,
-            beforeScreen,
-            decorateClickedUrl,
-            decorateClickedCategory
-        ) { expandedImage = it }
-
-    }
-
-    expandedImage?.let { (ref, url) ->
-        ExpandedImageDialog(url = url, onDismiss = { expandedImage = null })
+        if (isLoading) {
+            TopBar(
+                title = "나의 옷장",
+                onBackClick = onBackClick,
+                onAddClick = { },
+                addIcon = Icons.Default.Refresh
+            )
+        } else {
+            TopBar(
+                title = "나의 옷장",
+                onBackClick = onBackClick,
+                onAddClick = {
+                    startImagePicker(imageCropLauncher)
+                },
+                addIcon = Icons.Default.Add
+            )
+        }
     }
 }
 
@@ -122,7 +145,6 @@ private fun BodySection(
     beforeScreen: String?,
     decorateClickedUrl: String?,
     decorateClickedCategory: String?,
-    setExpandedImage: (Pair<StorageReference, String>) -> Unit,
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("상의", "하의")
@@ -155,7 +177,7 @@ private fun BodySection(
             beforeScreen,
             decorateClickedUrl,
             decorateClickedCategory
-        ) {setExpandedImage(it) }
+        )
 
         1 ->
             ImgGridSection(
@@ -166,9 +188,9 @@ private fun BodySection(
                 beforeScreen,
                 decorateClickedUrl,
                 decorateClickedCategory
-            ) {setExpandedImage(it) }
+            )
     }
-    // 상의 섹션
+
 }
 @Composable
 fun ImgGridSection(
@@ -179,8 +201,8 @@ fun ImgGridSection(
     beforeScreen: String?,
     decorateClickedUrl: String?,
     decorateClickedCategory: String?,
-    setExpandedImage: (Pair<StorageReference, String>) -> Unit,
 ) {
+    var expandedImage by remember { mutableStateOf<Pair<StorageReference, String>?>(null) }
     Column(
         modifier = modifier
             .fillMaxWidth(),
@@ -199,7 +221,7 @@ fun ImgGridSection(
                     if (beforeScreen == "decorate") {
                         navController.navigate("decorate/$encodedUrl/top")
                     } else if (beforeScreen == "bottomNav") {
-                        setExpandedImage(Pair(ref, url))
+                        expandedImage = Pair(ref, url)
                     } else if (beforeScreen == "aiImgGen") {
                         val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
                         navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
@@ -217,41 +239,12 @@ fun ImgGridSection(
             Spacer(modifier = Modifier.weight(1f))
         }
     }
-
-}
-
-@Composable
-fun HeaderSection(
-    modifier: Modifier,
-    isLoading: Boolean,
-    onBackClick: () -> Unit,
-    imageCropLauncher: ManagedActivityResultLauncher<CropImageContractOptions, CropImageView.CropResult>
-) {
-
-    // 나의 옷장 타이틀과 버튼
-    Row(
-        modifier = modifier
-            .fillMaxWidth(),
-    ) {
-        if (isLoading) {
-            TopBar(
-                title = "나의 옷장",
-                onBackClick = onBackClick,
-                onAddClick = { },
-                addIcon = Icons.Default.Refresh
-            )
-        } else {
-            TopBar(
-                title = "나의 옷장",
-                onBackClick = onBackClick,
-                onAddClick = {
-                    startImagePicker(imageCropLauncher)
-                },
-                addIcon = Icons.Default.Add
-            )
-        }
+    expandedImage?.let { (ref, url) ->
+        ExpandedImageDialog(url = url, onDismiss = { expandedImage = null })
     }
+
 }
+
 
 
 @Composable
