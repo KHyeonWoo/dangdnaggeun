@@ -503,7 +503,12 @@ fun TopBar(
                 )
             }
         }
-        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
+
+        Row {
+            Spacer(modifier = Modifier.weight(1f))
+            HorizontalDivider(color = colorDang, modifier = Modifier.weight(8f))
+            Spacer(modifier = Modifier.weight(1f))
+        }
 
     }
 }

@@ -332,7 +332,7 @@ fun DecorateScreen(
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
-            if(encodedClickedUrl == ""){
+            if(encodedClickedUrl == " "){
                 Image(
                     painter = gifImageDecode(R.raw.dangkki_closetimage2),
                     contentDescription = "mascot",

@@ -3,6 +3,7 @@ package com.khw.computervision
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
@@ -14,9 +15,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.Tab
+import androidx.compose.material.TabRow
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -25,6 +27,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,6 +45,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
@@ -95,26 +99,14 @@ fun ClosetScreen(
             .background(Color.White)
     ) {
         HeaderSection(Modifier.weight(1f), isLoading, onBackClick, imageCropLauncher)
-        ImgGridSection(
-            Modifier.weight(5f),
-            "top",
-            navController,
+        BodySection(navController,
+            Modifier.weight(8f),
             closetViewModel,
             beforeScreen,
             decorateClickedUrl,
             decorateClickedCategory
         ) { expandedImage = it }
-        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
-        // 상의 섹션
-        ImgGridSection(
-            Modifier.weight(5f),
-            "bottom",
-            navController,
-            closetViewModel,
-            beforeScreen,
-            decorateClickedUrl,
-            decorateClickedCategory
-        ) { expandedImage = it }
+
     }
 
     expandedImage?.let { (ref, url) ->
@@ -122,6 +114,62 @@ fun ClosetScreen(
     }
 }
 
+@Composable
+private fun BodySection(
+    navController: NavHostController,
+    modifier: Modifier,
+    closetViewModel: ClosetViewModel,
+    beforeScreen: String?,
+    decorateClickedUrl: String?,
+    decorateClickedCategory: String?,
+    setExpandedImage: (Pair<StorageReference, String>) -> Unit,
+) {
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("상의", "하의")
+    TabRow(
+        selectedTabIndex = selectedTabIndex,
+        contentColor = colorDang,
+        backgroundColor = Color.White,
+        modifier = Modifier.padding(0.dp, 4.dp)
+    ) {
+        tabs.forEachIndexed { index, title ->
+            Tab(
+                selected = selectedTabIndex == index,
+                onClick = { selectedTabIndex = index },
+                text = {
+                    Text(
+                        title,
+                        fontSize = 16.sp,
+                        color = Color.Black
+                    )
+                }
+            )
+        }
+    }
+    when (selectedTabIndex) {
+        0 -> ImgGridSection(
+            modifier,
+            "top",
+            navController,
+            closetViewModel,
+            beforeScreen,
+            decorateClickedUrl,
+            decorateClickedCategory
+        ) {setExpandedImage(it) }
+
+        1 ->
+            ImgGridSection(
+                modifier,
+                "bottom",
+                navController,
+                closetViewModel,
+                beforeScreen,
+                decorateClickedUrl,
+                decorateClickedCategory
+            ) {setExpandedImage(it) }
+    }
+    // 상의 섹션
+}
 @Composable
 fun ImgGridSection(
     modifier: Modifier,
@@ -137,7 +185,11 @@ fun ImgGridSection(
         modifier = modifier
             .fillMaxWidth(),
     ) {
-        SectionHeader(title = "상의")
+        val (headerName, choiceMessage) = when (category) {
+            "top" -> "상의" to "하의를 선택하세요"
+            else -> "하의" to "상의를 선택하세요"
+        }
+        SectionHeader(title = headerName)
 
         if (decorateClickedCategory != category) {
             ImageGrid(
@@ -158,7 +210,7 @@ fun ImgGridSection(
         } else {
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "하의를 선택하세요",
+                text = choiceMessage,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -199,7 +251,6 @@ fun HeaderSection(
             )
         }
     }
-    HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
 }
 
 

@@ -421,7 +421,7 @@ private fun HeaderSection(
 
 
 @Composable
-fun BodySection(
+private fun BodySection(
     modifier: Modifier,
     gender: Boolean,
     changeWoman: () -> Unit,
