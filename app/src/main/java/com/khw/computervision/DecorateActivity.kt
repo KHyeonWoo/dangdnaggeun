@@ -323,8 +323,6 @@ fun DecorateScreen(
             addIcon = Icons.Default.KeyboardArrowRight
         )
 
-        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
-
         Column(
             modifier = Modifier
                 .fillMaxWidth(),

@@ -102,7 +102,7 @@ fun LogoScreen(activityName: String, goBack: () -> Unit) {
         }
         Text(
             text = "당당하게 거래해요",
-            fontSize = 24.sp,
+            fontSize = 20.sp,
             color = colorDang,
             modifier = Modifier.clickable {
                 if (activityName != "Login" && activityName != "Sales") {
@@ -478,7 +478,7 @@ fun TopBar(
                     tint = Color.Black
                 )
             }
-            Spacer(modifier = Modifier.weight(.5f))
+            Spacer(modifier = Modifier.weight(.1f))
             androidx.compose.material.Text(
                 text = title,
                 fontSize = 16.sp,
