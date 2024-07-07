@@ -22,7 +22,7 @@ android {
         versionName = "1.0"
         buildConfigField("String", "OPENAI_API_KEY", getApiKey())
 
-        val keystoreFile = project.rootProject.file("key.properties")
+        val keystoreFile = project.rootProject.file("local.properties")
         val properties = Properties()
         properties.load(keystoreFile.inputStream())
 
