@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.Tab
+import androidx.compose.material.TabRow
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -89,45 +91,143 @@ fun ClosetScreen(
             }
         }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        // 나의 옷장 타이틀과 버튼
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        ) {
-            if(isLoading) {
-                TopBar(
-                    title = "나의 옷장",
-                    onBackClick = onBackClick,
-                    onAddClick = { },
-                    addIcon = Icons.Default.Refresh
-                )
-            } else {
-                TopBar(
-                    title = "나의 옷장",
-                    onBackClick = onBackClick,
-                    onAddClick = {
-                        startImagePicker(imageCropLauncher)
-                    },
-                    addIcon = Icons.Default.Add
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(Color.White)
+//    ) {
+//        // 나의 옷장 타이틀과 버튼
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .weight(1f),
+//        ) {
+//            if(isLoading) {
+//                TopBar(
+//                    title = "나의 옷장",
+//                    onBackClick = onBackClick,
+//                    onAddClick = { },
+//                    addIcon = Icons.Default.Refresh
+//                )
+//            } else {
+//                TopBar(
+//                    title = "나의 옷장",
+//                    onBackClick = onBackClick,
+//                    onAddClick = {
+//                        startImagePicker(imageCropLauncher)
+//                    },
+//                    addIcon = Icons.Default.Add
+//                )
+//            }
+//        }
+//        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
+//        // 상의 섹션
+//        Column(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .weight(5f),
+//        ) {
+//            SectionHeader(title = "상의")
+//
+//            if(decorateClickedCategory != "top") {
+//                ImageGrid(
+//                    category = "top",
+//                    onImageClick = { ref, url, _ ->
+//                        val encodedUrl = encodeUrl(url)
+//                        if (beforeScreen == "decorate") {
+//                            navController.navigate("decorate/$encodedUrl/top")
+//                        } else if (beforeScreen == "bottomNav") {
+//                            expandedImage = Pair(ref, url)
+//                        } else if (beforeScreen == "aiImgGen") {
+//                            val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
+//                            navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
+//                        }
+//                    },
+//                    closetViewModel = closetViewModel
+//                )
+//            } else {
+//                Spacer(modifier = Modifier.weight(1f))
+//                Text(text = "하의를 선택하세요", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+//                Spacer(modifier = Modifier.weight(1f))
+//            }
+//        }
+//
+//        Column(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .weight(5f),
+//        ) {
+//            HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
+//            // 하의 섹션
+//            SectionHeader(title = "하의")
+//
+//            if(decorateClickedCategory != "bottom") {
+//                ImageGrid(
+//                    category = "bottom",
+//                    onImageClick = { ref, url, _ ->
+//                        val encodedUrl = encodeUrl(url)
+//                        if (beforeScreen == "decorate") {
+//                            navController.navigate("decorate/$encodedUrl/bottom")
+//                        } else if (beforeScreen == "bottomNav") {
+//                            expandedImage = Pair(ref, url)
+//                        } else if (beforeScreen == "aiImgGen") {
+//                            val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
+//                            navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
+//                        }
+//                    },
+//                    closetViewModel = closetViewModel
+//                )
+//            } else {
+//                Spacer(modifier = Modifier.weight(1f))
+//                Text(text = "상의를 선택하세요", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+//                Spacer(modifier = Modifier.weight(1f))
+//            }
+//        }
+//    }
+
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    val tabs = listOf("상의", "하의")
+
+    Column {
+        if (isLoading) {
+
+            TopBar(
+                title = "나의 옷장",
+                onBackClick = onBackClick,
+                onAddClick = { },
+                addIcon = Icons.Default.Refresh
+            )
+        } else {
+            TopBar(
+                title = "나의 옷장",
+                onBackClick = onBackClick,
+                onAddClick = {
+                    startImagePicker(imageCropLauncher)
+                },
+                addIcon = Icons.Default.Add
+            )
+        }
+
+        TabRow(selectedTabIndex = selectedTabIndex,
+            contentColor = colorDang,
+            backgroundColor = Color.White,
+            modifier = Modifier.padding(0.dp,4.dp)
+            ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTabIndex == index,
+                    onClick = { selectedTabIndex = index },
+                    text = { Text(
+                        title,
+                        fontSize = 16.sp,
+                        color = Color.Black
+                    ) }
                 )
             }
         }
-        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
-        // 상의 섹션
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(5f),
-        ) {
-            SectionHeader(title = "상의")
 
-            if(decorateClickedCategory != "top") {
+        when (selectedTabIndex) {
+            0 -> if (decorateClickedCategory != "top") {
                 ImageGrid(
                     category = "top",
                     onImageClick = { ref, url, _ ->
@@ -145,43 +245,42 @@ fun ClosetScreen(
                 )
             } else {
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "하의를 선택하세요", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.weight(1f))
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(5f),
-        ) {
-            HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
-            // 하의 섹션
-            SectionHeader(title = "하의")
-
-            if(decorateClickedCategory != "bottom") {
-                ImageGrid(
-                    category = "bottom",
-                    onImageClick = { ref, url, _ ->
-                        val encodedUrl = encodeUrl(url)
-                        if (beforeScreen == "decorate") {
-                            navController.navigate("decorate/$encodedUrl/bottom")
-                        } else if (beforeScreen == "bottomNav") {
-                            expandedImage = Pair(ref, url)
-                        } else if (beforeScreen == "aiImgGen") {
-                            val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
-                            navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
-                        }
-                    },
-                    closetViewModel = closetViewModel
+                Text(
+                    text = "하의를 선택하세요",
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
                 )
-            } else {
-                Spacer(modifier = Modifier.weight(1f))
-                Text(text = "상의를 선택하세요", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                 Spacer(modifier = Modifier.weight(1f))
             }
+
+            1 -> if (decorateClickedCategory != "bottom") {
+                    ImageGrid(
+                        category = "bottom",
+                        onImageClick = { ref, url, _ ->
+                            val encodedUrl = encodeUrl(url)
+                            if (beforeScreen == "decorate") {
+                                navController.navigate("decorate/$encodedUrl/bottom")
+                            } else if (beforeScreen == "bottomNav") {
+                                expandedImage = Pair(ref, url)
+                            } else if (beforeScreen == "aiImgGen") {
+                                val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
+                                navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
+                            }
+                        },
+                        closetViewModel = closetViewModel
+                    )
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text(
+                        text = "상의를 선택하세요",
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                }
         }
     }
+
 
     expandedImage?.let { (ref, url) ->
         ExpandedImageDialog(url = url, onDismiss = { expandedImage = null })

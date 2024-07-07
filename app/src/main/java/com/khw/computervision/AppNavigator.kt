@@ -58,7 +58,7 @@ class AppNavigator : ComponentActivity() {
                 Scaffold(
                     topBar = {
                         if (shouldShowTopBar(navController)) {
-                            LogoScreen("Detail") { navController.popBackStack() }
+                            LogoScreen("") { navController.popBackStack() }
                         }
                     },
                     bottomBar = {
@@ -207,7 +207,12 @@ data class BottomNavItem(
 fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
 
     val items = listOf(
-        BottomNavItem("sales", icon = Icons.Default.Home, iconPainter = null, "홈"),
+        BottomNavItem(
+            "sales",
+            icon = Icons.Default.Home,
+            iconPainter = null,
+            "홈"
+        ),
         BottomNavItem(
             "closet/bottomNav/ / ",
             icon = null,
@@ -235,7 +240,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
     )
 
     BottomNavigation(
-        backgroundColor = Color.White,
+        backgroundColor = Color(0xFFF9F4EE),
         modifier = Modifier
             .height(60.dp)
             .border(
@@ -263,7 +268,6 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                                 .size(25.dp)
                         )
                     }
-
                 },
                 label = {
                     Text(
