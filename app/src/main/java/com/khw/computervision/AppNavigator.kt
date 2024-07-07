@@ -15,24 +15,22 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -41,8 +39,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import coil.compose.AsyncImagePainter.State.Empty.painter
-import coil.compose.ImagePainter
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.gson.Gson
@@ -58,6 +54,7 @@ class AppNavigator : ComponentActivity() {
                 val aiViewModel: AiViewModel = viewModel() // aiViewModel 인스턴스 생성
                 val closetViewModel: ClosetViewModel = viewModel() // closetViewModel 인스턴스 생성
                 val productsViewModel: ProductViewModel = viewModel() // productsViewModel 인스턴스 생성
+                val chatViewModel: ChatViewModel = viewModel() // chatViewModel 인스턴스 생성
 
                 Scaffold(
                     topBar = {
@@ -76,21 +73,22 @@ class AppNavigator : ComponentActivity() {
                         startDestination = "login",
                         modifier = Modifier.padding(innerPadding)
                     ) {
-                        composable("closet") {
-                            CustomImageGridPage(
-                                isLoading = false,
+                        composable(
+                            "closet/{beforeScreen}",
+                            arguments = listOf(navArgument("beforeScreen") {
+                                type = NavType.StringType
+                            }
+                            )
+
+                        ) { backStackEntry ->
+                            ClosetScreen(
                                 closetViewModel = closetViewModel,
-                                onImageClick = { storageReference, string1, string2 ->
-                                    // onImageClick 로직 추가
-                                },
                                 onBackClick = {
                                     // 뒤로 가기 로직 추가
                                     navController.popBackStack()
                                 },
-                                onAddClick = {
-                                    // 추가 버튼 클릭 시 로직 추가
-                                },
-                                navController
+                                navController,
+                                backStackEntry.arguments?.getString("beforeScreen")
                             )
                         }
                         composable("login") {
@@ -126,9 +124,18 @@ class AppNavigator : ComponentActivity() {
 //                            )
 //                        }
                         composable(
-                            "decorate"
-                        ) {
-                            DecorateScreen(navController, "", closetViewModel)
+                            "decorate/{encodedClickedUrl}/{clickedCategory}",
+                            arguments = listOf(
+                                navArgument("encodedClickedUrl") { type = NavType.StringType },
+                                navArgument("clickedCategory") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            DecorateScreen(
+                                navController,
+                                backStackEntry.arguments?.getString("encodedClickedUrl") ?: "",
+                                backStackEntry.arguments?.getString("clickedCategory") ?: "",
+                                closetViewModel
+                            )
                         }
                         composable(
                             "aiImgGen/{encodedClickedUrl}/{clickedCategory}",
@@ -166,11 +173,31 @@ class AppNavigator : ComponentActivity() {
                                 type = NavType.StringType
                             })
                         ) { _ ->
-                            ProfileScreen()
+                            ProfileScreen(navController)
                         }
-                        composable("messageList") {
-                            val messageMap = getMessage()
-                            MessageScreen(messageMap, "User's Image")
+//                        composable("messageList") {
+//                            val messageMap = getMessage()
+//                            MessageScreen(messageMap, "User's Image")
+//                        }
+                        composable("myUploaded") {
+                            MyUploadedScreen(productsViewModel)
+                        }
+                        composable("myLiked") {
+                            MyLikedScreen(productsViewModel)
+                        }
+                        composable("chatListScreen") {
+                            ChatListScreen(navController, chatViewModel)
+                        }
+                        composable("messageScreen/{otherUserID}/{otherUserProfile}",
+                            arguments = listOf(
+                                navArgument("otherUserID") { type = NavType.StringType },
+                                navArgument("otherUserProfile") { type = NavType.StringType }
+                            )) { backStackEntry ->
+                            MessageScreen(
+                                chatViewModel,
+                                backStackEntry.arguments?.getString("otherUserID") ?: "",
+                                backStackEntry.arguments?.getString("otherUserProfile") ?: ""
+                            )
                         }
                     }
                 }
@@ -192,14 +219,24 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
     val items = listOf(
         BottomNavItem("sales", icon = Icons.Default.Home, iconPainter = null, "홈"),
         BottomNavItem(
-            "closet",
+            "closet/bottomNav",
             icon = null,
             iconPainter = painterResource(id = R.drawable.closet_icon),
             "옷장"
         ),
-        BottomNavItem("decorate", icon = Icons.Default.AddCircle, iconPainter = null, "판매글 등록"),
-        BottomNavItem("messageList", icon = Icons.Default.MailOutline, iconPainter = null, "메시지"),
-        BottomNavItem("profile/{profileUrl}", icon = Icons.Default.Person, iconPainter = null, "프로필")
+        BottomNavItem(
+            "decorate/encodedClickedUrl/clickedCategory",
+            icon = Icons.Default.AddCircle,
+            iconPainter = null,
+            "판매글 등록"
+        ),
+        BottomNavItem("chatListScreen", icon = Icons.Default.MailOutline, iconPainter = null, "메시지"),
+        BottomNavItem(
+            "profile/{profileUrl}",
+            icon = Icons.Default.Person,
+            iconPainter = null,
+            "프로필"
+        )
     )
 
     BottomNavigation(
@@ -226,7 +263,9 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                         item.iconPainter != null -> Icon(
                             painter = item.iconPainter,
                             contentDescription = item.label,
-                            modifier = Modifier.padding(3.dp).size(25.dp)
+                            modifier = Modifier
+                                .padding(3.dp)
+                                .size(25.dp)
                         )
                     }
 
@@ -235,6 +274,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                     Text(
                         item.label,
                         maxLines = if (item.label == "판매글 등록") Int.MAX_VALUE else 1,
+                        fontSize = 10.sp
                     )
                 },
                 selectedContentColor = colorDang,

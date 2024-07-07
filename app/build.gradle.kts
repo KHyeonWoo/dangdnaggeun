@@ -1,7 +1,13 @@
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
+    //gpt통신위한 plugin
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 android {
@@ -14,6 +20,19 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "OPENAI_API_KEY", getApiKey())
+
+        val keystoreFile = project.rootProject.file("key.properties")
+        val properties = Properties()
+        properties.load(keystoreFile.inputStream())
+
+        val naverClientId = properties.getProperty("naverClientId")
+
+        buildConfigField(
+            type = "String",
+            name = "naverClientId",
+            value = naverClientId
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -39,6 +58,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -49,6 +69,19 @@ android {
         }
     }
 }
+
+//chatgptAPI키 관리
+fun getApiKey(): String {
+    val properties = Properties()
+    val propFile = rootProject.file("local.properties")
+    if (propFile.exists()) {
+        properties.load(FileInputStream(propFile))
+        return "\"${properties.getProperty("OPENAI_API_KEY")}\""
+    } else {
+        throw FileNotFoundException("local.properties file not found")
+    }
+}
+
 
 dependencies {
 
@@ -65,8 +98,9 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.compose.material)
+//    implementation(libs.androidx.compose.material)
     implementation(libs.androidx.material3.android)
+    implementation(libs.firebase.database)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -97,5 +131,10 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-placeholder-material:0.24.13-rc")
     //  권한 설정하는 종속성 - kh
     implementation ("com.google.accompanist:accompanist-permissions:0.24.13-rc")
+    // 네이버 지도 -dh
+    implementation ("com.naver.maps:map-sdk:3.18.0")
 
+    // kotlinx.serialization 종속성 추가 - kh
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
+
