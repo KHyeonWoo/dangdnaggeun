@@ -6,7 +6,10 @@ import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.location.Address
 import android.location.Geocoder
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
@@ -27,10 +30,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +54,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.canhub.cropper.CropImage
@@ -74,6 +80,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import sendChatGPTRequest
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.time.LocalDateTime
 import java.util.Locale
 
@@ -346,6 +353,7 @@ fun InsertPopup(
     var dealMethod: String by remember { mutableStateOf(newPopupDetails.dealMethod) }
     var rating: Float by remember { mutableFloatStateOf(newPopupDetails.rating) }
     var productDescription: String by remember { mutableStateOf(newPopupDetails.productDescription) }
+    var address: String? by remember { mutableStateOf(null) }  // 주소 상태 추가
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -356,7 +364,10 @@ fun InsertPopup(
         Column {
             var showMapPopup by remember { mutableStateOf(false) }
             if (showMapPopup) {
-                MapPopup(close = { showMapPopup = false })
+                // 주소 업데이트 콜백을 MapPopup에 전달
+                MapPopup(close = { showMapPopup = false }, onAddressSelected = { selectedAddress ->
+                    address = selectedAddress
+                })
             }
             Spacer(modifier = Modifier.height(20.dp))
             OutlinedTextField(
@@ -419,7 +430,8 @@ fun InsertPopup(
                 Button(onClick = { showMapPopup = true }) {
                     Text("지도 보기")
                 }
-                Text(text = "거래 위치: ${UserIDManager.userAddress.value}")
+                // 거래 위치에 address를 표시
+                Text(text = "거래 위치: ${address ?: "위치를 선택해주세요"}")
             }
             OutlinedTextField(
                 value = productDescription,
@@ -502,29 +514,51 @@ fun InsertPopup(
     })
 }
 
-//20240705 신동환 네이버 지도입니다
+//20240707 신동환 네이버 지도입니다
 @Composable
-fun MapPopup(close: () -> Unit) {
-    AlertDialog(onDismissRequest = { close() },
-        confirmButton = { /*TODO*/ },
-        title = { Text(text = "") },
-        text = {
-            Column {
-                NaverMapView()
+fun MapPopup(close: () -> Unit, onAddressSelected: (String) -> Unit) {
+    var address by remember { mutableStateOf<String?>(null) }
+
+    Dialog(onDismissRequest = { close() }) {
+        Surface(
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colors.background
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                NaverMapView(address = address, onAddressChange = { newAddress ->
+                    address = newAddress
+                })
+                Spacer(modifier = Modifier.height(16.dp))
+                Row {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Button(onClick = {
+                        address?.let { onAddressSelected(it) }  // 선택된 주소를 콜백으로 전달
+                        close()
+                    }) {
+                        Text("확인")
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Button(onClick = { close() }) {
+                        Text("닫기")
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
-        },
-        dismissButton = {
-            Button(onClick = { close() }) {
-                Text("닫기")
-            }
-        })
+        }
+    }
 }
 
 @Composable
-fun NaverMapView() {
+fun NaverMapView(
+    address: String?,
+    onAddressChange: (String) -> Unit
+) {
     val context = LocalContext.current
     var naverMap by remember { mutableStateOf<NaverMap?>(null) }
     var currentLocation by remember { mutableStateOf<LatLng?>(null) }
+    var marker by remember { mutableStateOf<Marker?>(null) }
+    val handler = remember { Handler(Looper.getMainLooper()) }
+    var isCameraMoving by remember { mutableStateOf(false) }
 
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
@@ -534,12 +568,33 @@ fun NaverMapView() {
         if (map != null && location != null) {
             val cameraUpdate = CameraUpdate.scrollTo(location)
             map.moveCamera(cameraUpdate)
+        }
+    }
 
-            // 현재 위치에 마커 추가
-            Marker().apply {
+    fun updateMarkerLocation(location: LatLng) {
+        val map = naverMap
+        if (map != null) {
+            marker?.map = null // Remove previous marker if any
+            marker = Marker().apply {
                 position = location
                 this.map = map
             }
+        }
+    }
+
+    fun fetchAddress(location: LatLng) {
+        // Reverse geocode to get address
+        val geocoder = Geocoder(context, Locale.getDefault())
+        try {
+            val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+            if (addresses != null && addresses.isNotEmpty()) {
+                onAddressChange(addresses[0].getAddressLine(0))
+            } else {
+                onAddressChange("주소를 찾을 수 없습니다")
+            }
+        } catch (e: IOException) {
+            onAddressChange("주소를 가져오는 데 실패했습니다")
+            Log.e("NaverMapView", "Geocoder failed", e)
         }
     }
 
@@ -561,10 +616,7 @@ fun NaverMapView() {
                     updateMapWithLocation()
                 } else {
                     // 위치 정보를 가져오는 데 실패한 경우의 처리
-                    // 예: 기본 위치 설정 또는 사용자에게 오류 메시지 표시
                     Log.e("NaverMapView", "Failed to get location", task.exception)
-                    // 여기에 기본 위치 설정이나 오류 메시지 표시 로직을 추가할 수 있습니다.
-                    // 예: currentLocation = LatLng(37.5665, 126.9780) // 서울 시청
                 }
             }
         } else {
@@ -572,16 +624,41 @@ fun NaverMapView() {
         }
     }
 
-    AndroidView(
-        factory = { content ->
-            MapView(content).apply {
-                getMapAsync { map ->
-                    naverMap = map
-                    map.minZoom = 6.0
-                    map.maxZoom = 18.0
-                    updateMapWithLocation()
+    Column {
+        AndroidView(
+            factory = { content ->
+                MapView(content).apply {
+                    getMapAsync { map ->
+                        naverMap = map
+                        map.minZoom = 6.0
+                        map.maxZoom = 18.0
+                        map.addOnCameraChangeListener { reason, animated ->
+                            val targetLocation = map.cameraPosition.target
+                            updateMarkerLocation(targetLocation)
+                            isCameraMoving = true
+                            handler.removeCallbacksAndMessages(null)
+                            handler.postDelayed({
+                                fetchAddress(targetLocation)
+                                isCameraMoving = false
+                            }, 100) // Adjust the delay as needed
+                        }
+                        updateMapWithLocation()
+                    }
                 }
-            }
-        }, modifier = Modifier.fillMaxSize()
-    )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp) // You can adjust the height as needed
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = if (isCameraMoving) "주소를 가져오는 중..." else address ?: "주소를 가져오는 중...",
+            modifier = Modifier.padding(16.dp)
+        )
+    }
 }
+
+
+

@@ -3,7 +3,6 @@ package com.khw.computervision
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
@@ -43,7 +42,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
-import com.canhub.cropper.CropImageView
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage

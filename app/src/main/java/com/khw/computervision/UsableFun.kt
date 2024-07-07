@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -107,8 +109,8 @@ fun LogoScreen(activityName: String, goBack: () -> Unit) {
             Spacer(modifier = Modifier.height(20.dp))
         }
         Text(
-            text = "당당근",
-            fontSize = 50.sp,
+            text = "당당하게 거래해요",
+            fontSize = 24.sp,
             color = colorDang,
             modifier = Modifier.clickable {
                 if (activityName != "Login" && activityName != "Sales") {
@@ -469,33 +471,39 @@ fun TopBar(
     onAddClick: () -> Unit,
     addIcon: ImageVector
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        IconButton(onClick = onBackClick) {
-            androidx.compose.material.Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = colorDang
+    Column(horizontalAlignment = Alignment.CenterHorizontally){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            IconButton(onClick = onBackClick) {
+                androidx.compose.material.Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.Black
+                )
+            }
+            Spacer(modifier = Modifier.weight(.5f))
+            androidx.compose.material.Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.weight(5f))
+            IconButton(onClick = onAddClick) {
+                androidx.compose.material.Icon(
+                    addIcon,
+                    contentDescription = "Add",
+                    tint = Color.Black
+                )
+            }
         }
-
-        androidx.compose.material.Text(
-            text = title,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = colorDang,
-            modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
-        )
-
-        IconButton(onClick = onAddClick) {
-            androidx.compose.material.Icon(addIcon, contentDescription = "Add", tint = colorDang)
-        }
+        HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
 
     }
 }

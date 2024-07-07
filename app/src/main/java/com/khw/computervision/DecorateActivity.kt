@@ -332,16 +332,16 @@ fun DecorateScreen(
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
-            if(encodedClickedUrl != " "){
-                val painter = rememberAsyncImagePainter(encodedClickedUrl)
+            if(encodedClickedUrl == ""){
                 Image(
-                    painter = painter,
+                    painter = gifImageDecode(R.raw.dangkki_closetimage2),
                     contentDescription = "mascot",
                     modifier = Modifier.aspectRatio(1f)
                 )
             } else {
+                val painter = rememberAsyncImagePainter(encodedClickedUrl)
                 Image(
-                    painter = gifImageDecode(R.raw.dangkki_closetimage),
+                    painter = painter,
                     contentDescription = "mascot",
                     modifier = Modifier.aspectRatio(1f)
                 )

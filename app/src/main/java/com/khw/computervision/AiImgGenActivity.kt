@@ -391,7 +391,32 @@ private fun HeaderSection(
         },
         addIcon = Icons.Default.KeyboardArrowRight
     )
-    HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
+
+//        Row(
+//            modifier = Modifier.align(Alignment.BottomEnd)
+//        ) {
+//            val modelGender = if (gender) "2" else "1"
+//
+//            FunTextButton(buttonText = "다음") {
+//
+//                viewModel.resetResponseData()
+//                if (clickedCategory == "top") {
+//                    viewModel.sendServerRequest(
+//                        topURL = clickedUrl,
+//                        bottomURL = extraClickedUrl,
+//                        gender = modelGender,
+//                    )
+//                } else if (clickedCategory == "bottom") {
+//                    viewModel.sendServerRequest(
+//                        topURL = extraClickedUrl,
+//                        bottomURL = clickedUrl,
+//                        gender = modelGender,
+//                    )
+//                }
+//                val encodeClickedUrl = encodeUrl(clickedUrl)
+//                navController.navigate("insert/$encodeClickedUrl/$clickedCategory")
+//            }
+//        }
 }
 
 
