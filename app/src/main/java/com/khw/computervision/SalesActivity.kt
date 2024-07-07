@@ -1,14 +1,11 @@
 package com.khw.computervision
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,8 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.Text
@@ -28,10 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -41,13 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.ktx.firestore
@@ -310,103 +298,109 @@ fun ImageList(
         }
 
         val productFavoriteData by productsViewModel.totalLikedData.observeAsState()
-        var sortedProductData by remember {
-            mutableStateOf(searchedProductData)
+        var sortedKeyList by remember {
+            mutableStateOf(emptyList<String>())
         }
-        productData?.let { productMap ->
+
+// 검색된 데이터가 null이 아닌 경우 정렬을 수행
+        searchedProductData?.let { searchedProductMap ->
             productFavoriteData?.let { productFavoriteMap ->
-                if (sortOpt == "liked") {
-                    val sortedLikedList =
-                        productFavoriteMap.entries.sortedBy { it.value[sortOpt] }.map { it.key }
-                    sortedProductData = sortedLikedList.mapNotNull { key ->
-                        productMap[key]?.let { key to it }
-                    }.toMap()
+                sortedKeyList = if (sortOpt == "liked") {
+                    // 좋아요 기준으로 정렬된 리스트 생성
+                    productFavoriteMap.entries.sortedByDescending { it.value[sortOpt] }
+                        .map { it.key }
                 } else {
-                    sortedProductData = searchedProductData
+                    // 정렬 옵션이 "liked"가 아닌 경우 검색된 데이터를 그대로 사용
+                    searchedProductMap.keys.toList()
                 }
             }
-
         }
 
-        sortedProductData?.entries?.chunked(2)?.forEach { chunkedProduct ->
+        val sortedSearchedProductData = sortedKeyList.mapNotNull { key ->
+            key to searchedProductData?.get(key)
+        }.toMap()
+
+        sortedKeyList.chunked(2).forEach { chunkedKeys ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                for ((key, value) in chunkedProduct) {
+                chunkedKeys.forEach { key ->
+                    val value = sortedSearchedProductData[key]
                     val totalLiked = productFavoriteData?.get(key)
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                Firebase.firestore
-                                    .collection("favoriteProduct")
-                                    .document(key)
-                                    .update("viewCount",
-                                        totalLiked
-                                            ?.get("viewCount")
-                                            ?.let { it.toInt() + 1 } ?: 1
-                                    )
-                                productsViewModel.getTotalLikedFromFireStore()
-                                navController.navigate("detailProduct/$key")
-                            },
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        if (value["category"] == categoryOption) {
-                            val painter = rememberAsyncImagePainter(value["imageUrl"])
-                            Image(
-                                painter = painter,
-                                contentDescription = "Image",
-                                contentScale = ContentScale.FillBounds,
-                                modifier = Modifier
-                                    .size(136.dp, 136.dp)
-                                    .border(
-                                        2.dp,
-                                        color = colorDang,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                            )
-
-                            Column(
-                                modifier = Modifier
-                                    .size(136.dp, 80.dp)
-                                    .border(
-                                        2.dp,
-                                        color = colorDang,
-                                        shape = RoundedCornerShape(8.dp)
-                                    )
-                            ) {
-                                Row(
+                    value?.let { product ->
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable {
+                                    Firebase.firestore
+                                        .collection("favoriteProduct")
+                                        .document(key)
+                                        .update("viewCount",
+                                            totalLiked
+                                                ?.get("viewCount")
+                                                ?.let { it.toInt() + 1 } ?: 1
+                                        )
+                                    productsViewModel.getTotalLikedFromFireStore()
+                                    navController.navigate("detailProduct/$key")
+                                },
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            if (product["category"] == categoryOption) {
+                                val painter = rememberAsyncImagePainter(product["imageUrl"])
+                                Image(
+                                    painter = painter,
+                                    contentDescription = "Image",
+                                    contentScale = ContentScale.FillBounds,
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 4.dp)
-                                ) {
-                                    Column {
-                                        Text(text = "상품명")
-                                        value["name"]?.let { Text(text = it) }
-                                        value["price"]?.let {
-                                            Text(text = "$${it}원")
-                                        }
-                                        Spacer(modifier = Modifier.weight(1f))
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(end = 4.dp)
-                                        ) {
+                                        .size(136.dp, 136.dp)
+                                        .border(
+                                            2.dp,
+                                            color = colorDang,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                )
 
-                                            totalLiked?.get("viewCount")
-                                                ?.let { Text(text = "조회수 : $it") }
+                                Column(
+                                    modifier = Modifier
+                                        .size(136.dp, 80.dp)
+                                        .border(
+                                            2.dp,
+                                            color = colorDang,
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 4.dp)
+                                    ) {
+                                        Column {
+                                            Text(text = "상품명")
+                                            product["name"]?.let { Text(text = it) }
+                                            product["price"]?.let {
+                                                Text(text = "$${it}원")
+                                            }
                                             Spacer(modifier = Modifier.weight(1f))
-                                            totalLiked?.get("liked")
-                                                ?.let { Text(text = "좋아요 : $it") }
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(end = 4.dp)
+                                            ) {
+                                                totalLiked?.get("liked")
+                                                    ?.let { Text(text = "좋아요 : $it") }
+                                                Spacer(modifier = Modifier.weight(1f))
+                                                totalLiked?.get("viewCount")
+                                                    ?.let { Text(text = "조회수 : $it") }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    if (chunkedProduct.size != 2) {
+                    if (chunkedKeys.size != 2) {
                         Box(modifier = Modifier.weight(1f))
                     }
                 }
@@ -415,65 +409,3 @@ fun ImageList(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CustomOutlinedTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    readOnly: Boolean = false,
-    label: @Composable() (() -> Unit)? = null,
-    placeholder: @Composable() (() -> Unit)? = null,
-    leadingIcon: @Composable() (() -> Unit)? = null,
-    trailingIcon: @Composable() (() -> Unit)? = null,
-    isError: Boolean = false,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    singleLine: Boolean = true,
-    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 4.dp) // 텍스트 상하 여백 줄이기
-    ) {
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            enabled = enabled,
-            readOnly = readOnly,
-            textStyle = TextStyle(
-                fontSize = 16.sp, // 원하는 글자 크기로 설정
-                color = Color.Black
-            ),
-            singleLine = singleLine,
-            maxLines = maxLines,
-            keyboardOptions = keyboardOptions,
-            cursorBrush = SolidColor(Color.Black),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(4.dp),
-            decorationBox = { innerTextField ->
-                // OutlinedTextField 스타일의 테두리를 적용
-                OutlinedTextFieldDefaults.DecorationBox(
-                    value = value,
-                    visualTransformation = VisualTransformation.None,
-                    innerTextField = innerTextField,
-                    placeholder = placeholder,
-                    label = label,
-                    leadingIcon = leadingIcon,
-                    trailingIcon = trailingIcon,
-                    singleLine = singleLine,
-                    enabled = enabled,
-                    isError = isError,
-                    interactionSource = remember { MutableInteractionSource() },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = colorDang,  // 테두리 색상을 하얀색으로 설정
-                        focusedBorderColor = colorDang     // 포커스된 상태의 테두리 색상을 하얀색으로 설정
-                    ),
-                    contentPadding = PaddingValues(0.dp) // 내부 여백을 0으로 설정
-                )
-            }
-        )
-    }
-}

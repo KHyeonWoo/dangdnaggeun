@@ -133,7 +133,7 @@ class ProductViewModel : ViewModel() {
 
     // Method to reset responseData
     private fun resetTotalLikedData() {
-        _likedData.value = listOf()
+        _totalLikedData.value = mapOf()
     }
 }
 

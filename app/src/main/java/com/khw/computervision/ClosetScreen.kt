@@ -3,6 +3,7 @@ package com.khw.computervision
 import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.Image
@@ -42,6 +43,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
 import com.canhub.cropper.CropImageOptions
+import com.canhub.cropper.CropImageView
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
@@ -94,98 +96,112 @@ fun ClosetScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // 나의 옷장 타이틀과 버튼
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        ) {
-            if(isLoading) {
-                TopBar(
-                    title = "나의 옷장",
-                    onBackClick = onBackClick,
-                    onAddClick = { },
-                    addIcon = Icons.Default.Refresh
-                )
-            } else {
-                TopBar(
-                    title = "나의 옷장",
-                    onBackClick = onBackClick,
-                    onAddClick = {
-                        startImagePicker(imageCropLauncher)
-                    },
-                    addIcon = Icons.Default.Add
-                )
-            }
-        }
+        HeaderSection(Modifier.weight(1f), isLoading, onBackClick, imageCropLauncher)
+        ImgGridSection(
+            Modifier.weight(5f),
+            "top",
+            navController,
+            closetViewModel,
+            beforeScreen,
+            decorateClickedUrl,
+            decorateClickedCategory
+        ) { expandedImage = it }
         HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
         // 상의 섹션
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(5f),
-        ) {
-            SectionHeader(title = "상의")
-
-            if(decorateClickedCategory != "top") {
-                ImageGrid(
-                    category = "top",
-                    onImageClick = { ref, url, _ ->
-                        val encodedUrl = encodeUrl(url)
-                        if (beforeScreen == "decorate") {
-                            navController.navigate("decorate/$encodedUrl/top")
-                        } else if (beforeScreen == "bottomNav") {
-                            expandedImage = Pair(ref, url)
-                        } else if (beforeScreen == "aiImgGen") {
-                            val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
-                            navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
-                        }
-                    },
-                    closetViewModel = closetViewModel
-                )
-            } else {
-                Spacer(modifier = Modifier.weight(1f))
-                Text(text = "하의를 선택하세요", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.weight(1f))
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(5f),
-        ) {
-            HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
-            // 하의 섹션
-            SectionHeader(title = "하의")
-
-            if(decorateClickedCategory != "bottom") {
-                ImageGrid(
-                    category = "bottom",
-                    onImageClick = { ref, url, _ ->
-                        val encodedUrl = encodeUrl(url)
-                        if (beforeScreen == "decorate") {
-                            navController.navigate("decorate/$encodedUrl/bottom")
-                        } else if (beforeScreen == "bottomNav") {
-                            expandedImage = Pair(ref, url)
-                        } else if (beforeScreen == "aiImgGen") {
-                            val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
-                            navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
-                        }
-                    },
-                    closetViewModel = closetViewModel
-                )
-            } else {
-                Spacer(modifier = Modifier.weight(1f))
-                Text(text = "상의를 선택하세요", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-                Spacer(modifier = Modifier.weight(1f))
-            }
-        }
+        ImgGridSection(
+            Modifier.weight(5f),
+            "bottom",
+            navController,
+            closetViewModel,
+            beforeScreen,
+            decorateClickedUrl,
+            decorateClickedCategory
+        ) { expandedImage = it }
     }
 
     expandedImage?.let { (ref, url) ->
         ExpandedImageDialog(url = url, onDismiss = { expandedImage = null })
     }
+}
+
+@Composable
+fun ImgGridSection(
+    modifier: Modifier,
+    category: String,
+    navController: NavHostController,
+    closetViewModel: ClosetViewModel,
+    beforeScreen: String?,
+    decorateClickedUrl: String?,
+    decorateClickedCategory: String?,
+    setExpandedImage: (Pair<StorageReference, String>) -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth(),
+    ) {
+        SectionHeader(title = "상의")
+
+        if (decorateClickedCategory != category) {
+            ImageGrid(
+                category = category,
+                onImageClick = { ref, url, _ ->
+                    val encodedUrl = encodeUrl(url)
+                    if (beforeScreen == "decorate") {
+                        navController.navigate("decorate/$encodedUrl/top")
+                    } else if (beforeScreen == "bottomNav") {
+                        setExpandedImage(Pair(ref, url))
+                    } else if (beforeScreen == "aiImgGen") {
+                        val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
+                        navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
+                    }
+                },
+                closetViewModel = closetViewModel
+            )
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "하의를 선택하세요",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.weight(1f))
+        }
+    }
+
+}
+
+@Composable
+fun HeaderSection(
+    modifier: Modifier,
+    isLoading: Boolean,
+    onBackClick: () -> Unit,
+    imageCropLauncher: ManagedActivityResultLauncher<CropImageContractOptions, CropImageView.CropResult>
+) {
+
+    // 나의 옷장 타이틀과 버튼
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+    ) {
+        if (isLoading) {
+            TopBar(
+                title = "나의 옷장",
+                onBackClick = onBackClick,
+                onAddClick = { },
+                addIcon = Icons.Default.Refresh
+            )
+        } else {
+            TopBar(
+                title = "나의 옷장",
+                onBackClick = onBackClick,
+                onAddClick = {
+                    startImagePicker(imageCropLauncher)
+                },
+                addIcon = Icons.Default.Add
+            )
+        }
+    }
+    HorizontalDivider(color = colorDang, modifier = Modifier.width(350.dp))
 }
 
 
@@ -210,8 +226,7 @@ fun ExpandedImageDialog(url: String, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
+                .background(Color.White)
         ) {
             // Adjusting image size to fill more of the dialog space
             LoadImageFromUrl(
@@ -226,7 +241,7 @@ fun ExpandedImageDialog(url: String, onDismiss: () -> Unit) {
                     .align(Alignment.TopEnd)
                     .padding(16.dp)
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.Black)
             }
         }
     }
