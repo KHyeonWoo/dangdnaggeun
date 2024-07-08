@@ -1,9 +1,12 @@
 package com.khw.computervision
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -34,62 +37,67 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
         chatViewModel.getChatData()
     }
     val chatListData by chatViewModel.chatData.observeAsState(emptyList())
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
-        val sortedChatList = chatListData.sortedBy { it.lastMessageDate }
-        items(sortedChatList) { chat ->
-            val otherUserID = if (chat.sendUserID == UserIDManager.userID.value) {
-                chat.receiveUserID
-            } else {
-                chat.sendUserID
-            }
-            var otherUserProfile: String? by remember { mutableStateOf(null) }
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(colorBack)) {
+        TopBar(title = "메세지", onBackClick = { /*TODO*/ }, onAddClick = { /*TODO*/ }, addIcon = null )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            val sortedChatList = chatListData.sortedBy { it.lastMessageDate }
+            items(sortedChatList) { chat ->
+                val otherUserID = if (chat.sendUserID == UserIDManager.userID.value) {
+                    chat.receiveUserID
+                } else {
+                    chat.sendUserID
+                }
+                var otherUserProfile: String? by remember { mutableStateOf(null) }
 
-            LaunchedEffect(Unit) {
-                otherUserProfile = getProfile(otherUserID)
-            }
+                LaunchedEffect(Unit) {
+                    otherUserProfile = getProfile(otherUserID)
+                }
 
-            otherUserProfile?.let {
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .clickable {
-                        navController.navigate(
-                            "messageScreen/$otherUserID/${
-                                encodeUrl(it)
-                            }"
+                otherUserProfile?.let {
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                        .clickable {
+                            navController.navigate(
+                                "messageScreen/$otherUserID/${
+                                    encodeUrl(it)
+                                }"
+                            )
+                        }) {
+                        val painter = rememberAsyncImagePainter(it)
+                        Image(
+                            painter = painter,
+                            contentDescription = "profile",
+                            contentScale = ContentScale.FillBounds,
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(RoundedCornerShape(40.dp))
+                                .padding(8.dp)
                         )
-                    }) {
-                    val painter = rememberAsyncImagePainter(it)
-                    Image(
-                        painter = painter,
-                        contentDescription = "profile",
-                        contentScale = ContentScale.FillBounds,
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(40.dp))
-                            .padding(8.dp)
-                    )
-                    Column(modifier = Modifier.padding(8.dp)) {
-                        Text(text = "보낸사람: $otherUserID")
-                        Text(
-                            text = "시간: " +
-                                    "${chat.lastMessageDate.substring(4, 6)}월 " +
-                                    "${chat.lastMessageDate.substring(6, 8)}일 " +
-                                    "${chat.lastMessageDate.substring(8, 10)}시 " +
-                                    "${chat.lastMessageDate.substring(10, 12)}분"
-                        )
-                        Text(text = "내용: ${chat.lastMessage}", maxLines = 1)
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            Text(text = "보낸사람: $otherUserID")
+                            Text(
+                                text = "시간: " +
+                                        "${chat.lastMessageDate.substring(4, 6)}월 " +
+                                        "${chat.lastMessageDate.substring(6, 8)}일 " +
+                                        "${chat.lastMessageDate.substring(8, 10)}시 " +
+                                        "${chat.lastMessageDate.substring(10, 12)}분"
+                            )
+                            Text(text = "내용: ${chat.lastMessage}", maxLines = 1)
+                        }
                     }
                 }
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    thickness = 1.dp,
+                    color = colorDang
+                )
             }
-            HorizontalDivider(
-                modifier = Modifier.fillMaxWidth(),
-                thickness = 1.dp,
-                color = colorDang
-            )
         }
     }
 }
