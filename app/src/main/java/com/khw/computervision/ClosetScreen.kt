@@ -110,12 +110,28 @@ fun HeaderSection(
                 Log.d("PhotoPicker", "No media selected")
             }
         }
-    TopBar(
-        title = "나의 옷장",
-        onBackClick = {  },
-        onAddClick = {  },
-        addIcon = Icons.Default.Add
-    )
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+    ) {
+        if (isLoading) {
+            TopBar(
+                title = "나의 옷장",
+                onBackClick = onBackClick,
+                onAddClick = { },
+                addIcon = Icons.Default.Refresh
+            )
+        } else {
+            TopBar(
+                title = "나의 옷장",
+                onBackClick = onBackClick,
+                onAddClick = {
+                    startImagePicker(imageCropLauncher)
+                },
+                addIcon = Icons.Default.Add
+            )
+        }
+    }
 }
 
 @Composable
@@ -188,11 +204,10 @@ fun ImgGridSection(
         modifier = modifier
             .fillMaxWidth(),
     ) {
-        val (headerName, choiceMessage) = when (category) {
-            "top" -> "상의" to "하의를 선택하세요"
-            else -> "하의" to "상의를 선택하세요"
+        val choiceMessage = when (category) {
+            "top" -> "하의를 선택하세요"
+            else -> "상의를 선택하세요"
         }
-//        SectionHeader(title = headerName)
 
         if (decorateClickedCategory != category) {
             ImageGrid(
