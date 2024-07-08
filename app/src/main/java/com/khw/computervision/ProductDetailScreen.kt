@@ -290,7 +290,7 @@ fun UserInfoSection(
                 .clip(CircleShape)
         )
         Text(
-            text = "$insertUser\n${productMap["거래장소: address"]}"
+            text = "$insertUser\n거래장소: ${productMap["address"]}"
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -371,6 +371,7 @@ fun PriceAndMethodSection(productMap: Map<String, String>) {
 fun ProductDescriptionSection(productMap: Map<String, String>) {
     Column(
         modifier = Modifier.fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
         Text(text = productMap["productDescription"] ?: "")
 
