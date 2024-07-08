@@ -8,12 +8,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavHostController
 import com.google.android.gms.location.LocationServices
@@ -64,10 +68,10 @@ fun ProfileScreen(navController: NavHostController) {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Profile Screen")
+//        Text(text = "Profile Screen")
+        Spacer(modifier = Modifier.weight(2f))
         LaunchedEffect(Unit) {
             profileUrl = getProfile(UserIDManager.userID.value)
         }
@@ -78,11 +82,13 @@ fun ProfileScreen(navController: NavHostController) {
                 contentDescription = "Image",
                 modifier = Modifier
                     .size(160.dp)
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(100.dp))
             )
         }
 
-        Text(text = UserIDManager.userID.value)
+        Text(text = UserIDManager.userID.value,
+            fontSize = 16.sp)
+
         TextButton(onClick = {
             when {
                 ActivityCompat.checkSelfPermission(
@@ -112,32 +118,33 @@ fun ProfileScreen(navController: NavHostController) {
 //        Spacer(modifier = Modifier.weight(2f))
 
         val messageMap = getMessage()
-
+        Spacer(modifier = Modifier.weight(.5f))
         FunButton("내가 올린 제품", image = R.drawable.list_icon) {
             navController.navigate("myUploaded")
         }
-
-        FunButton("내가 좋아요 누른 제품", image = R.drawable.list_icon) {
+        Spacer(modifier = Modifier.weight(.5f))
+        FunButton("내가 좋아요 누른 제품", image = R.drawable.baseline_favorite_24) {
             navController.navigate("myLiked")
         }
 
-        FunButton("췟팅창(테스트용용~~)", image = R.drawable.list_icon) {
-            navController.navigate("messageScreen/test@intel.com/zz")
+//        FunButton("췟팅창(테스트용용~~)", image = R.drawable.list_icon) {
+//            navController.navigate("messageScreen/test@intel.com/zz")
+//
+//        }
+//        FunButton("췟리스트(업뎃중~~)", image = R.drawable.list_icon) {
+//            navController.navigate("chatListScreen")
 
-        }
-        FunButton("췟리스트(업뎃중~~)", image = R.drawable.list_icon) {
-            navController.navigate("chatListScreen")
 
-        }
 //        FunButton("내게 온 메세지 : ${messageMap.size}", null) {
 //            val userIntent = Intent(context, MessageListActivity::class.java)
 //            userIntent.putExtra("messageList", mapToBundle(messageMap))
 //            context.startActivity(userIntent)
 //        }
 
-//        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
         FunButton("로그아웃", null) {
             // 로그아웃 처리
         }
+        Spacer(modifier = Modifier.weight(2f))
     }
 }

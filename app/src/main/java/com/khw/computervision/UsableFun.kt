@@ -221,14 +221,26 @@ fun gifImageDecode(name: Int): AsyncImagePainter {
 //20240701 하승수 - fun 이름 FunTextButton에서 FunButton으로 변경 (button 함수)
 @Composable
 fun FunButton(buttonText: String, image: Int?, clickEvent: () -> Unit) {
-    Button(
-        onClick = { clickEvent() },
-        colors = ButtonDefaults.buttonColors(
-            Color(0xFF714809)
-        )
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
     ) {
-        image?.let { Image(painter = painterResource(id = it), contentDescription = "icon") }
-        Text(text = buttonText, color = Color.White)
+        Button(
+            onClick = { clickEvent() },
+            colors = ButtonDefaults.buttonColors(
+                colorDong
+            )
+        ) {
+            image?.let {
+                Icon(
+                    painter = painterResource(id = it),
+                    contentDescription = "icon",
+                    tint = Color.White,
+                    modifier = Modifier.padding(5.dp,0.dp)
+                )
+            }
+            Text(text = buttonText, color = Color.White)
+        }
     }
 }
 
