@@ -165,7 +165,9 @@ private fun BodySection(
     }
 
     val categoryUrl by salesViewModel.categoryData.observeAsState()
-
+    if(beforeScreen == "bottomNav"){
+        salesViewModel.setCategoryData(" ")
+    }
     when (selectedTabIndex) {
         0 -> ImgGridSection(
             modifier,
