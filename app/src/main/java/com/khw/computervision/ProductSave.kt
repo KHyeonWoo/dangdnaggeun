@@ -2,6 +2,7 @@ package com.khw.computervision
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -74,7 +75,7 @@ fun InsertScreen(
     var popupVisibleState by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(colorBack),
     ) {
 
         HeaderSection(

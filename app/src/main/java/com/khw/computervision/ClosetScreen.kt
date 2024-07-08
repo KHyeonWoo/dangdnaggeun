@@ -59,22 +59,20 @@ fun ClosetScreen(
     BackHandler {
         navController.navigateUp()
     }
-    Box(modifier = Modifier.fillMaxSize().background(colorBack)) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-        ) {
-            HeaderSection(Modifier.weight(1f), closetViewModel, onBackClick)
-            BodySection(
-                navController,
-                Modifier.weight(8f),
-                closetViewModel,
-                beforeScreen,
-                salesViewModel
-            )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorBack)
+    ) {
+        HeaderSection(Modifier.weight(1f), closetViewModel, onBackClick)
+        BodySection(
+            navController,
+            Modifier.weight(8f),
+            closetViewModel,
+            beforeScreen,
+            salesViewModel
+        )
 
-        }
     }
 }
 
@@ -165,7 +163,7 @@ private fun BodySection(
     }
 
     val categoryUrl by salesViewModel.categoryData.observeAsState()
-    if(beforeScreen == "bottomNav"){
+    if (beforeScreen == "bottomNav") {
         salesViewModel.setCategoryData(" ")
     }
     when (selectedTabIndex) {
@@ -213,9 +211,11 @@ fun ImgGridSection(
                         "decorate" -> {
                             navController.navigate("decorate/$encodedUrl/$category")
                         }
+
                         "bottomNav" -> {
                             expandedImage = Pair(ref, url)
                         }
+
                         "aiImgGen" -> {
                             navController.navigate("aiImgGen/$encodedUrl")
                         }

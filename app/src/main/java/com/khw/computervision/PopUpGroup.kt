@@ -362,7 +362,7 @@ data class PopupDetails(
     val dealMethod: String = "",
     val rating: Float = 0f,
     val productDescription: String = "",
-    val address:String = ""
+    val address: String = ""
 )
 
 @Composable
@@ -400,7 +400,7 @@ fun SavePopup(
                     unfocusedBorderColor = colorDang,
                 ),
                 textStyle = TextStyle(color = Color.Black),
-                label = { Text(text = "제품명", color = colorDang) },
+                label = { Text(text = "제품명", color = colorDong) },
                 shape = RoundedCornerShape(8.dp),
             )
 
@@ -416,7 +416,7 @@ fun SavePopup(
                     unfocusedBorderColor = colorDang,
                 ),
                 textStyle = TextStyle(color = Color.Black),
-                label = { Text(text = "가격", color = colorDang) },
+                label = { Text(text = "가격", color = colorDong) },
                 shape = RoundedCornerShape(8.dp)
             )
 
@@ -428,7 +428,7 @@ fun SavePopup(
                     unfocusedBorderColor = colorDang,
                 ),
                 textStyle = TextStyle(color = Color.Black),
-                label = { Text(text = "거래방법", color = colorDang) },
+                label = { Text(text = "거래방법", color = colorDong) },
                 modifier = Modifier.padding(bottom = 8.dp),
                 shape = RoundedCornerShape(8.dp)
             )
@@ -436,12 +436,12 @@ fun SavePopup(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(
-                        color = colorDang, width = 1.dp, shape = RoundedCornerShape(8.dp)
-                    ), verticalAlignment = Alignment.CenterVertically
+//                    .border(
+//                        color = colorDang, width = 1.dp, shape = RoundedCornerShape(8.dp))
+                , verticalAlignment = Alignment.CenterVertically
             ) {
                 Spacer(modifier = Modifier.size(16.dp, 0.dp))
-                Text(text = "상태", color = colorDang)
+                Text(text = "상태:", color = colorDong)
                 Spacer(modifier = Modifier.size(16.dp, 0.dp))
                 RatingBar(value = rating,
                     style = RatingBarStyle.Fill(),
@@ -459,14 +459,14 @@ fun SavePopup(
                 Image(
                     painter = painterResource(id = R.drawable.baseline_gps_fixed_24),
                     contentDescription = "gps",
-                    modifier = Modifier.clickable { showMapPopup = true }
+                    modifier = Modifier.size(20.dp).clickable { showMapPopup = true }
                 )
                 // 거래 위치에 address를 표시
                 Text(
                     text = "거래 위치:${address ?: "위치를 선택해주세요"}",
-                    fontSize = 12.sp,
-                    color = colorDang,
-                    modifier = Modifier.padding(start = 8.dp)
+                    fontSize = 16.sp,
+                    color = colorDong,
+//                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
 
@@ -478,7 +478,7 @@ fun SavePopup(
                     unfocusedBorderColor = colorDang,
                 ),
                 textStyle = TextStyle(color = Color.Black),
-                label = { Text(text = "제품설명\n게시글 (판매 이유, 구입 장소, 기타 등등)", color = colorDang) },
+                label = { Text(text = "제품설명\n게시글 (판매 이유, 구입 장소, 기타 등등)", color = colorDong) },
                 modifier = Modifier.height(320.dp),
                 shape = RoundedCornerShape(10.dp)
             )
@@ -490,24 +490,24 @@ fun SavePopup(
             ) {
                 Column(modifier = Modifier.padding(end = 8.dp)) {
                     Text(
-                        text = "여기를 클릭하면 AI가 글을 대신 써줘요!",
-                        fontSize = 10.sp,
-                        color = colorDang,
+                        text = "아이콘을 클릭하면 ChatGPT가 글을 대신 써줘요!",
+                        fontSize = 12.sp,
+                        color = colorDong,
                         style = TextStyle(lineHeight = 12.sp) // Adjust line height as needed
                     )
                     Text(
                         text = "(제품명/가격/거래 방법/상태 입력 필수)",
                         fontSize = 10.sp,
-                        color = colorDang,
+                        color = colorDong,
                         fontWeight = FontWeight.Black,
                         style = TextStyle(lineHeight = 12.sp) // Adjust line height as needed
                     )
                 }
                 Image(
-                    painter = painterResource(id = R.drawable.baseline_android_24),
+                    painter = painterResource(id = R.drawable.gpt_icon),
                     contentDescription = "gpt",
                     modifier = Modifier
-                        .padding(8.dp)
+                        .size(25.dp)
                         .clickable {
                             if (isFormValid) {
                                 coroutineScope.launch {
@@ -554,7 +554,7 @@ fun SavePopup(
             Button(
                 onClick = { close() },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorDang, // 버튼의 배경색
+                    containerColor = colorDong, // 버튼의 배경색
                     contentColor = Color.White  // 버튼 내용(텍스트)의 색상
                 )
             ) {
@@ -574,14 +574,13 @@ fun SavePopup(
                             dealMethod,
                             rating,
                             productDescription,
-                            address?:""
+                            address ?: ""
                         )
                     )
                     close()
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = colorDang, // 버튼의 배경색
-                    contentColor = Color.White  // 버튼 내용(텍스트)의 색상
+                    containerColor = colorDong  // 버튼 내용(텍스트)의 색상
                 )
             ) {
                 Text("등록")
