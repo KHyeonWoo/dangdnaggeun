@@ -46,6 +46,7 @@ class ProductViewModel : ViewModel() {
                     "name" to (document.getString("name") ?: ""),
                     "date" to (document.getString("date") ?: ""),
                     "dealMethod" to (document.getString("dealMethod") ?: ""),
+                    "address" to (document.get("address")?.toString() ?: ""),
                     "imageUrl" to (document.getString("imageUrl") ?: ""),
                     "aiUrl" to (document.getString("aiUrl") ?: ""),
                     "category" to (document.getString("category") ?: ""),
