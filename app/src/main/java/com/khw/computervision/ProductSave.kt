@@ -269,7 +269,7 @@ fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt:
                     }
                 },
                 checked = index == checkedOption,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(64.dp,48.dp)
             ) {
                 if (checkedOption == index) {
                     Text(label, color = Color.White)

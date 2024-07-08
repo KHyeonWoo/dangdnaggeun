@@ -59,23 +59,23 @@ fun ClosetScreen(
     BackHandler {
         navController.navigateUp()
     }
+    Box(modifier = Modifier.fillMaxSize().background(colorBack)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
+            HeaderSection(Modifier.weight(1f), closetViewModel, onBackClick)
+            BodySection(
+                navController,
+                Modifier.weight(8f),
+                closetViewModel,
+                beforeScreen,
+                salesViewModel
+            )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        HeaderSection(Modifier.weight(1f), closetViewModel, onBackClick)
-        BodySection(
-            navController,
-            Modifier.weight(8f),
-            closetViewModel,
-            beforeScreen,
-            salesViewModel
-        )
-
+        }
     }
-
 }
 
 @Composable

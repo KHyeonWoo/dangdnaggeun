@@ -89,7 +89,8 @@ import java.time.LocalDateTime
 
 val colorDang = Color(0xFFF3BB66)
 val colorDong = Color(0xFF714809)
-val colorBack = Color(0xFFF5F5EB)
+//val colorBack = Color(0xFFF5F5EB)
+val colorBack = Color(0xFFfbf6dd)
 val customFont = FontFamily(Font(R.font.santokki_regular, FontWeight.Normal))
 
 // 싱글톤 클래스 정의
