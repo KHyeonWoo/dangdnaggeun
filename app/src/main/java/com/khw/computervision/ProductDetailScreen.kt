@@ -2,7 +2,6 @@ package com.khw.computervision
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,10 +9,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.swipeable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,32 +53,43 @@ fun DetailScreen(
 
         productMap?.let { productMap ->
             HeaderSection()
-            SegmentImageSection(Modifier.weight(10f), productsViewModel, productKey, productMap)
-            UserInfoSection(
-                Modifier.weight(2f),
-                productsViewModel,
-                navController,
-                productMap,
-                productKey
-            )
-            HorizontalDivider(
-                thickness = 2.dp,
-                modifier = Modifier.padding(16.dp),
-                color = colorDang
-            )
-            ProductNameSection(Modifier.weight(1f), productMap)
-            HorizontalDivider(
-                thickness = 2.dp,
-                modifier = Modifier.padding(16.dp),
-                color = colorDang
-            )
-            PriceAndMethodSection(Modifier.weight(1f), productMap)
-            HorizontalDivider(
-                thickness = 2.dp,
-                modifier = Modifier.padding(16.dp),
-                color = colorDang
-            )
-            ProductDescriptionSection(Modifier.weight(6f), productMap)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                    SegmentImageSection(
+                        Modifier.weight(10f),
+                        productsViewModel,
+                        productKey,
+                        productMap
+                    )
+                    UserInfoSection(
+                        productsViewModel,
+                        navController,
+                        productMap,
+                        productKey
+                    )
+                    HorizontalDivider(
+                        thickness = 2.dp,
+                        modifier = Modifier.padding(16.dp),
+                        color = colorDang
+                    )
+                    ProductNameSection(Modifier.weight(1f), productMap)
+                    HorizontalDivider(
+                        thickness = 2.dp,
+                        modifier = Modifier.padding(16.dp),
+                        color = colorDang
+                    )
+                    PriceAndMethodSection(productMap)
+                    HorizontalDivider(
+                        thickness = 2.dp,
+                        modifier = Modifier.padding(16.dp),
+                        color = colorDang
+                    )
+                    ProductDescriptionSection(productMap)
+                }
+
         }
     }
 }
@@ -96,7 +108,7 @@ private fun HeaderSection() {
 @Composable
 fun ProductNameSection(modifier: Modifier, productMap: Map<String, String>) {
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -118,7 +130,7 @@ fun SegmentImageSection(
     productMap: Map<String, String>
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -141,7 +153,7 @@ fun SegmentImageSection(
             painter = painter,
             contentDescription = "",
             modifier = Modifier
-                .weight(9f)
+                .size(360.dp)
                 .aspectRatio(1f)
                 .padding(20.dp)
         )
@@ -252,7 +264,6 @@ fun deleteLiked(productsViewModel: ProductViewModel, productKey: String) {
 
 @Composable
 fun UserInfoSection(
-    modifier: Modifier,
     productsViewModel: ProductViewModel,
     navController: NavHostController,
     productMap: Map<String, String>,
@@ -260,8 +271,9 @@ fun UserInfoSection(
 ) {
     val insertUser = productMap["InsertUser"] ?: ""
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
+            .height(60.dp)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -343,9 +355,9 @@ fun PopupVisible(
 }
 
 @Composable
-fun PriceAndMethodSection(modifier: Modifier, productMap: Map<String, String>) {
+fun PriceAndMethodSection(productMap: Map<String, String>) {
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -358,12 +370,11 @@ fun PriceAndMethodSection(modifier: Modifier, productMap: Map<String, String>) {
 }
 
 @Composable
-fun ProductDescriptionSection(modifier: Modifier, productMap: Map<String, String>) {
-    LazyColumn(
-        modifier = modifier.fillMaxWidth()
+fun ProductDescriptionSection(productMap: Map<String, String>) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        item {
-            Text(text = productMap["productDescription"] ?: "")
-        }
+        Text(text = productMap["productDescription"] ?: "")
+
     }
 }
