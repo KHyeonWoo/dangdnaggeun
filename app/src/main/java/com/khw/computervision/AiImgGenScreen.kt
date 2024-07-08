@@ -2,6 +2,7 @@ package com.khw.computervision
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -45,7 +46,7 @@ fun AiImgGenScreen(
     val clickedCategoryLiveData by salesViewModel.categoryData.observeAsState()
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(colorBack),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -205,7 +206,6 @@ private fun BottomSection(
                         .aspectRatio(1f)
                 )
             } else {
-
                 Image(
                     imageVector = Icons.Default.Add,
                     contentDescription = "",

@@ -91,6 +91,7 @@ class SignUpActivity : ComponentActivity() {
                             fontFamily = customFont,
                             color = Color.Black
                         )
+
                         Text(
                             text = "AI",
                             textAlign = TextAlign.Center,
@@ -98,6 +99,7 @@ class SignUpActivity : ComponentActivity() {
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
+
                     }
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -215,15 +217,14 @@ class SignUpActivity : ComponentActivity() {
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }
-
-            Column(
-                modifier = Modifier.align(Alignment.BottomStart)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.dangkki_pic_line),
-                    contentDescription = "mascot_line",
-                    Modifier.size(200.dp)
-                )
+            Column(modifier = Modifier.align(Alignment.BottomEnd)) {
+                Spacer(modifier = Modifier.weight(8.5f))
+                Box(modifier = Modifier.weight(1.5f)) {
+                    Image(
+                        painter = painterResource(id = R.drawable.dangkki_pic_line),
+                        contentDescription = "mascot_line"
+                    )
+                }
             }
         }
     }

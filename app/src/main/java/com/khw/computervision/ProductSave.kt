@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.gowtham.ratingbar.RatingBar
@@ -254,11 +255,11 @@ fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt:
                 ),
                 icon = {},
                 colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = colorDang,
+                    activeContainerColor = colorDong,
                     activeContentColor = Color.White,
-                    inactiveContainerColor = Color.White,
+                    inactiveContainerColor = colorBack,
                     inactiveContentColor = Color.White,
-                    activeBorderColor = colorDang,
+                    activeBorderColor = colorDong,
                     inactiveBorderColor = colorDang,
                 ),
                 onCheckedChange = {
@@ -270,12 +271,12 @@ fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt:
                     }
                 },
                 checked = index == checkedOption,
-                modifier = Modifier.size(64.dp,48.dp)
+                modifier = Modifier.size(80.dp,40.dp)
             ) {
                 if (checkedOption == index) {
-                    Text(label, color = Color.White)
+                    Text(label, color = colorBack, fontSize = 16.sp)
                 } else {
-                    Text(label, color = colorDang)
+                    Text(label, color = colorDang, fontSize = 16.sp)
                 }
             }
         }

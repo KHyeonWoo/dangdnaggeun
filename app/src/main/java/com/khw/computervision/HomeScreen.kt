@@ -93,7 +93,7 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
 
                 Text(
                     "당당하게 거래해요",
-                    fontSize = 16.sp,
+                    fontSize = 20.sp,
                     fontFamily = customFont,
                     color = colorDong
                 )

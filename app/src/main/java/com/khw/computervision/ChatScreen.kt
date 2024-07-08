@@ -231,8 +231,8 @@ fun ChatInput(
             onValueChange = { sendMessage = it },
             colors =
             OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF9D7A5),
-                unfocusedContainerColor = Color(0xFFF9D7A5),
+                focusedContainerColor = colorChat,
+                unfocusedContainerColor = colorChat,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
                 focusedBorderColor = Color.White,
@@ -251,10 +251,10 @@ fun ChatInput(
             },
             modifier = Modifier
                 .weight(1f)
-                .background(color = Color(0xFFF9D7A5), shape = CircleShape)
-                .border(1.dp, color = colorDang, shape = CircleShape),
+                .background(color = Color.Transparent, shape = CircleShape)
+                .border(1.dp, color = colorChat, shape = CircleShape),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF9D7A5),
+                containerColor = Color.Transparent,
                 contentColor = colorDong
             )
         ) {

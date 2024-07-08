@@ -90,7 +90,8 @@ import java.time.LocalDateTime
 val colorDang = Color(0xFFF3BB66)
 val colorDong = Color(0xFF714809)
 //val colorBack = Color(0xFFF5F5EB)
-val colorBack = Color(0xFFfbf6dd)
+val colorBack = Color(0xFFfefbf6)
+val colorChat = Color(0xFFF9D7A5)
 val customFont = FontFamily(Font(R.font.santokki_regular, FontWeight.Normal))
 
 // 싱글톤 클래스 정의
@@ -539,7 +540,7 @@ fun TopBar(
         HorizontalDivider(
             color = colorDang,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth().padding(16.dp,0.dp)
         )
     }
 }

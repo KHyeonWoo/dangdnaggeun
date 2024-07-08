@@ -5,6 +5,7 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.sp
@@ -50,7 +52,7 @@ fun DecorateScreen(
     clickedCategory: String
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(colorBack),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         TopBar(
@@ -89,21 +91,23 @@ fun DecorateScreen(
             Text(
                 "정면 사진 사용시 AI 이미지가\n더욱 좋아요!",
                 fontSize = 20.sp,
-                color = colorDang,
-                textAlign = TextAlign.Center
+                color = colorDong,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.weight(5f))
 
             Text(
                 text = "여기를 클릭해서\n판매할 옷 이미지를 올리세요",
-                color = colorDang,
+                color = colorDong,
                 textDecoration = TextDecoration.Underline,
                 fontSize = 16.sp,
                 modifier = Modifier
                     .clickable {
                         navController.navigate("closet/decorate")
                     },
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.weight(1f))
         }

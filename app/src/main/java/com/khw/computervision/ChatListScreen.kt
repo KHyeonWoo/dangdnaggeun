@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -74,7 +75,8 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(80.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .padding(16.dp, 8.dp)
                             .clickable {
                                 navController.navigate(
                                     "messageScreen/$otherUserID/${
@@ -82,16 +84,18 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                                     }"
                                 )
                             }) {
+
                         val painter = rememberAsyncImagePainter(it)
+                        Spacer(modifier = Modifier.weight(1f))
                         Image(
                             painter = painter,
                             contentDescription = "profile",
                             contentScale = ContentScale.FillBounds,
                             modifier = Modifier
                                 .size(80.dp)
-                                .clip(RoundedCornerShape(40.dp))
-                                .padding(8.dp)
+                                .clip(RoundedCornerShape(80.dp))
                         )
+                        Spacer(modifier = Modifier.weight(1f))
                         Column(modifier = Modifier.padding(8.dp)) {
                             Text(
                                 text = "상대방: $otherUserID",
@@ -114,10 +118,13 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                                 style = TextStyle(lineHeight = 18.sp)
                             )
                         }
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp, 8.dp),
                     thickness = 1.dp,
                     color = colorDang
                 )
