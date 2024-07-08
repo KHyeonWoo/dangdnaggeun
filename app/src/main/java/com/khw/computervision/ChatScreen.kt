@@ -35,16 +35,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 
 @Composable
-fun MessageScreen(chatViewModel: ChatViewModel, otherUserID: String, otherUserProfile: String) {
+fun MessageScreen(
+    navController: NavHostController,
+    chatViewModel: ChatViewModel,
+    otherUserID: String,
+    otherUserProfile: String
+) {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier.weight(8f)
         ) {
+            TopBar(
+                title = "채팅창",
+                onBackClick = { navController.popBackStack() },
+                onAddClick = {},
+                addIcon = null,
+                showBackIcon = true,
+            )
+
             MessageList(
                 chatViewModel,
                 messageRef(otherUserID),
@@ -75,7 +89,7 @@ fun messageRef(otherUserID: String): String {
 fun MessageList(
     chatViewModel: ChatViewModel = ChatViewModel(),
     messageRef: String,
-    otherUserProfile: String
+    otherUserProfile: String,
 ) {
     LaunchedEffect(Unit) {
         chatViewModel.getMessageData(messageRef)
@@ -186,7 +200,7 @@ fun DateText(date: String) {
 fun ChatInput(
     chatViewModel: ChatViewModel,
     messageRef: String,
-    otherUserID: String
+    otherUserID: String,
 ) {
     Row(
         modifier = Modifier
@@ -234,5 +248,5 @@ class Message(
     var date: String,
     var sendUserID: String,
     var receiveUserID: String,
-    var message: String
+    var message: String,
 )

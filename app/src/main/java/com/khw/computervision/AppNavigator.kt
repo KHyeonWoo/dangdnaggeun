@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -56,11 +57,7 @@ class AppNavigator : ComponentActivity() {
                 val chatViewModel: ChatViewModel = viewModel() // chatViewModel 인스턴스 생성
 
                 Scaffold(
-                    topBar = {
-                        if (shouldShowTopBar(navController)) {
-                            LogoScreen("") { navController.popBackStack() }
-                        }
-                    },
+                    topBar = { },
                     bottomBar = {
                         if (shouldShowBottomBar(navController)) {
                             BottomNavigationBar(navController, aiViewModel) // ViewModel 전달
@@ -186,6 +183,7 @@ class AppNavigator : ComponentActivity() {
                                 navArgument("otherUserProfile") { type = NavType.StringType }
                             )) { backStackEntry ->
                             MessageScreen(
+                                navController,
                                 chatViewModel,
                                 backStackEntry.arguments?.getString("otherUserID") ?: "",
                                 backStackEntry.arguments?.getString("otherUserProfile") ?: ""
@@ -279,7 +277,11 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                 },
                 selectedContentColor = colorDang,
                 unselectedContentColor = colorDong.copy(alpha = .5f),
-                selected = currentRoute == item.route,
+                selected = when {
+                    item.route == "closet/bottomNav/ / " -> currentRoute?.startsWith("closet") == true
+                    item.route == "decorate/ / " -> currentRoute?.startsWith("decorate") == true
+                    else -> currentRoute == item.route
+                },
                 onClick = {
                     val route = if (item.route.contains("{messageMap}")) {
                         val emptyMessageMap = emptyMap<String, String>()
@@ -319,13 +321,20 @@ fun currentRoute(navController: NavController): String? {
 @Composable
 fun shouldShowBottomBar(navController: NavController): Boolean {
     val currentRoute = currentRoute(navController)
-    return currentRoute !in listOf("login", "messageScreen/{otherUserID}/{otherUserProfile}")
+    return currentRoute !in listOf(
+        "login",
+        "messageScreen/{otherUserID}/{otherUserProfile}",
+    "detailProduct/{productKey}",)
 }
 
 @Composable
 fun shouldShowTopBar(navController: NavController): Boolean {
     val currentRoute = currentRoute(navController)
-    return currentRoute == "sales"
+    Log.d("CurrentRoute", "Current Route: $currentRoute")
+    return currentRoute in listOf(
+        "sales",
+        "messageScreen/{otherUserID}/{otherUserProfile}"
+    ) || currentRoute?.startsWith("messageScreen/") == true
 }
 
 fun parseMessageMap(messageMapString: String): Map<String, String> {

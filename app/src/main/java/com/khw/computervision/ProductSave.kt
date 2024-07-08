@@ -347,13 +347,19 @@ fun HeaderSection(
     Column(
         modifier = modifier
     ) {
+        TopBar(
+            title = "",
+            onBackClick = { navController.popBackStack() },
+            onAddClick = { },
+            addIcon = null
+        )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
             Spacer(modifier = Modifier.weight(2f))
-
             val options = listOf(
                 " 옷 ",
                 "모델"
@@ -386,8 +392,6 @@ fun HeaderSection(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt: (Int) -> Unit) {
-
-
     MultiChoiceSegmentedButtonRow {
         options.forEachIndexed { index, label ->
             SegmentedButton(
@@ -412,7 +416,8 @@ fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt:
 
                     }
                 },
-                checked = index == checkedOption
+                checked = index == checkedOption,
+                modifier = Modifier.size(48.dp)
             ) {
                 if (checkedOption == index) {
                     Text(label, color = Color.White)
