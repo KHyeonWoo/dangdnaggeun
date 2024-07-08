@@ -8,6 +8,7 @@ import android.location.Location
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -239,7 +241,7 @@ fun FunButton(buttonText: String, image: Int?, clickEvent: () -> Unit) {
                     painter = painterResource(id = it),
                     contentDescription = "icon",
                     tint = Color.White,
-                    modifier = Modifier.padding(5.dp, 0.dp)
+                    modifier = Modifier.padding(5.dp,0.dp)
                 )
             }
             Text(text = buttonText, color = Color.White)
@@ -269,11 +271,9 @@ fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
             Color.Transparent
         )
     ) {
-        Text(
-            text = buttonText,
+        Text(text = buttonText,
             color = Color.Black,
-            fontWeight = FontWeight.Bold
-        )
+            fontWeight = FontWeight.Bold)
     }
 }
 

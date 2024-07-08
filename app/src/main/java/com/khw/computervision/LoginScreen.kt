@@ -219,7 +219,7 @@ fun LoginScreen(
             Image(
                 painter = gifImageDecode(R.raw.dangkki),
                 contentDescription = "mascot",
-                modifier = Modifier.size(240.dp)
+                modifier = Modifier.size(256.dp)
             )
 
             OutlinedTextFieldWithState(
@@ -275,7 +275,7 @@ fun OutlinedTextFieldWithState(
         value = value,
         onValueChange = onValueChange,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFFF9D7A5),
+            focusedBorderColor = Color.White,
             unfocusedBorderColor = Color(0xFFF9D7A5),
             focusedContainerColor = Color(0xFFF9D7A5),
             unfocusedContainerColor = Color(0xFFF9D7A5)
