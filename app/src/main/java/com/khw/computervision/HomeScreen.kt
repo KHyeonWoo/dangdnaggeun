@@ -446,12 +446,11 @@ fun ImageList(
                                                     .fillMaxWidth()
                                                     .padding(end = 4.dp)
                                             ) {
-
-                                                totalLiked?.get("viewCount")
-                                                    ?.let { Text(text = "조회수 : $it") }
-                                                Spacer(modifier = Modifier.weight(1f))
                                                 totalLiked?.get("liked")
                                                     ?.let { Text(text = "좋아요 : $it") }
+                                                Spacer(modifier = Modifier.weight(1f))
+                                                totalLiked?.get("viewCount")
+                                                    ?.let { Text(text = "조회수 : $it") }
                                             }
                                         }
                                     }

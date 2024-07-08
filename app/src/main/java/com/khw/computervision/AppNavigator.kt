@@ -100,7 +100,9 @@ class AppNavigator : ComponentActivity() {
                                 productsViewModel
                             )
                         }
-                        composable("sales") { SaleScreen(navController, productsViewModel) }
+                        composable("sales") {
+                            SaleScreen(navController, productsViewModel)
+                        }
                         composable(
                             "detailProduct/{productKey}",
                             arguments = listOf(navArgument("productKey") {
@@ -170,7 +172,7 @@ class AppNavigator : ComponentActivity() {
 //                            MessageScreen(messageMap, "User's Image")
 //                        }
                         composable("myUploaded") {
-                            MyUploadedScreen(productsViewModel)
+                            MyUploadedScreen(navController,productsViewModel)
                         }
                         composable("myLiked") {
                             MyLikedScreen(productsViewModel)
@@ -205,7 +207,6 @@ data class BottomNavItem(
 
 @Composable
 fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
-
     val items = listOf(
         BottomNavItem(
             "sales",

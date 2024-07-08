@@ -492,7 +492,8 @@ fun TopBar(
     title: String,
     onBackClick: () -> Unit,
     onAddClick: () -> Unit,
-    addIcon: ImageVector?
+    addIcon: ImageVector?,
+    showBackIcon: Boolean = true
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(
@@ -501,13 +502,14 @@ fun TopBar(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
-            IconButton(onClick = onBackClick) {
-                androidx.compose.material.Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = colorDong
-                )
+            if(showBackIcon){
+                IconButton(onClick = onBackClick) {
+                    androidx.compose.material.Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = colorDong
+                    )
+                }
             }
             Spacer(modifier = Modifier.weight(.1f))
             androidx.compose.material.Text(
