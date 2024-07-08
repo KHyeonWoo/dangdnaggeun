@@ -58,37 +58,36 @@ fun DetailScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                    SegmentImageSection(
-                        Modifier.weight(10f),
-                        productsViewModel,
-                        productKey,
-                        productMap
-                    )
-                    UserInfoSection(
-                        productsViewModel,
-                        navController,
-                        productMap,
-                        productKey
-                    )
-                    HorizontalDivider(
-                        thickness = 2.dp,
-                        modifier = Modifier.padding(16.dp),
-                        color = colorDang
-                    )
-                    ProductNameSection(Modifier.weight(1f), productMap)
-                    HorizontalDivider(
-                        thickness = 2.dp,
-                        modifier = Modifier.padding(16.dp),
-                        color = colorDang
-                    )
-                    PriceAndMethodSection(productMap)
-                    HorizontalDivider(
-                        thickness = 2.dp,
-                        modifier = Modifier.padding(16.dp),
-                        color = colorDang
-                    )
-                    ProductDescriptionSection(productMap)
-                }
+                SegmentImageSection(
+                    productsViewModel,
+                    productKey,
+                    productMap
+                )
+                UserInfoSection(
+                    productsViewModel,
+                    navController,
+                    productMap,
+                    productKey ?: ""
+                )
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(16.dp),
+                    color = colorDang
+                )
+                ProductNameSection(productMap)
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(16.dp),
+                    color = colorDang
+                )
+                PriceAndMethodSection(productMap)
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(16.dp),
+                    color = colorDang
+                )
+                ProductDescriptionSection(productMap)
+            }
 
         }
     }
@@ -106,7 +105,7 @@ private fun HeaderSection(navController: NavHostController) {
 }
 
 @Composable
-fun ProductNameSection(modifier: Modifier, productMap: Map<String, String>) {
+fun ProductNameSection(productMap: Map<String, String>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -124,7 +123,6 @@ fun ProductNameSection(modifier: Modifier, productMap: Map<String, String>) {
 
 @Composable
 fun SegmentImageSection(
-    modifier: Modifier,
     productsViewModel: ProductViewModel,
     productKey: String?,
     productMap: Map<String, String>
@@ -267,7 +265,7 @@ fun UserInfoSection(
     productsViewModel: ProductViewModel,
     navController: NavHostController,
     productMap: Map<String, String>,
-    productKey: String?
+    productKey: String
 ) {
     val insertUser = productMap["InsertUser"] ?: ""
     Row(
@@ -292,7 +290,7 @@ fun UserInfoSection(
                 .clip(CircleShape)
         )
         Text(
-            text = "$insertUser\n${productMap["거래장소: address"]}"
+            text = "$insertUser\n거래장소: ${productMap["address"]}"
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -322,7 +320,7 @@ fun PopupVisible(
     popupVisibleState: Boolean,
     productsViewModel: ProductViewModel,
     productMap: Map<String, String>,
-    productKey: String?,
+    productKey: String,
     close: () -> Unit
 ) {
 
@@ -337,7 +335,8 @@ fun PopupVisible(
                 productMap["price"]?.toInt() ?: 0,
                 productMap["dealMethod"] ?: "",
                 productMap["rating"]?.toFloat() ?: 0f,
-                productMap["productDescription"] ?: ""
+                productMap["productDescription"] ?: "",
+                productMap["address"] ?: "",
             )
         )
     }
@@ -372,7 +371,9 @@ fun PriceAndMethodSection(productMap: Map<String, String>) {
 @Composable
 fun ProductDescriptionSection(productMap: Map<String, String>) {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
         Text(text = productMap["productDescription"] ?: "")
 

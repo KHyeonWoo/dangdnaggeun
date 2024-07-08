@@ -174,7 +174,6 @@ class AppNavigator : ComponentActivity() {
                                 navArgument("otherUserProfile") { type = NavType.StringType }
                             )) { backStackEntry ->
                             MessageScreen(
-                                navController,
                                 chatViewModel,
                                 backStackEntry.arguments?.getString("otherUserID") ?: "",
                                 backStackEntry.arguments?.getString("otherUserProfile") ?: ""

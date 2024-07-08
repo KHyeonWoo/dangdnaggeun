@@ -89,7 +89,8 @@ import java.time.LocalDateTime
 
 val colorDang = Color(0xFFF3BB66)
 val colorDong = Color(0xFF714809)
-val colorBack = Color(0xFFF5F5EB)
+//val colorBack = Color(0xFFF5F5EB)
+val colorBack = Color(0xFFfbf6dd)
 val customFont = FontFamily(Font(R.font.santokki_regular, FontWeight.Normal))
 
 // 싱글톤 클래스 정의
@@ -615,17 +616,12 @@ fun CustomOutlinedTextField(
 fun saveEvent(
     coroutineScope: CoroutineScope,
     context: Context,
-    productKey: String?,
+    dateTimeNow: String,
     newPopupDetails: PopupDetails
 ) {
     coroutineScope.launch(Dispatchers.IO) {
 
         val db = Firebase.firestore
-        val dateTimeNow =
-            productKey ?: (LocalDateTime.now().toLocalDate().toString().replace("-", "") +
-                    LocalDateTime.now().toLocalTime().toString().replace(":", "")
-                        .substring(0, 4))
-
         val sendMessage = hashMapOf(
             "InsertUser" to UserIDManager.userID.value,
             "name" to newPopupDetails.name,
@@ -638,6 +634,7 @@ fun saveEvent(
             "rating" to newPopupDetails.rating,
             "productDescription" to newPopupDetails.productDescription,
             "state" to 1, //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+            "address" to newPopupDetails.address,
         )
 
         db.collection("product")
