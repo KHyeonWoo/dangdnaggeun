@@ -83,7 +83,6 @@ class SignUpActivity : ComponentActivity() {
                 modifier = Modifier.size(210.dp, 60.dp)
             )
             Spacer(modifier = Modifier.height(20.dp))
-
             var userPassword by remember { mutableStateOf("") }
             OutlinedTextField(
                 value = userPassword,
