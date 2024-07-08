@@ -550,7 +550,7 @@ private fun StateScreen(
         }
 
         if (popupVisibleState) {
-            InsertPopup(newPopupDetails, {
+            SavePopup(newPopupDetails, {
                 updateDetail(it)
             }, {
                 popupVisibleState = false
