@@ -342,12 +342,12 @@ class ChatViewModel : ViewModel() {
     }
 }
 
-class decorateViewModel : ViewModel() {
+class SalesViewModel : ViewModel() {
     private val _clickedUrlData = MutableLiveData<String>()
     val clickedUrlData: LiveData<String> get() = _clickedUrlData
 
     fun setClickedUrl(data: String) {
-        _clickedUrlData.value = data
+        _clickedUrlData.postValue(data)
     }
 
 
@@ -355,15 +355,15 @@ class decorateViewModel : ViewModel() {
     val categoryData: LiveData<String> get() = _categoryData
 
     fun setCategoryData(data: String) {
-        _categoryData.value = data
+        _categoryData.postValue(data)
     }
 
 
-    private val _genderData = MutableLiveData<String>()
-    val genderData: LiveData<String> get() = _genderData
+    private val _genderData = MutableLiveData<Boolean>()
+    val genderData: LiveData<Boolean> get() = _genderData
 
-    fun setGenderData(data: String) {
-        _genderData.value = data
+    fun setGenderData(data: Boolean) {
+        _genderData.postValue(data)
     }
 }
 fun replaceUserIDToRef(ref: String): String {
