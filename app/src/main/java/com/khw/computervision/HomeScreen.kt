@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -273,55 +277,46 @@ fun ImageList(
                         ) {
                             if (product["category"] == categoryOption) {
                                 val painter = rememberAsyncImagePainter(product["imageUrl"])
+
                                 Image(
                                     painter = painter,
                                     contentDescription = "Image",
                                     contentScale = ContentScale.FillBounds,
                                     modifier = Modifier
                                         .size(136.dp, 136.dp)
-                                        .border(
-                                            2.dp,
-                                            color = colorDang,
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color.LightGray)
+
                                 )
 
                                 Column(
                                     modifier = Modifier
-                                        .size(136.dp, 80.dp)
-                                        .border(
-                                            2.dp,
-                                            color = colorDang,
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
+                                        .width(136.dp)
                                 ) {
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(start = 4.dp)
                                     ) {
                                         Column {
-                                            Text(text = "상품명")
-                                            value["name"]?.let { Text(text = it) }
+                                            value["name"]?.let { Text(text = it, fontSize = 14.sp) }
                                             value["price"]?.let {
-                                                Text(text = "$${it}원")
+                                                Text(text = "${it}원", fontSize = 12.sp)
                                             }
-                                            Spacer(modifier = Modifier.weight(1f))
                                             Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(end = 4.dp)
+                                                horizontalArrangement = Arrangement.Start,
+                                                modifier = Modifier.fillMaxWidth()
                                             ) {
                                                 totalLiked?.get("liked")
-                                                    ?.let { Text(text = "좋아요 : $it") }
-                                                Spacer(modifier = Modifier.weight(1f))
+                                                    ?.let { Text(text = "좋아요 : $it", fontSize = 12.sp, modifier = Modifier.padding(end = 4.dp)) }
                                                 totalLiked?.get("viewCount")
-                                                    ?.let { Text(text = "조회수 : $it") }
+                                                    ?.let { Text(text = "조회수 : $it", fontSize = 12.sp) }
                                             }
                                         }
+
                                     }
                                 }
                             }
+                            Spacer(modifier = Modifier.height(24.dp))
                         }
                         if (chunkedKeys.size != 2) {
                             Box(modifier = Modifier.weight(1f))

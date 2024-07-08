@@ -78,9 +78,9 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                     )
                     Column(modifier = Modifier.padding(8.dp)) {
                         Text(
-                            text = "보낸사람: $otherUserID",
-                            fontSize = 14.sp,
-                            style = TextStyle(lineHeight = 16.sp)
+                            text = "상대방: $otherUserID",
+                            fontSize = 16.sp,
+                            style = TextStyle(lineHeight = 18.sp)
                         )
                         Text(
                             text = "시간: " +
@@ -88,14 +88,14 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                                     "${chat.lastMessageDate.substring(6, 8)}일 " +
                                     "${chat.lastMessageDate.substring(8, 10)}시 " +
                                     "${chat.lastMessageDate.substring(10, 12)}분",
-                            fontSize = 14.sp,
-                            style = TextStyle(lineHeight = 16.sp)
+                            fontSize = 16.sp,
+                            style = TextStyle(lineHeight = 18.sp)
                         )
                         Text(
                             text = "내용: ${chat.lastMessage}",
                             maxLines = 1,
-                            fontSize = 14.sp,
-                            style = TextStyle(lineHeight = 16.sp)
+                            fontSize = 16.sp,
+                            style = TextStyle(lineHeight = 18.sp)
                         )
                     }
                 }
