@@ -244,6 +244,19 @@ fun FunButton(buttonText: String, image: Int?, clickEvent: () -> Unit) {
     }
 }
 
+@Composable
+fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
+    TextButton(
+        onClick = { clickEvent() },
+        colors = ButtonDefaults.buttonColors(
+            Color.Transparent
+        )
+    ) {
+        Text(text = buttonText,
+            color = Color.Black,
+            fontWeight = FontWeight.Bold)
+    }
+}
 //20240701 하승수 - textbutton 추가 (textbutton 함수)
 //@Composable
 //fun FunTextButton(buttonText: String, clickEvent: @Composable () -> Unit) {
@@ -258,19 +271,7 @@ fun FunButton(buttonText: String, image: Int?, clickEvent: () -> Unit) {
 //    }
 //}
 //20240703 jkh - clickEvent는 단순히 클릭 이벤트라서 () -> Unit 타입으로 정의
-@Composable
-fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
-    TextButton(
-        onClick = { clickEvent() },
-        colors = ButtonDefaults.buttonColors(
-            Color.Transparent
-        )
-    ) {
-        Text(text = buttonText,
-            color = Color.Black,
-            fontWeight = FontWeight.Bold)
-    }
-}
+
 
 @Composable
 fun GetProduct(

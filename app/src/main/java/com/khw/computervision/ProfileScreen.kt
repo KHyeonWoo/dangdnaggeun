@@ -6,8 +6,12 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,6 +21,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,7 +32,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
@@ -63,69 +71,89 @@ fun ProfileScreen(navController: NavHostController) {
             }
         }
     }
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(colorBack)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 //        Text(text = "Profile Screen")
-        Spacer(modifier = Modifier.weight(2f))
-        LaunchedEffect(Unit) {
-            profileUrl = getProfile(UserIDManager.userID.value)
-        }
+            Spacer(modifier = Modifier.weight(2f))
+            LaunchedEffect(Unit) {
+                profileUrl = getProfile(UserIDManager.userID.value)
+            }
 
-        profileUrl?.let {
-            GlideImage(
-                imageModel = it,
-                contentDescription = "Image",
-                modifier = Modifier
-                    .size(160.dp)
-                    .clip(RoundedCornerShape(100.dp))
+            profileUrl?.let {
+                GlideImage(
+                    imageModel = it,
+                    contentDescription = "Image",
+                    modifier = Modifier
+                        .size(136.dp)
+                        .clip(RoundedCornerShape(80.dp))
+                )
+            }
+            Spacer(modifier = Modifier.weight(.5f))
+            Text(
+                text = UserIDManager.userID.value,
+                fontSize = 16.sp
             )
-        }
 
-        Text(text = UserIDManager.userID.value,
-            fontSize = 16.sp)
-
-        TextButton(onClick = {
-            when {
-                ActivityCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED -> {
-                    getLocation(fusedLocationClient) { location ->
-                        coroutineScope.launch(Dispatchers.IO) {
-                            val address = getAddressFromLocation(geocoder, location)
-                            addressText = address ?: "주소를 찾을 수 없습니다."
-                            withContext(Dispatchers.Main) {
-                                UserIDManager.userAddress.value = addressText
+            TextButton(onClick = {
+                when {
+                    ActivityCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED -> {
+                        getLocation(fusedLocationClient) { location ->
+                            coroutineScope.launch(Dispatchers.IO) {
+                                val address = getAddressFromLocation(geocoder, location)
+                                addressText = address ?: "주소를 찾을 수 없습니다."
+                                withContext(Dispatchers.Main) {
+                                    UserIDManager.userAddress.value = addressText
+                                }
                             }
                         }
                     }
+
+                    else -> {
+                        requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                    }
                 }
 
-                else -> {
-                    requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.searching_location_icon),
+                        contentDescription = "location searching",
+                        tint = colorDang
+                    )
+                    Text(text = "현재 위치 확인")
                 }
             }
-
-        }) {
-            Text(text = "현재 위치 확인")
-        }
-        Text(text = UserIDManager.userAddress.value)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.current_location_icon),
+                    contentDescription = "location searching",
+                    tint = colorDang
+                )
+                Text(text = UserIDManager.userAddress.value)
+            }
 //        Spacer(modifier = Modifier.weight(2f))
 
-        val messageMap = getMessage()
-        Spacer(modifier = Modifier.weight(.5f))
-        FunButton("내가 올린 제품", image = R.drawable.list_icon) {
-            navController.navigate("myUploaded")
-        }
-        Spacer(modifier = Modifier.weight(.5f))
-        FunButton("내가 좋아요 누른 제품", image = R.drawable.baseline_favorite_24) {
-            navController.navigate("myLiked")
-        }
+            val messageMap = getMessage()
+            Spacer(modifier = Modifier.weight(1f))
+            FunButton("나의 판매 제품", image = R.drawable.list_icon) {
+                navController.navigate("myUploaded")
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            FunButton("나의 좋아요 목록", image = R.drawable.baseline_favorite_24) {
+                navController.navigate("myLiked")
+            }
 
 //        FunButton("췟팅창(테스트용용~~)", image = R.drawable.list_icon) {
 //            navController.navigate("messageScreen/test@intel.com/zz")
@@ -141,10 +169,13 @@ fun ProfileScreen(navController: NavHostController) {
 //            context.startActivity(userIntent)
 //        }
 
-        Spacer(modifier = Modifier.weight(1f))
-        FunButton("로그아웃", null) {
-            // 로그아웃 처리
+            Spacer(modifier = Modifier.weight(1f))
+            FunButton("로그아웃", null) {
+                navController.navigate("login") {
+                    popUpTo("sales") { inclusive = true }
+                } // 로그아웃 처리 후 로그인 시 home으로
+            }
+            Spacer(modifier = Modifier.weight(2f))
         }
-        Spacer(modifier = Modifier.weight(2f))
     }
 }
