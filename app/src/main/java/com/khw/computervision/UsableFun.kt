@@ -492,7 +492,7 @@ fun TopBar(
     title: String,
     onBackClick: () -> Unit,
     onAddClick: () -> Unit,
-    addIcon: ImageVector
+    addIcon: ImageVector?
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally){
         Row(
@@ -519,11 +519,13 @@ fun TopBar(
             )
             Spacer(modifier = Modifier.weight(5f))
             IconButton(onClick = onAddClick) {
-                androidx.compose.material.Icon(
-                    addIcon,
-                    contentDescription = "Add",
-                    tint = colorDong
-                )
+                if (addIcon != null) {
+                    androidx.compose.material.Icon(
+                        addIcon,
+                        contentDescription = "Add",
+                        tint = colorDong
+                    )
+                }
             }
         }
         HorizontalDivider(color = colorDang, modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp))
