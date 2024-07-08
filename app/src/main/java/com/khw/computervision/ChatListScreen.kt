@@ -20,10 +20,13 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 
@@ -52,7 +55,8 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
             }
 
             otherUserProfile?.let {
-                Row(modifier = Modifier
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
                     .fillMaxWidth()
                     .height(80.dp)
                     .clickable {
@@ -73,15 +77,26 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                             .padding(8.dp)
                     )
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Text(text = "보낸사람: $otherUserID")
+                        Text(
+                            text = "보낸사람: $otherUserID",
+                            fontSize = 14.sp,
+                            style = TextStyle(lineHeight = 16.sp)
+                        )
                         Text(
                             text = "시간: " +
                                     "${chat.lastMessageDate.substring(4, 6)}월 " +
                                     "${chat.lastMessageDate.substring(6, 8)}일 " +
                                     "${chat.lastMessageDate.substring(8, 10)}시 " +
-                                    "${chat.lastMessageDate.substring(10, 12)}분"
+                                    "${chat.lastMessageDate.substring(10, 12)}분",
+                            fontSize = 14.sp,
+                            style = TextStyle(lineHeight = 16.sp)
                         )
-                        Text(text = "내용: ${chat.lastMessage}", maxLines = 1)
+                        Text(
+                            text = "내용: ${chat.lastMessage}",
+                            maxLines = 1,
+                            fontSize = 14.sp,
+                            style = TextStyle(lineHeight = 16.sp)
+                        )
                     }
                 }
             }
