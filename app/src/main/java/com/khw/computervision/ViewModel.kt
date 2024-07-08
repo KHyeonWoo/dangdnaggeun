@@ -342,6 +342,30 @@ class ChatViewModel : ViewModel() {
     }
 }
 
+class decorateViewModel : ViewModel() {
+    private val _clickedUrlData = MutableLiveData<String>()
+    val clickedUrlData: LiveData<String> get() = _clickedUrlData
+
+    fun setClickedUrl(data: String) {
+        _clickedUrlData.value = data
+    }
+
+
+    private val _categoryData = MutableLiveData<String>()
+    val categoryData: LiveData<String> get() = _categoryData
+
+    fun setCategoryData(data: String) {
+        _categoryData.value = data
+    }
+
+
+    private val _genderData = MutableLiveData<String>()
+    val genderData: LiveData<String> get() = _genderData
+
+    fun setGenderData(data: String) {
+        _genderData.value = data
+    }
+}
 fun replaceUserIDToRef(ref: String): String {
     return ref.replace(".", "")
         .replace("#", "")

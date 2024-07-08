@@ -1,9 +1,6 @@
 package com.khw.computervision
 
-import android.content.ContentValues
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -38,16 +35,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarStyle
 import com.gowtham.ratingbar.StepSize
 import com.skydoves.landscapist.glide.GlideImage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 
 //
 //class InsertActivity : ComponentActivity() {
@@ -377,7 +368,7 @@ fun HeaderSection(
                 ) {
                     FunTextButton("저장") {
                         navController.popBackStack()
-                        saveEvent(coroutineScope, context, newPopupDetails)
+                        saveEvent(coroutineScope, context, null, newPopupDetails)
                         productsViewModel.getProductsFromFireStore()
                     }
                 }
@@ -428,64 +419,6 @@ fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt:
         }
     }
 
-}
-
-private fun saveEvent(
-    coroutineScope: CoroutineScope,
-    context: Context,
-    newPopupDetails: PopupDetails
-) {
-    coroutineScope.launch(Dispatchers.IO) {
-
-        val db = Firebase.firestore
-        val dateTimeNow =
-            LocalDateTime.now().toLocalDate().toString().replace("-", "") +
-                    LocalDateTime.now().toLocalTime().toString().replace(":", "")
-                        .substring(0, 4)
-        val sendMessage = hashMapOf(
-            "InsertUser" to UserIDManager.userID.value,
-            "name" to newPopupDetails.name,
-            "date" to dateTimeNow,
-            "imageUrl" to newPopupDetails.imageUrl,
-            "aiUrl" to newPopupDetails.aiUrl,
-            "category" to newPopupDetails.category,
-            "price" to newPopupDetails.price,
-            "dealMethod" to newPopupDetails.dealMethod,
-            "rating" to newPopupDetails.rating,
-            "productDescription" to newPopupDetails.productDescription,
-            "state" to 1, //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
-        )
-
-        db.collection("product")
-            .document(dateTimeNow)
-            .set(sendMessage)
-            .addOnSuccessListener {
-                Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
-                Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { e ->
-                Log.w(ContentValues.TAG, "Error writing document", e)
-                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-            }
-
-
-        val favoriteProduct = hashMapOf(
-            "liked" to 0,
-            "viewCount" to 0
-        )
-
-        db.collection("favoriteProduct")
-            .document(dateTimeNow)
-            .set(favoriteProduct)
-            .addOnSuccessListener {
-                Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
-                Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { e ->
-                Log.w(ContentValues.TAG, "Error writing document", e)
-                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-            }
-    }
 }
 
 @Composable
