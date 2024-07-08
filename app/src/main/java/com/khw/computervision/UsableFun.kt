@@ -634,6 +634,7 @@ fun saveEvent(
             "rating" to newPopupDetails.rating,
             "productDescription" to newPopupDetails.productDescription,
             "state" to 1, //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+            "address" to newPopupDetails.address,
         )
 
         db.collection("product")

@@ -361,7 +361,8 @@ data class PopupDetails(
     val price: Int = 0,
     val dealMethod: String = "",
     val rating: Float = 0f,
-    val productDescription: String = ""
+    val productDescription: String = "",
+    val address:String = ""
 )
 
 @Composable
@@ -376,7 +377,7 @@ fun SavePopup(
     var dealMethod: String by remember { mutableStateOf(newPopupDetails.dealMethod) }
     var rating: Float by remember { mutableFloatStateOf(newPopupDetails.rating) }
     var productDescription: String by remember { mutableStateOf(newPopupDetails.productDescription) }
-    var address: String? by remember { mutableStateOf(null) }  // 주소 상태 추가
+    var address: String? by remember { mutableStateOf(newPopupDetails.address) }  // 주소 상태 추가
 
     val coroutineScope = rememberCoroutineScope()
     val isFormValid = name.isNotBlank() && price.isNotBlank() && dealMethod.isNotBlank()
@@ -572,7 +573,8 @@ fun SavePopup(
                             price.toInt(),
                             dealMethod,
                             rating,
-                            productDescription
+                            productDescription,
+                            address?:""
                         )
                     )
                     close()
