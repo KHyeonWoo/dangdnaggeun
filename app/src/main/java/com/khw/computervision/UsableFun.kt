@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import android.content.ContentValues
+import android.content.Context
 import android.graphics.Bitmap
 import android.location.Geocoder
 import android.location.Location
@@ -74,10 +75,14 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
 import com.skydoves.landscapist.glide.GlideImage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.time.LocalDateTime
 
 
 val colorDang = Color(0xFFF3BB66)
@@ -603,5 +608,65 @@ fun CustomOutlinedTextField(
                 )
             }
         )
+    }
+}
+
+fun saveEvent(
+    coroutineScope: CoroutineScope,
+    context: Context,
+    productKey: String?,
+    newPopupDetails: PopupDetails
+) {
+    coroutineScope.launch(Dispatchers.IO) {
+
+        val db = Firebase.firestore
+        val dateTimeNow =
+            productKey ?: (LocalDateTime.now().toLocalDate().toString().replace("-", "") +
+                    LocalDateTime.now().toLocalTime().toString().replace(":", "")
+                        .substring(0, 4))
+
+        val sendMessage = hashMapOf(
+            "InsertUser" to UserIDManager.userID.value,
+            "name" to newPopupDetails.name,
+            "date" to dateTimeNow,
+            "imageUrl" to newPopupDetails.imageUrl,
+            "aiUrl" to newPopupDetails.aiUrl,
+            "category" to newPopupDetails.category,
+            "price" to newPopupDetails.price,
+            "dealMethod" to newPopupDetails.dealMethod,
+            "rating" to newPopupDetails.rating,
+            "productDescription" to newPopupDetails.productDescription,
+            "state" to 1, //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+        )
+
+        db.collection("product")
+            .document(dateTimeNow)
+            .set(sendMessage)
+            .addOnSuccessListener {
+                Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
+                Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Log.w(ContentValues.TAG, "Error writing document", e)
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            }
+
+
+        val favoriteProduct = hashMapOf(
+            "liked" to 0,
+            "viewCount" to 0
+        )
+
+        db.collection("favoriteProduct")
+            .document(dateTimeNow)
+            .set(favoriteProduct)
+            .addOnSuccessListener {
+                Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
+                Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Log.w(ContentValues.TAG, "Error writing document", e)
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            }
     }
 }
