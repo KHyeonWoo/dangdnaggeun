@@ -40,7 +40,19 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
         chatViewModel.getChatData()
     }
     val chatListData by chatViewModel.chatData.observeAsState(emptyList())
-    Box(modifier = Modifier.fillMaxSize().background(colorBack)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(colorBack),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        TopBar(
+            title = "메세지",
+            onBackClick = { /*TODO*/ },
+            onAddClick = { /*TODO*/ },
+            addIcon = null
+        )
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,6 +123,7 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                 )
             }
         }
+
     }
 }
 
