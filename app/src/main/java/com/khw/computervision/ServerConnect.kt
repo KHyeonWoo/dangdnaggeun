@@ -36,7 +36,7 @@ interface ApiService {
 }
 
 object RetrofitClient {
-    private const val BASE_URL = "http://192.168.45.140:8080/"
+    private const val BASE_URL = "http://192.168.45.226:8080/"
 
     private val client = OkHttpClient.Builder()
         .readTimeout(120, TimeUnit.SECONDS)
