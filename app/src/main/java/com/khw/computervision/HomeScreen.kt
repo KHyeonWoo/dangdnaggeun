@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,140 +48,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-//class SalesActivity : ComponentActivity() {
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        setContent {
-//            ComputerVisionTheme {
-//                SaleScreen(navController)
-//            }
-//        }
-//    }
-//
-//    @Composable
-//    fun SaleScreen() {
-//        Column(
-//            modifier = Modifier.fillMaxSize(),
-//        ) {
-//            val context = LocalContext.current
-//            Box(
-//                modifier = Modifier.fillMaxWidth(),
-//            ) {
-//                LogoScreen("Sales") { finish() }
-//                var successUpload by remember { mutableStateOf(false) }
-//                var profileUri: String? by remember { mutableStateOf(null) }
-//
-//                LaunchedEffect(successUpload) {
-//                    profileUri = getProfile()
-//                }
-//
-//                var visiblePopup by remember { mutableStateOf(false) }
-//                val modifier = Modifier
-//                    .size(40.dp)
-//                    .clickable {
-//                        visiblePopup = !visiblePopup
-//                    }
-//
-//                Column(
-//                    modifier = Modifier
-//                        .align(Alignment.TopEnd)
-//                        .padding(20.dp)
-//                ) {
-//                    profileUri?.let {
-//                        GlideImage(
-//                            imageModel = it,
-//                            contentDescription = "Image",
-//                            modifier = modifier
-//                                .clip(RoundedCornerShape(20.dp))
-//                        )
-//                    } ?: Image(
-//                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
-//                        contentDescription = "",
-//                        modifier = modifier
-//                    )
-//                }
-//
-//                if (visiblePopup) {
-//                    ProfilePopup(
-//                        profileUri,
-//                        { visiblePopup = false },
-//                        { successUpload = !successUpload })
-//                }
-//            }
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.Center
-//            ) {
-//                FunTextButton("현재 판매하는 제품이에요") {}
-//            }
-//            ImageList(ReLoadingManager.reLoadingValue.value)
-//
-//            Spacer(modifier = Modifier.weight(1f))
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.Center
-//            ) {
-//                Spacer(modifier = Modifier.weight(1f))
-//                FunTextButton("+ 글쓰기") {
-//                    context.startActivity(Intent(context, DecorateActivity::class.java))
-//                }
-//                Spacer(modifier = Modifier.weight(1f))
-//            }
-//        }
-//    }
-//
-//    private suspend fun getProfile(): String? {
-//        val storageRef =
-//            Firebase.storage.reference.child("${UserIDManager.userID.value}/profile.jpg")
-//        var profileUri: String? = null
-//        try {
-//            profileUri = storageRef.downloadUrl.await().toString()
-//        } catch (_: StorageException) {
-//
-//        }
-//        return profileUri
-//    }
-//
-//
-//    @Composable
-//    fun ImageList(reLoading: Boolean) {
-//        // rememberSaveable로 상태를 저장하고 복원할 수 있도록 합니다.
-//        var productMap: Map<String, Map<String, String>> by remember { mutableStateOf(emptyMap()) }
-//        GetProduct(reLoading) { productMap = it }
-//
-//        val context = LocalContext.current
-//        Column(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//        ) {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .horizontalScroll(rememberScrollState()),
-//                horizontalArrangement = Arrangement.Center
-//            ) {
-//                for ((key, value) in productMap) {
-//                    Column(
-//                        modifier = Modifier.clickable {
-//                            val productIntent = Intent(context, DetailActivity::class.java)
-//                            productIntent.putExtra("product", mapToBundle(value))
-//                            context.startActivity(productIntent)
-//                        }) {
-//                        for ((fieldKey, fieldValue) in value) {
-//                            if (fieldKey == "imageUrl") {
-//                                GlideImage(
-//                                    imageModel = fieldValue,
-//                                    modifier = Modifier.size(90.dp, 160.dp),
-//                                    contentDescription = "Image"
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
 @Composable
 fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewModel) {
     Box(
@@ -407,55 +277,46 @@ fun ImageList(
                         ) {
                             if (product["category"] == categoryOption) {
                                 val painter = rememberAsyncImagePainter(product["imageUrl"])
+
                                 Image(
                                     painter = painter,
                                     contentDescription = "Image",
                                     contentScale = ContentScale.FillBounds,
                                     modifier = Modifier
                                         .size(136.dp, 136.dp)
-                                        .border(
-                                            2.dp,
-                                            color = colorDang,
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(Color.LightGray)
+
                                 )
 
                                 Column(
                                     modifier = Modifier
-                                        .size(136.dp, 80.dp)
-                                        .border(
-                                            2.dp,
-                                            color = colorDang,
-                                            shape = RoundedCornerShape(8.dp)
-                                        )
+                                        .width(136.dp)
                                 ) {
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(start = 4.dp)
                                     ) {
                                         Column {
-                                            Text(text = "상품명")
-                                            value["name"]?.let { Text(text = it) }
+                                            value["name"]?.let { Text(text = it, fontSize = 14.sp) }
                                             value["price"]?.let {
-                                                Text(text = "$${it}원")
+                                                Text(text = "${it}원", fontSize = 12.sp)
                                             }
-                                            Spacer(modifier = Modifier.weight(1f))
                                             Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(end = 4.dp)
+                                                horizontalArrangement = Arrangement.Start,
+                                                modifier = Modifier.fillMaxWidth()
                                             ) {
                                                 totalLiked?.get("liked")
-                                                    ?.let { Text(text = "좋아요 : $it") }
-                                                Spacer(modifier = Modifier.weight(1f))
+                                                    ?.let { Text(text = "좋아요 : $it", fontSize = 12.sp, modifier = Modifier.padding(end = 4.dp)) }
                                                 totalLiked?.get("viewCount")
-                                                    ?.let { Text(text = "조회수 : $it") }
+                                                    ?.let { Text(text = "조회수 : $it", fontSize = 12.sp) }
                                             }
                                         }
+
                                     }
                                 }
                             }
+                            Spacer(modifier = Modifier.height(24.dp))
                         }
                         if (chunkedKeys.size != 2) {
                             Box(modifier = Modifier.weight(1f))

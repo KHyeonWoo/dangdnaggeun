@@ -52,7 +52,7 @@ fun DetailScreen(
     ) {
 
         productMap?.let { productMap ->
-            HeaderSection()
+            HeaderSection(navController)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -95,10 +95,10 @@ fun DetailScreen(
 }
 
 @Composable
-private fun HeaderSection() {
+private fun HeaderSection(navController: NavHostController) {
     TopBar(
         title = "판매제품",
-        onBackClick = { /*TODO*/ },
+        onBackClick = { navController.popBackStack() },
         onAddClick = { /*TODO*/ },
         addIcon = null
     )
@@ -345,7 +345,7 @@ fun PopupVisible(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     if (popupVisibleState) {
-        InsertPopup(newPopupDetails, {
+        SavePopup(newPopupDetails, {
             saveEvent(coroutineScope, context, productKey, it)
             productsViewModel.getProductsFromFireStore()
         }, {

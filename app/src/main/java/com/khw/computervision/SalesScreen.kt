@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun DecorateScreen(
     navController: NavHostController,
+    salesViewModel: SalesViewModel,
     encodedClickedUrl: String,
     clickedCategory: String
 ) {
@@ -56,8 +57,9 @@ fun DecorateScreen(
             title = "",
             onBackClick = {},
             onAddClick = {
-                val encodedUrl = encodeUrl(encodedClickedUrl)
-                navController.navigate("aiImgGen/$encodedUrl/$clickedCategory/ ") },
+                salesViewModel.setClickedUrl(encodedClickedUrl)
+                salesViewModel.setCategoryData(clickedCategory)
+                navController.navigate("aiImgGen/ ") },
             addIcon = Icons.Default.KeyboardArrowRight,
             showBackIcon = false
         )
@@ -90,12 +92,6 @@ fun DecorateScreen(
                 color = colorDang,
                 textAlign = TextAlign.Center
             )
-//            Text(
-//                "더욱 좋아요!",
-//                fontSize = 18.sp,
-//                color = colorDang
-//            )
-
             Spacer(modifier = Modifier.weight(5f))
 
             Text(
@@ -105,85 +101,14 @@ fun DecorateScreen(
                 fontSize = 16.sp,
                 modifier = Modifier
                     .clickable {
-                        navController.navigate("closet/decorate/ / ")
+                        navController.navigate("closet/decorate")
                     },
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.weight(1f))
-//            Text(
-//                text = "판매할 옷 이미지를 올리세요",
-//                color = colorDang,
-//                fontSize = 15.sp
-//            )
         }
     }
 }
-
-//            LogoScreen("Decorate") { navController.popBackStack() }
-//            Spacer(modifier = Modifier.weight(1f))
-
-//            if (displayedImageUrl.isNotEmpty()) {
-//                Row(
-//                    modifier = Modifier.fillMaxWidth(),
-//                ) {
-//                    Spacer(modifier = Modifier.weight(12f))
-//
-//                    //url에 특수문자 되있는 경우가 있어 encode함
-//                    FunTextButton("다음") {
-//                        val encodedUrl = encodeUrl(displayedImageUrl)
-//                        navController.navigate("aiImgGen/$encodedUrl/$clickedCategory")
-//                    }
-//
-//                    Spacer(modifier = Modifier.weight(1f))
-//                }
-//            }
-
-
-//        Column(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .weight(2f)
-//                .padding(20.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            Text(text = uploadServerResult)
-//            GlideImage(
-//                imageModel = displayedImageUrl,
-//                modifier = Modifier.fillMaxSize(),
-//                contentScale = ContentScale.Fit
-//            )
-//        }
-
-
-//        Column(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .weight(2f),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//            var inputImage by remember { mutableStateOf<Bitmap?>(null) }
-//            var isLoading by remember { mutableStateOf(false) }
-//
-//            ImagePicker(onImageSelected = { bitmap ->
-//                inputImage = bitmap
-//
-//                sendImageToServer(bitmap) {
-//                    uploadServerResult += it
-//                    uploadTrigger = !uploadTrigger
-//                    inputImage = null
-//                    isLoading = false
-//                    closetViewModel.getItemsFromFirebase(Firebase.storage.reference.child(UserIDManager.userID.value))
-//                }
-//                isLoading = true
-//            })
-
-//
-//            CustomTabRow(isLoading, closetViewModel) { _, onClickedUri, onClickedCategory ->
-//                clickedCategory = onClickedCategory
-//                displayedImageUrl = onClickedUri // 이미지 클릭 시 화면에 표시할 이미지 URI 업데이트
-//            }
-
-
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable

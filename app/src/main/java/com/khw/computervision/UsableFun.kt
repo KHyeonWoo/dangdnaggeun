@@ -505,7 +505,7 @@ fun TopBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if(showBackIcon){
@@ -540,7 +540,6 @@ fun TopBar(
             color = colorDang,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp, 0.dp)
         )
     }
 }

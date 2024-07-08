@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,34 +53,29 @@ fun ClosetScreen(
     closetViewModel: ClosetViewModel,
     onBackClick: () -> Unit,
     navController: NavHostController,
-    beforeScreen: String?,
-    decorateClickedUrl: String?,
-    decorateClickedCategory: String?
+    salesViewModel: SalesViewModel,
+    beforeScreen: String?
 ) {
     BackHandler {
         navController.navigateUp()
     }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(colorBack)) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-        ) {
-            HeaderSection(Modifier.weight(1f), closetViewModel, onBackClick)
-            BodySection(
-                navController,
-                Modifier.weight(8f),
-                closetViewModel,
-                beforeScreen,
-                decorateClickedUrl,
-                decorateClickedCategory
-            )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        HeaderSection(Modifier.weight(1f), closetViewModel, onBackClick)
+        BodySection(
+            navController,
+            Modifier.weight(8f),
+            closetViewModel,
+            beforeScreen,
+            salesViewModel
+        )
 
-        }
     }
+
 }
 
 @Composable
@@ -143,8 +139,7 @@ private fun BodySection(
     modifier: Modifier,
     closetViewModel: ClosetViewModel,
     beforeScreen: String?,
-    decorateClickedUrl: String?,
-    decorateClickedCategory: String?,
+    salesViewModel: SalesViewModel,
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("상의", "하의")
@@ -168,6 +163,11 @@ private fun BodySection(
             )
         }
     }
+
+    val categoryUrl by salesViewModel.categoryData.observeAsState()
+    if(beforeScreen == "bottomNav"){
+        salesViewModel.setCategoryData(" ")
+    }
     when (selectedTabIndex) {
         0 -> ImgGridSection(
             modifier,
@@ -175,8 +175,7 @@ private fun BodySection(
             navController,
             closetViewModel,
             beforeScreen,
-            decorateClickedUrl,
-            decorateClickedCategory
+            categoryUrl
         )
 
         1 ->
@@ -186,8 +185,7 @@ private fun BodySection(
                 navController,
                 closetViewModel,
                 beforeScreen,
-                decorateClickedUrl,
-                decorateClickedCategory
+                categoryUrl
             )
     }
 }
@@ -199,36 +197,39 @@ fun ImgGridSection(
     navController: NavHostController,
     closetViewModel: ClosetViewModel,
     beforeScreen: String?,
-    decorateClickedUrl: String?,
-    decorateClickedCategory: String?,
+    categoryUrl: String?,
 ) {
     var expandedImage by remember { mutableStateOf<Pair<StorageReference, String>?>(null) }
     Column(
         modifier = modifier
             .fillMaxWidth(),
     ) {
-        val choiceMessage = when (category) {
-            "top" -> "하의를 선택하세요"
-            else -> "상의를 선택하세요"
-        }
-
-        if (decorateClickedCategory != category) {
+        if (categoryUrl != category) {
             ImageGrid(
                 category = category,
                 onImageClick = { ref, url, _ ->
                     val encodedUrl = encodeUrl(url)
-                    if (beforeScreen == "decorate") {
-                        navController.navigate("decorate/$encodedUrl/top")
-                    } else if (beforeScreen == "bottomNav") {
-                        expandedImage = Pair(ref, url)
-                    } else if (beforeScreen == "aiImgGen") {
-                        val encodedClickedUrl = decorateClickedUrl?.let { encodeUrl(it) }
-                        navController.navigate("aiImgGen/$encodedClickedUrl/$decorateClickedCategory/$encodedUrl")
+                    when (beforeScreen) {
+                        "decorate" -> {
+                            navController.navigate("decorate/$encodedUrl/$category")
+                        }
+                        "bottomNav" -> {
+                            expandedImage = Pair(ref, url)
+                        }
+                        "aiImgGen" -> {
+                            navController.navigate("aiImgGen/$encodedUrl")
+                        }
                     }
                 },
                 closetViewModel = closetViewModel
             )
         } else {
+
+            val choiceMessage = when (category) {
+                "top" -> "하의를 선택하세요"
+                else -> "상의를 선택하세요"
+            }
+
             Spacer(modifier = Modifier.weight(1f))
             Text(
                 text = choiceMessage,

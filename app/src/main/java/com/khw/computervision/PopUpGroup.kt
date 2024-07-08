@@ -18,19 +18,24 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextButton
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -48,10 +53,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
@@ -72,6 +80,7 @@ import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.overlay.Marker
+import com.naver.maps.map.util.MarkerIcons
 import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -156,17 +165,21 @@ fun ProfilePopup(
 
             }) {
                 Row {
-                    Icon(painter = painterResource(id = R.drawable.searching_location_icon),
+                    Icon(
+                        painter = painterResource(id = R.drawable.searching_location_icon),
                         contentDescription = "location searching",
-                        tint = colorDang)
+                        tint = colorDang
+                    )
                     Text(text = "현재 위치 확인")
                 }
             }
 
             Row {
-                Icon(painter = painterResource(id = R.drawable.current_location_icon),
+                Icon(
+                    painter = painterResource(id = R.drawable.current_location_icon),
                     contentDescription = "location searching",
-                    tint = colorDang)
+                    tint = colorDang
+                )
                 Text(text = UserIDManager.userAddress.value)
             }
             Spacer(modifier = Modifier.weight(2f))
@@ -352,7 +365,7 @@ data class PopupDetails(
 )
 
 @Composable
-fun InsertPopup(
+fun SavePopup(
     newPopupDetails: PopupDetails, saveData: (PopupDetails) -> Unit, close: () -> Unit
 ) {
     var name: String by remember { mutableStateOf(newPopupDetails.name) }
@@ -365,13 +378,11 @@ fun InsertPopup(
     var productDescription: String by remember { mutableStateOf(newPopupDetails.productDescription) }
     var address: String? by remember { mutableStateOf(null) }  // 주소 상태 추가
 
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-
     val isFormValid = name.isNotBlank() && price.isNotBlank() && dealMethod.isNotBlank()
 
     AlertDialog(onDismissRequest = { close() }, title = { Text(text = "") }, text = {
-        Column {
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             var showMapPopup by remember { mutableStateOf(false) }
             if (showMapPopup) {
                 // 주소 업데이트 콜백을 MapPopup에 전달
@@ -389,6 +400,7 @@ fun InsertPopup(
                 ),
                 textStyle = TextStyle(color = Color.Black),
                 label = { Text(text = "제품명", color = colorDang) },
+                shape = RoundedCornerShape(8.dp),
             )
 
             OutlinedTextField(
@@ -404,6 +416,7 @@ fun InsertPopup(
                 ),
                 textStyle = TextStyle(color = Color.Black),
                 label = { Text(text = "가격", color = colorDang) },
+                shape = RoundedCornerShape(8.dp)
             )
 
             OutlinedTextField(
@@ -415,14 +428,15 @@ fun InsertPopup(
                 ),
                 textStyle = TextStyle(color = Color.Black),
                 label = { Text(text = "거래방법", color = colorDang) },
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
+                shape = RoundedCornerShape(8.dp)
             )
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(
-                        color = colorDang, width = 1.dp, shape = RoundedCornerShape(4.dp)
+                        color = colorDang, width = 1.dp, shape = RoundedCornerShape(8.dp)
                     ), verticalAlignment = Alignment.CenterVertically
             ) {
                 Spacer(modifier = Modifier.size(16.dp, 0.dp))
@@ -436,13 +450,25 @@ fun InsertPopup(
                     spaceBetween = 4.dp,
                     onRatingChanged = { Log.d("TAG", "onRatingChanged: $it") })
             }
-            Row {
-                Button(onClick = { showMapPopup = true }) {
-                    Text("지도 보기")
-                }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_gps_fixed_24),
+                    contentDescription = "gps",
+                    modifier = Modifier.clickable { showMapPopup = true }
+                )
                 // 거래 위치에 address를 표시
-                Text(text = "거래 위치: ${address ?: "위치를 선택해주세요"}")
+                Text(
+                    text = "거래 위치:${address ?: "위치를 선택해주세요"}",
+                    fontSize = 12.sp,
+                    color = colorDang,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
             }
+
             OutlinedTextField(
                 value = productDescription,
                 onValueChange = { productDescription = it },
@@ -451,9 +477,70 @@ fun InsertPopup(
                     unfocusedBorderColor = colorDang,
                 ),
                 textStyle = TextStyle(color = Color.Black),
-                label = { Text(text = "제품설명", color = colorDang) },
-                modifier = Modifier.height(320.dp)
+                label = { Text(text = "제품설명\n게시글 (판매 이유, 구입 장소, 기타 등등)", color = colorDang) },
+                modifier = Modifier.height(320.dp),
+                shape = RoundedCornerShape(10.dp)
             )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(end = 8.dp)) {
+                    Text(
+                        text = "여기를 클릭하면 AI가 글을 대신 써줘요!",
+                        fontSize = 10.sp,
+                        color = colorDang,
+                        style = TextStyle(lineHeight = 12.sp) // Adjust line height as needed
+                    )
+                    Text(
+                        text = "(제품명/가격/거래 방법/상태 입력 필수)",
+                        fontSize = 10.sp,
+                        color = colorDang,
+                        fontWeight = FontWeight.Black,
+                        style = TextStyle(lineHeight = 12.sp) // Adjust line height as needed
+                    )
+                }
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_android_24),
+                    contentDescription = "gpt",
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable {
+                            if (isFormValid) {
+                                coroutineScope.launch {
+                                    val apiKey = BuildConfig.OPENAI_API_KEY
+                                    val prompt = """
+                                    다음 세부 정보를 기반으로 사람들이 제대로 된 상품 정보를 확인하게끔
+                                    판매글을 한글로 작성해줘.
+
+                                    - Product Name: $name
+                                    - Price: $price
+                                    - Deal Method: $dealMethod
+                                    - 상태(5점만점) : $rating
+                                """.trimIndent()
+
+                                    val messages = listOf(
+                                        ChatGPTMessage(role = "user", content = prompt)
+                                    )
+                                    try {
+                                        val response = sendChatGPTRequest(apiKey, messages)
+                                        withContext(Dispatchers.Main) {
+                                            productDescription =
+                                                response.choices.first().message.content
+                                        }
+                                    } catch (e: Exception) {
+                                        withContext(Dispatchers.Main) {
+                                            // 요청 실패했을 때
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                )
+
+            }
         }
     }, buttons = {
         Row(
@@ -462,67 +549,45 @@ fun InsertPopup(
                 .padding(8.dp),
             horizontalArrangement = Arrangement.End
         ) {
-            //240706 장기훈 chatgpt 판매글 자동 작성 추가( 상품명, price, 거래방법 다 입력되야 버튼 활성화)
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(
+                onClick = { close() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorDang, // 버튼의 배경색
+                    contentColor = Color.White  // 버튼 내용(텍스트)의 색상
+                )
+            ) {
+                Text("취소")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
-                    if (isFormValid) {
-                        coroutineScope.launch {
-                            val apiKey = BuildConfig.OPENAI_API_KEY
-                            val prompt = """
-                                    다음 세부 정보를 기반으로 사람들이 제대로 된 상품 정보를 확인하게끔
-                                    판매글을 한글로 작성해줘.
-                                    
-                                    - Product Name: $name
-                                    - Price: $price
-                                    - Deal Method: $dealMethod
-                                    - 상태(5점만점) : $rating
-                                """.trimIndent()
-
-                            val messages = listOf(
-                                ChatGPTMessage(role = "user", content = prompt)
-                            )
-                            try {
-                                val response = sendChatGPTRequest(apiKey, messages)
-                                withContext(Dispatchers.Main) {
-                                    productDescription = response.choices.first().message.content
-                                }
-                            } catch (e: Exception) {
-                                withContext(Dispatchers.Main) {
-                                    //요청 실패했을 때
-                                }
-                            }
-                        }
-                    }
-                }, enabled = isFormValid
-            ) {
-                Text("판매글 생성")
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { close() }) {
-                Text("Cancel")
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = {
-                saveData(
-                    PopupDetails(
-                        UserIDManager.userID.value,
-                        name,
-                        imageUrl,
-                        aiUrl,
-                        category,
-                        price.toInt(),
-                        dealMethod,
-                        rating,
-                        productDescription
+                    saveData(
+                        PopupDetails(
+                            UserIDManager.userID.value,
+                            name,
+                            imageUrl,
+                            aiUrl,
+                            category,
+                            price.toInt(),
+                            dealMethod,
+                            rating,
+                            productDescription
+                        )
                     )
+                    close()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorDang, // 버튼의 배경색
+                    contentColor = Color.White  // 버튼 내용(텍스트)의 색상
                 )
-                close()
-            }) {
-                Text("Upload")
+            ) {
+                Text("등록")
             }
         }
     })
 }
+
 
 //20240707 신동환 네이버 지도입니다
 @Composable
@@ -542,7 +607,11 @@ fun MapPopup(close: () -> Unit, onAddressSelected: (String) -> Unit) {
                 Row {
                     Spacer(modifier = Modifier.weight(1f))
                     Button(onClick = {
-                        address?.let { onAddressSelected(it) }  // 선택된 주소를 콜백으로 전달
+                        address?.let {
+                            val addressPart = extractAddressPart(it)
+                            Log.d("Addreees", addressPart)
+                            onAddressSelected(addressPart)
+                        }  // 선택된 주소를 콜백으로 전달
                         close()
                     }) {
                         Text("확인")
@@ -556,6 +625,12 @@ fun MapPopup(close: () -> Unit, onAddressSelected: (String) -> Unit) {
             }
         }
     }
+}
+
+fun extractAddressPart(address: String): String {
+    val regex = "서울특별시(.*)".toRegex()
+    val matchResult = regex.find(address)
+    return matchResult?.groups?.get(1)?.value?.trim() ?: address
 }
 
 @Composable
@@ -587,6 +662,8 @@ fun NaverMapView(
             marker?.map = null // Remove previous marker if any
             marker = Marker().apply {
                 position = location
+                icon = MarkerIcons.BLACK
+                iconTintColor = colorDang.toArgb()
                 this.map = map
             }
         }
@@ -597,8 +674,9 @@ fun NaverMapView(
         val geocoder = Geocoder(context, Locale.getDefault())
         try {
             val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-            if (addresses != null && addresses.isNotEmpty()) {
+            if (!addresses.isNullOrEmpty()) {
                 onAddressChange(addresses[0].getAddressLine(0))
+                Log.d("Lookup", "Received addresses: ${addresses.size}")
             } else {
                 onAddressChange("주소를 찾을 수 없습니다")
             }

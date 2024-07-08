@@ -3,7 +3,6 @@ package com.khw.computervision
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,14 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -38,53 +32,47 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 
 @Composable
-fun MessageScreen(chatViewModel: ChatViewModel, otherUserID: String, otherUserProfile: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorBack)
+fun MessageScreen(
+    navController: NavHostController,
+    chatViewModel: ChatViewModel,
+    otherUserID: String,
+    otherUserProfile: String
+) {
+    Column(
+        modifier = Modifier.fillMaxSize()
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.weight(8f)
         ) {
             TopBar(
-                title = "$otherUserID",
-                onBackClick = { },
-                onAddClick = { /*TODO*/ },
-                addIcon = null
+                title = "채팅창",
+                onBackClick = { navController.popBackStack() },
+                onAddClick = {},
+                addIcon = null,
+                showBackIcon = true,
             )
-            Column(
-                modifier = Modifier
-                    .weight(9f)
-                    .padding(8.dp)
-            ) {
-                MessageList(
-                    chatViewModel,
-                    messageRef(otherUserID),
-                    otherUserProfile
-                )
-            }
 
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                ChatInput(
-                    chatViewModel,
-                    messageRef(otherUserID),
-                    otherUserID
-                )
-            }
+            MessageList(
+                chatViewModel,
+                messageRef(otherUserID),
+                otherUserProfile
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            ChatInput(
+                chatViewModel,
+                messageRef(otherUserID),
+                otherUserID
+            )
         }
     }
 }
@@ -101,7 +89,7 @@ fun messageRef(otherUserID: String): String {
 fun MessageList(
     chatViewModel: ChatViewModel = ChatViewModel(),
     messageRef: String,
-    otherUserProfile: String
+    otherUserProfile: String,
 ) {
     LaunchedEffect(Unit) {
         chatViewModel.getMessageData(messageRef)
@@ -133,7 +121,7 @@ fun MessageList(
             if (message.sendUserID == UserIDManager.userID.value) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth().padding(4.dp)
+                        .fillMaxWidth()
                 ) {
                     Spacer(modifier = Modifier.weight(1f))
                     Row(
@@ -142,23 +130,23 @@ fun MessageList(
                     ) {
                         Spacer(modifier = Modifier.weight(1f))
                         DateText(message.date)
-                        Box(
+                        Text(
+                            text = message.message,
                             modifier = Modifier
-                                .background(Color(0xFFF9D7A5), RoundedCornerShape(8.dp))
-                                .padding(16.dp, 0.dp)
-                        ) {
-                            Text(
-                                text = message.message,
-                                modifier = Modifier
-                                    .padding(4.dp)
-//                                textAlign = TextAlign.End
-                            )
-                        }
+                                .padding(4.dp)
+                                .background(
+                                    color = colorDang,
+                                    shape = RoundedCornerShape(8.dp)
+                                ),
+                            textAlign = TextAlign.End
+                        )
                     }
                 }
+
             } else {
+
                 Row(
-                    modifier = Modifier.padding(4.dp)
+                    modifier = Modifier
                 ) {
                     val painter = rememberAsyncImagePainter(otherUserProfile)
                     Row(
@@ -175,18 +163,15 @@ fun MessageList(
                                     .clip(RoundedCornerShape(8.dp))
                                     .border(2.dp, color = colorDang),
                             )
-                            Spacer(modifier = Modifier.padding(1.dp))
-                            Box(
+                            Text(
+                                text = message.message,
                                 modifier = Modifier
-                                    .background(Color.LightGray, RoundedCornerShape(8.dp))
-                                    .padding(16.dp, 0.dp)
-                            ) {
-                                Text(
-                                    text = message.message,
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                )
-                            }
+                                    .padding(4.dp)
+                                    .background(
+                                        color = Color.LightGray,
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                            )
                             DateText(message.date)
                         }
                         Spacer(modifier = Modifier.weight(1f))
@@ -215,15 +200,12 @@ fun DateText(date: String) {
 fun ChatInput(
     chatViewModel: ChatViewModel,
     messageRef: String,
-    otherUserID: String
+    otherUserID: String,
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .height(52.dp)
     ) {
-
         var sendMessage: String? by remember { mutableStateOf(null) }
 
         OutlinedTextField(
@@ -231,15 +213,15 @@ fun ChatInput(
             onValueChange = { sendMessage = it },
             colors =
             OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color(0xFFF9D7A5),
-                unfocusedContainerColor = Color(0xFFF9D7A5),
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black,
-                focusedBorderColor = Color.White,
+                focusedBorderColor = colorDang,
                 unfocusedBorderColor = colorDang
-            )
+            ),
+            modifier = Modifier.weight(4f)
         )
-        Spacer(modifier = Modifier.weight(0.1f))
         Button(
             onClick = {
                 sendMessage?.let {
@@ -249,19 +231,13 @@ fun ChatInput(
                     sendMessage = null
                 }
             },
-            modifier = Modifier
-                .weight(1f)
-                .background(color = Color(0xFFF9D7A5), shape = CircleShape)
-                .border(1.dp, color = colorDang, shape = CircleShape),
+            modifier = Modifier.weight(1f),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF9D7A5),
-                contentColor = colorDong
+                containerColor = colorDang,
+                contentColor = Color.White
             )
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.send_icon),
-                contentDescription = "send"
-            )
+            Text(text = "Send")
         }
 
     }
@@ -272,5 +248,5 @@ class Message(
     var date: String,
     var sendUserID: String,
     var receiveUserID: String,
-    var message: String
+    var message: String,
 )
