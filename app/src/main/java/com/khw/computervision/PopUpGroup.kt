@@ -35,6 +35,7 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextButton
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -162,9 +163,20 @@ fun ProfilePopup(
                 }
 
             }) {
-                Text(text = "현재 위치 확인")
+                Row {
+                    Icon(painter = painterResource(id = R.drawable.searching_location_icon),
+                        contentDescription = "location searching",
+                        tint = colorDang)
+                    Text(text = "현재 위치 확인")
+                }
             }
-            Text(text = UserIDManager.userAddress.value)
+
+            Row {
+                Icon(painter = painterResource(id = R.drawable.current_location_icon),
+                    contentDescription = "location searching",
+                    tint = colorDang)
+                Text(text = UserIDManager.userAddress.value)
+            }
             Spacer(modifier = Modifier.weight(2f))
 
             val messageMap = getMessage()
