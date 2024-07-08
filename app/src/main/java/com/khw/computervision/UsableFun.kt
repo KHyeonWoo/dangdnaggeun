@@ -615,17 +615,12 @@ fun CustomOutlinedTextField(
 fun saveEvent(
     coroutineScope: CoroutineScope,
     context: Context,
-    productKey: String?,
+    dateTimeNow: String,
     newPopupDetails: PopupDetails
 ) {
     coroutineScope.launch(Dispatchers.IO) {
 
         val db = Firebase.firestore
-        val dateTimeNow =
-            productKey ?: (LocalDateTime.now().toLocalDate().toString().replace("-", "") +
-                    LocalDateTime.now().toLocalTime().toString().replace(":", "")
-                        .substring(0, 4))
-
         val sendMessage = hashMapOf(
             "InsertUser" to UserIDManager.userID.value,
             "name" to newPopupDetails.name,

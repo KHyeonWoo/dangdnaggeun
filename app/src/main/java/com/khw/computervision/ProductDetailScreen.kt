@@ -59,7 +59,6 @@ fun DetailScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                     SegmentImageSection(
-                        Modifier.weight(10f),
                         productsViewModel,
                         productKey,
                         productMap
@@ -68,14 +67,14 @@ fun DetailScreen(
                         productsViewModel,
                         navController,
                         productMap,
-                        productKey
+                        productKey?:""
                     )
                     HorizontalDivider(
                         thickness = 2.dp,
                         modifier = Modifier.padding(16.dp),
                         color = colorDang
                     )
-                    ProductNameSection(Modifier.weight(1f), productMap)
+                    ProductNameSection(productMap)
                     HorizontalDivider(
                         thickness = 2.dp,
                         modifier = Modifier.padding(16.dp),
@@ -106,7 +105,7 @@ private fun HeaderSection(navController: NavHostController) {
 }
 
 @Composable
-fun ProductNameSection(modifier: Modifier, productMap: Map<String, String>) {
+fun ProductNameSection(productMap: Map<String, String>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -124,7 +123,6 @@ fun ProductNameSection(modifier: Modifier, productMap: Map<String, String>) {
 
 @Composable
 fun SegmentImageSection(
-    modifier: Modifier,
     productsViewModel: ProductViewModel,
     productKey: String?,
     productMap: Map<String, String>
@@ -267,7 +265,7 @@ fun UserInfoSection(
     productsViewModel: ProductViewModel,
     navController: NavHostController,
     productMap: Map<String, String>,
-    productKey: String?
+    productKey: String
 ) {
     val insertUser = productMap["InsertUser"] ?: ""
     Row(
@@ -322,7 +320,7 @@ fun PopupVisible(
     popupVisibleState: Boolean,
     productsViewModel: ProductViewModel,
     productMap: Map<String, String>,
-    productKey: String?,
+    productKey: String,
     close: () -> Unit
 ) {
 

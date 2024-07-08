@@ -2,20 +2,22 @@ package com.khw.computervision
 
 import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -38,6 +40,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarStyle
 import com.gowtham.ratingbar.StepSize
+import java.time.LocalDateTime
 
 @Composable
 fun InsertScreen(
@@ -55,9 +58,9 @@ fun InsertScreen(
             PopupDetails(
                 UserIDManager.userID.value,
                 "",
-                clickedUrlLiveData?:"",
+                clickedUrlLiveData ?: "",
                 "",
-                clickedCategoryLiveData?:"",
+                clickedCategoryLiveData ?: "",
                 0,
                 "",
                 0f,
@@ -66,50 +69,117 @@ fun InsertScreen(
         )
     }
     var checkedOption by remember { mutableIntStateOf(0) }
+    var popupVisibleState by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
         HeaderSection(
-            Modifier.weight(1f),
             navController,
             aiResponseData,
             productsViewModel,
-            newPopupDetails,
-            checkedOption
+            newPopupDetails
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
-            checkedOption = it
-        }
-        ImageSection(Modifier.weight(3f), aiResponseData, checkedOption, clickedUrlLiveData)
+            ImageSection(aiResponseData, checkedOption, clickedUrlLiveData) {
+                checkedOption = it
+            }
 
-        StateScreen(
-            newPopupDetails,
-            Modifier.weight(2f)
-        ) { newPopupDetails = it }
+            HorizontalDivider(
+                thickness = 2.dp,
+                modifier = Modifier.padding(horizontal = 16.dp).padding(top = 16.dp),
+                color = colorDang
+            )
+            ProductNameAndEditSection(newPopupDetails) {
+                popupVisibleState = true
+            }
+
+            HorizontalDivider(
+                thickness = 2.dp,
+                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                color = colorDang
+            )
+            StateScreen(
+                newPopupDetails,
+                popupVisibleState,
+                { newPopupDetails = it },
+                { popupVisibleState = false })
+            HorizontalDivider(
+                thickness = 2.dp,
+                modifier = Modifier.padding(16.dp),
+                color = colorDang
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(text = " \n ${newPopupDetails.productDescription}")
+            }
+        }
+    }
+}
+
+@Composable
+fun ProductNameAndEditSection(
+    newPopupDetails: PopupDetails,
+    popupVisible: () -> Unit
+) {
+    Row(modifier = Modifier.fillMaxWidth()
+        .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            newPopupDetails.name
+        )
+        Spacer(modifier = Modifier
+            .weight(1f))
+
+        FunTextButton("수정", clickEvent = {
+            popupVisible()
+        })
     }
 }
 
 
 @Composable
 fun ImageSection(
-    modifier: Modifier,
     aiResponseData: String?,
     checkedOption: Int,
-    clickedUrlLiveData: String?
+    clickedUrlLiveData: String?,
+    changeCheckedOpt: (Int) -> Unit
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.Center
     ) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+            val options = listOf(
+                " 옷 ",
+                "모델"
+            )
+            ChoiceSegButton(options, checkedOption) { changeCheckedOpt(it) }
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
         if (checkedOption == 0) {
             val painter = rememberAsyncImagePainter(clickedUrlLiveData)
             Image(
                 painter = painter,
                 contentDescription = "",
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .size(360.dp),
                 contentScale = ContentScale.Fit
             )
         } else {
@@ -118,11 +188,18 @@ fun ImageSection(
                 Image(
                     painter = painter,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .size(360.dp),
                     contentScale = ContentScale.Fit
                 )
             } ?: run {
-                CircularProgressIndicator()
+                Image(
+                    painter = gifImageDecode(R.raw.dangkki_loadingicon),
+                    contentDescription = "mascot",
+                    modifier = Modifier
+                        .size(360.dp),
+                    contentScale = ContentScale.Fit
+                )
             }
         }
     }
@@ -130,56 +207,36 @@ fun ImageSection(
 }
 
 @Composable
-fun HeaderSection(
-    modifier: Modifier,
+private fun HeaderSection(
     navController: NavHostController,
     aiResponseData: String?,
     productsViewModel: ProductViewModel,
-    newPopupDetails: PopupDetails,
-    checkedOption: Int,
-    changeCheckedOpt: (Int) -> Unit
+    newPopupDetails: PopupDetails
 ) {
-    Column(
-        modifier = modifier
-    ) {
+    Column {
+        val coroutineScope = rememberCoroutineScope()
+        val context = LocalContext.current
+
         TopBar(
             title = "",
             onBackClick = { navController.popBackStack() },
-            onAddClick = { },
-            addIcon = null
-        )
+            onAddClick = {
+                aiResponseData?.let { aiUrl ->
+                    newPopupDetails.aiUrl = aiUrl
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Spacer(modifier = Modifier.weight(2f))
-            val options = listOf(
-                " 옷 ",
-                "모델"
-            )
-            ChoiceSegButton(options, checkedOption) { changeCheckedOpt(it) }
-            Spacer(modifier = Modifier.weight(1f))
+                    val dateTimeNow = LocalDateTime.now().toLocalDate().toString().replace("-", "") +
+                                LocalDateTime.now().toLocalTime().toString().replace(":", "")
+                                    .substring(0, 4)
+                    saveEvent(coroutineScope, context, dateTimeNow, newPopupDetails)
+                    productsViewModel.getProductsFromFireStore()
 
-            aiResponseData?.let { aiUrl ->
-                newPopupDetails.aiUrl = aiUrl
-                val coroutineScope = rememberCoroutineScope()
-                val context = LocalContext.current
-
-                Row(
-                    modifier = Modifier.weight(1f),
-                ) {
-                    FunTextButton("저장") {
-                        navController.popBackStack()
-                        saveEvent(coroutineScope, context, null, newPopupDetails)
-                        productsViewModel.getProductsFromFireStore()
-                    }
+                    navController.navigate("detailProduct/$dateTimeNow")
                 }
-            } ?: run {
-                Spacer(modifier = Modifier.weight(1f))
-            }
-        }
+            },
+            addIcon = aiResponseData?.let {
+                Icons.Default.Check
+            } ?: run { null }
+        )
     }
 
 }
@@ -228,44 +285,31 @@ fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt:
 @Composable
 private fun StateScreen(
     newPopupDetails: PopupDetails,
-    modifier: Modifier,
-    updateDetail: (PopupDetails) -> Unit
+    popupVisibleState: Boolean,
+    updateDetail: (PopupDetails) -> Unit,
+    popupVisible: () -> Unit
 ) {
-
-    var popupVisibleState by remember { mutableStateOf(false) }
     Column(
-        modifier = modifier
-            .clickable {
-                popupVisibleState = true
-            }
+        modifier = Modifier
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(horizontal = 16.dp),
         ) {
-            Divider(color = colorDang, thickness = 2.dp)
-            Row {
-                Text(text = "제품명: ", color = colorDang)
-                Text(text = newPopupDetails.name)
-            }
-            Divider(color = colorDang, thickness = 2.dp)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                Text(text = "가격", modifier = Modifier.weight(1f), color = colorDang)
-                Text(text = " ${newPopupDetails.price}", modifier = Modifier.weight(1f))
-
-                Text(text = "거래방법", modifier = Modifier.weight(1f), color = colorDang)
-                Text(text = " ${newPopupDetails.dealMethod}", modifier = Modifier.weight(1f))
-
-                Row(
-                    modifier = Modifier.weight(3f)
-                ) {
-                    Spacer(modifier = Modifier.size(16.dp, 0.dp))
-                    Text(text = "상태", color = colorDang)
-                    Spacer(modifier = Modifier.size(16.dp, 0.dp))
+                Text(
+                    text = "가격: ${newPopupDetails.price}",
+                    color = colorDang
+                )
+                Text(
+                    text = "거래방법 ${newPopupDetails.dealMethod}",
+                    color = colorDang
+                )
+                Row {
+                    Text(text = "평점", color = colorDang)
                     RatingBar(
                         value = newPopupDetails.rating,
                         style = RatingBarStyle.Fill(),
@@ -279,24 +323,21 @@ private fun StateScreen(
                     )
                 }
             }
-            Divider(color = colorDang, thickness = 2.dp)
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
-                    .horizontalScroll(rememberScrollState())
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.End
             ) {
-                Text(text = " \n ${newPopupDetails.productDescription}")
+                Text(text = "거래 위치: ", modifier = Modifier.weight(1f), color = colorDang)
             }
         }
-
-        if (popupVisibleState) {
-            SavePopup(newPopupDetails, {
-                updateDetail(it)
-            }, {
-                popupVisibleState = false
-            })
-        }
     }
+
+    if (popupVisibleState) {
+        SavePopup(newPopupDetails, {
+            updateDetail(it)
+        }, {
+            popupVisible()
+        })
+    }
+
 }
