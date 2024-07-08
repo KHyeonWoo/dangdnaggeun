@@ -58,36 +58,36 @@ fun DetailScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
-                    SegmentImageSection(
-                        productsViewModel,
-                        productKey,
-                        productMap
-                    )
-                    UserInfoSection(
-                        productsViewModel,
-                        navController,
-                        productMap,
-                        productKey?:""
-                    )
-                    HorizontalDivider(
-                        thickness = 2.dp,
-                        modifier = Modifier.padding(16.dp),
-                        color = colorDang
-                    )
-                    ProductNameSection(productMap)
-                    HorizontalDivider(
-                        thickness = 2.dp,
-                        modifier = Modifier.padding(16.dp),
-                        color = colorDang
-                    )
-                    PriceAndMethodSection(productMap)
-                    HorizontalDivider(
-                        thickness = 2.dp,
-                        modifier = Modifier.padding(16.dp),
-                        color = colorDang
-                    )
-                    ProductDescriptionSection(productMap)
-                }
+                SegmentImageSection(
+                    productsViewModel,
+                    productKey,
+                    productMap
+                )
+                UserInfoSection(
+                    productsViewModel,
+                    navController,
+                    productMap,
+                    productKey ?: ""
+                )
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(16.dp),
+                    color = colorDang
+                )
+                ProductNameSection(productMap)
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(16.dp),
+                    color = colorDang
+                )
+                PriceAndMethodSection(productMap)
+                HorizontalDivider(
+                    thickness = 2.dp,
+                    modifier = Modifier.padding(16.dp),
+                    color = colorDang
+                )
+                ProductDescriptionSection(productMap)
+            }
 
         }
     }
@@ -335,7 +335,8 @@ fun PopupVisible(
                 productMap["price"]?.toInt() ?: 0,
                 productMap["dealMethod"] ?: "",
                 productMap["rating"]?.toFloat() ?: 0f,
-                productMap["productDescription"] ?: ""
+                productMap["productDescription"] ?: "",
+                productMap["address"] ?: "",
             )
         )
     }
@@ -370,7 +371,8 @@ fun PriceAndMethodSection(productMap: Map<String, String>) {
 @Composable
 fun ProductDescriptionSection(productMap: Map<String, String>) {
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
         Text(text = productMap["productDescription"] ?: "")
