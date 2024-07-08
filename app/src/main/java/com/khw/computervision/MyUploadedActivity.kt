@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
@@ -43,16 +44,19 @@ import kotlin.math.roundToInt
 @Composable
 fun MyUploadedScreen(productsViewModel: ProductViewModel) {
     val productData by productsViewModel.productsData.observeAsState()
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(colorBack)
     ) {
-        LogoScreen(activityName = "MyUploaded") {
-//            finish()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            TopBar(title = "판매내역", onBackClick = { }, onAddClick = { }, addIcon = Icons.Default.Add)
+//        SearchScreen()
+            productData?.let { MyProductSwipeBox(it) }
         }
-        SearchScreen()
-        productData?.let { MyProductSwipeBox(it) }
     }
 }
 
@@ -88,7 +92,6 @@ private fun SearchScreen() {
                     .weight(3f)
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
     }
 }
 

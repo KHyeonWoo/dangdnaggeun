@@ -277,7 +277,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                     )
                 },
                 selectedContentColor = colorDang,
-                unselectedContentColor = Color.Black.copy(alpha = .5f),
+                unselectedContentColor = colorDong.copy(alpha = .5f),
                 selected = currentRoute == item.route,
                 onClick = {
                     val route = if (item.route.contains("{messageMap}")) {

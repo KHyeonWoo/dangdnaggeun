@@ -78,6 +78,7 @@ fun ClosetScreen(
     }
 
 }
+
 @Composable
 fun HeaderSection(
     modifier: Modifier,
@@ -103,38 +104,18 @@ fun HeaderSection(
                     )
                     showImagePicker = false
                     isLoading = false
-
                 }
                 isLoading = true
-
             } else {
                 Log.d("PhotoPicker", "No media selected")
             }
         }
-
-    // 나의 옷장 타이틀과 버튼
-    Row(
-        modifier = modifier
-            .fillMaxWidth(),
-    ) {
-        if (isLoading) {
-            TopBar(
-                title = "나의 옷장",
-                onBackClick = onBackClick,
-                onAddClick = { },
-                addIcon = Icons.Default.Refresh
-            )
-        } else {
-            TopBar(
-                title = "나의 옷장",
-                onBackClick = onBackClick,
-                onAddClick = {
-                    startImagePicker(imageCropLauncher)
-                },
-                addIcon = Icons.Default.Add
-            )
-        }
-    }
+    TopBar(
+        title = "나의 옷장",
+        onBackClick = {  },
+        onAddClick = {  },
+        addIcon = Icons.Default.Add
+    )
 }
 
 @Composable
@@ -190,8 +171,8 @@ private fun BodySection(
                 decorateClickedCategory
             )
     }
-
 }
+
 @Composable
 fun ImgGridSection(
     modifier: Modifier,
@@ -211,7 +192,7 @@ fun ImgGridSection(
             "top" -> "상의" to "하의를 선택하세요"
             else -> "하의" to "상의를 선택하세요"
         }
-        SectionHeader(title = headerName)
+//        SectionHeader(title = headerName)
 
         if (decorateClickedCategory != category) {
             ImageGrid(
@@ -244,7 +225,6 @@ fun ImgGridSection(
     }
 
 }
-
 
 
 @Composable

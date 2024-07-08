@@ -1,5 +1,6 @@
 package com.khw.computervision
 
+import androidx.annotation.Nullable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +47,7 @@ fun MyLikedScreen(productsViewModel: ProductViewModel) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F5EB))
+            .background(colorBack)
     ) {
         Column(
             modifier = Modifier
@@ -58,13 +58,7 @@ fun MyLikedScreen(productsViewModel: ProductViewModel) {
                 title = "좋아요",
                 onBackClick = { /*TODO*/ },
                 onAddClick = { /*TODO*/ },
-                Icons.Default.Add
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.width(350.dp),
-                thickness = 1.dp,
-                color = colorDang
+                addIcon = Icons.Default.Add
             )
 
             productData?.let { MyProductSwipeBox(it) }

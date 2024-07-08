@@ -8,6 +8,7 @@ import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,7 +30,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,6 +57,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -82,6 +83,9 @@ import java.nio.charset.StandardCharsets
 
 
 val colorDang = Color(0xFFF3BB66)
+val colorDong = Color(0xFF714809)
+val colorBack = Color(0xFFF5F5EB)
+val customFont = FontFamily(Font(R.font.santokki_regular, FontWeight.Normal))
 
 // 싱글톤 클래스 정의
 object ReLoadingManager {
@@ -101,64 +105,69 @@ object UserIDManager {
 
 @Composable
 fun LogoScreen(activityName: String, goBack: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Box(
+        modifier = Modifier.background(colorBack)
     ) {
-        if (activityName != "Login") {
-            Spacer(modifier = Modifier.height(20.dp))
-        }
-        Text(
-            text = "당당하게 거래해요",
-            fontSize = 20.sp,
-            color = colorDang,
-            modifier = Modifier.clickable {
-                if (activityName != "Login" && activityName != "Sales") {
-                    goBack()
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+//            if (activityName != "Login") {
+//                Spacer(modifier = Modifier.height(20.dp))
+//            }
+
+//            Text(
+//                text = "당당하게 거래해요",
+//                fontSize = 20.sp,
+//                color = colorDong,
+//                fontFamily = customFont,
+//                modifier = Modifier.clickable {
+//                    if (activityName != "Login" && activityName != "Sales") {
+//                        goBack()
+//                    }
+//                }
+//            )
+
+            when (activityName) {
+                "Login" -> {
+                    TextBox("우리 당당하게 팔아요")
                 }
-            }
-        )
-        Spacer(modifier = Modifier.height(10.dp))
 
-        when (activityName) {
-            "Login" -> {
-                TextBox("우리 당당하게 팔아요")
-            }
+                "SignUp" -> {
+                    TextBox("모두 당당하게 가입하세요") //20240701 하승수 - 회원가입 페이지 추가
+                }
 
-            "SignUp" -> {
-                TextBox("모두 당당하게 가입하세요") //20240701 하승수 - 회원가입 페이지 추가
-            }
+                "Sales" -> {
+                    TextBox("우리 당당하게 보여줘요")
+                }
 
-            "Sales" -> {
-                TextBox("우리 당당하게 보여줘요")
-            }
+                "Detail" -> {
+                    TextBox("우리 당당하게 알려줘요")
+                }
 
-            "Detail" -> {
-                TextBox("우리 당당하게 알려줘요")
-            }
+                "Insert" -> {
+                    TextBox("우리 당당하게 팔아요")
+                }
 
-            "Insert" -> {
-                TextBox("우리 당당하게 팔아요")
-            }
+                "Decorate" -> {
+                    TextBox("우리 당당하게 꾸며봐요")
+                }
 
-            "Decorate" -> {
-                TextBox("우리 당당하게 꾸며봐요")
-            }
+                "UserProfile" -> {
+                    TextBox("우리 당당하게 확인해요")
+                }
 
-            "UserProfile" -> {
-                TextBox("우리 당당하게 확인해요")
-            }
+                "MyUploaded" -> {
+                    TextBox("나의 게시글을 확인해요")
+                }
 
-            "MyUploaded" -> {
-                TextBox("나의 게시글을 확인해요")
-            }
+                "MessageList" -> {
+                    TextBox("나의 메시지를 확인해요") //07022024 하승수 - 메시지 페이지 추가
+                }
 
-            "MessageList" -> {
-                TextBox("나의 메시지를 확인해요") //07022024 하승수 - 메시지 페이지 추가
-            }
-
-            "AiImgGen" -> {
-                TextBox("나의 당당하게 꾸며봐요") //07021336 김현우 - AI 이미지 생성 페이지 추가
+                "AiImgGen" -> {
+                    TextBox("나의 당당하게 꾸며봐요") //07021336 김현우 - AI 이미지 생성 페이지 추가
+                }
             }
         }
     }
@@ -215,7 +224,7 @@ fun FunButton(buttonText: String, image: Int?, clickEvent: () -> Unit) {
     Button(
         onClick = { clickEvent() },
         colors = ButtonDefaults.buttonColors(
-            colorDang
+            Color(0xFF714809)
         )
     ) {
         image?.let { Image(painter = painterResource(id = it), contentDescription = "icon") }
@@ -242,10 +251,12 @@ fun FunTextButton(buttonText: String, clickEvent: () -> Unit) {
     TextButton(
         onClick = { clickEvent() },
         colors = ButtonDefaults.buttonColors(
-            Color.White
+            Color.Transparent
         )
     ) {
-        Text(text = buttonText, color = colorDang)
+        Text(text = buttonText,
+            color = Color.Black,
+            fontWeight = FontWeight.Bold)
     }
 }
 
@@ -483,7 +494,7 @@ fun TopBar(
                 androidx.compose.material.Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = colorDong
                 )
             }
             Spacer(modifier = Modifier.weight(.1f))
@@ -491,7 +502,7 @@ fun TopBar(
                 text = title,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = colorDong,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.weight(5f))
@@ -499,17 +510,11 @@ fun TopBar(
                 androidx.compose.material.Icon(
                     addIcon,
                     contentDescription = "Add",
-                    tint = Color.Black
+                    tint = colorDong
                 )
             }
         }
-
-        Row {
-            Spacer(modifier = Modifier.weight(1f))
-            HorizontalDivider(color = colorDang, modifier = Modifier.weight(8f))
-            Spacer(modifier = Modifier.weight(1f))
-        }
-
+        HorizontalDivider(color = colorDang, modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp))
     }
 }
 

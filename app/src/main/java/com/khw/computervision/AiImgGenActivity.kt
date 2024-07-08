@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -437,7 +436,7 @@ private fun BodySection(
 
         if (gender) {
             Image(
-                painter = painterResource(id = R.drawable.model_women),
+                painter = painterResource(id = R.drawable.model_women_noback),
                 contentDescription = "AIModel",
                 modifier = Modifier.weight(5f),
                 alignment = Alignment.Center,
@@ -445,7 +444,7 @@ private fun BodySection(
             )
         } else {
             Image(
-                painter = painterResource(id = R.drawable.model_men),
+                painter = painterResource(id = R.drawable.model_men_noback),
                 contentDescription = "AIModel",
                 modifier = Modifier.weight(5f),
                 alignment = Alignment.Center,
@@ -466,20 +465,20 @@ fun BottomSection(
 
     HorizontalDivider(
         color = colorDang, modifier = Modifier
-            .width(350.dp)
+            .fillMaxWidth()
             .padding(16.dp)
     )
     Row(
         modifier = modifier.fillMaxSize(),
     ) {
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(.5f))
         Column(
             modifier = Modifier
                 .weight(1f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            FunTextButton(buttonText = "판매옷") { }
+            FunButton(buttonText = "판매옷",null) {}
             GlideImage(
                 imageModel = clickedUrl,
                 contentScale = ContentScale.FillBounds,
@@ -520,7 +519,7 @@ fun BottomSection(
                 )
             }
         }
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(.5f))
     }
 }
 
@@ -581,9 +580,9 @@ fun GenderOption(
             checked = isSelected,
             onCheckedChange = { onCheckedChange() },
             colors = CheckboxDefaults.colors(
-                checkedColor = colorDang,
-                uncheckedColor = colorDang,
-                checkmarkColor = Color.Black,
+                checkedColor = colorDong,
+                uncheckedColor = colorDong,
+                checkmarkColor = Color.White,
             )
         )
     }

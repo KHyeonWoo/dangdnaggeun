@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -189,30 +190,84 @@ import com.google.firebase.ktx.Firebase
 //}
 @Composable
 fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewModel) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorBack)
     ) {
-        var checkedOption by remember { mutableIntStateOf(0) }
-        var sortOpt by remember { mutableStateOf("date") }
-        var searchText: String by remember { mutableStateOf("") }
-        Box(
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(modifier = Modifier.align(Alignment.CenterStart)) {
+            var checkedOption by remember { mutableIntStateOf(0) }
+            var sortOpt by remember { mutableStateOf("date") }
+            var searchText: String by remember { mutableStateOf("") }
+
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(16.dp)
+//            ) {
+//                Row(modifier = Modifier.align(Alignment.CenterStart)) {
+//                    SearchDropdownMenu { searchText = it }
+//                }
+//                Row(modifier = Modifier.align(Alignment.Center)) {
+//                    val options = listOf("상의", "하의")
+//                    ChoiceSegButton(options, checkedOption) { checkedOption = it }
+//                }
+//                Row(modifier = Modifier.align(Alignment.CenterEnd)) {
+//                    SortDropdownMenu({ sortOpt = "liked" }, { sortOpt = "date" })
+//                }
+//            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 SearchDropdownMenu { searchText = it }
-            }
-            Row(modifier = Modifier.align(Alignment.Center)) {
-                val options = listOf("상의", "하의")
-                ChoiceSegButton(options, checkedOption) { checkedOption = it }
-            }
-            Row(modifier = Modifier.align(Alignment.CenterEnd)) {
+
+                Spacer(modifier = Modifier.weight(2f))
+
+                Text(
+                    "당당하게 거래해요",
+                    fontSize = 16.sp,
+                    fontFamily = customFont,
+                    color = colorDong
+                )
+                Spacer(modifier = Modifier.weight(2f))
+
                 SortDropdownMenu({ sortOpt = "liked" }, { sortOpt = "date" })
             }
-        }
-        if (checkedOption == 0) {
-            ImageList(navController, productsViewModel, "top", sortOpt, searchText)
-        } else {
-            ImageList(navController, productsViewModel, "bottom", sortOpt, searchText)
+
+            HorizontalDivider(
+                color = colorDang, modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp, 0.dp)
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Row(modifier = Modifier.align(Alignment.Center)) {
+                    val options = listOf("상의", "하의")
+                    ChoiceSegButton(options, checkedOption) { checkedOption = it }
+                }
+            }
+
+
+//            HorizontalDivider(color = colorDang, modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp, 8.dp))
+
+            if (checkedOption == 0) {
+                ImageList(navController, productsViewModel, "top", sortOpt, searchText)
+            } else {
+                ImageList(navController, productsViewModel, "bottom", sortOpt, searchText)
+            }
         }
     }
 }
@@ -391,8 +446,8 @@ fun ImageList(
                                     ) {
                                         Column {
                                             Text(text = "상품명")
-                                            product["name"]?.let { Text(text = it) }
-                                            product["price"]?.let {
+                                            value["name"]?.let { Text(text = it) }
+                                            value["price"]?.let {
                                                 Text(text = "$${it}원")
                                             }
                                             Spacer(modifier = Modifier.weight(1f))
@@ -401,20 +456,21 @@ fun ImageList(
                                                     .fillMaxWidth()
                                                     .padding(end = 4.dp)
                                             ) {
-                                                totalLiked?.get("liked")
-                                                    ?.let { Text(text = "좋아요 : $it") }
-                                                Spacer(modifier = Modifier.weight(1f))
+
                                                 totalLiked?.get("viewCount")
                                                     ?.let { Text(text = "조회수 : $it") }
+                                                Spacer(modifier = Modifier.weight(1f))
+                                                totalLiked?.get("liked")
+                                                    ?.let { Text(text = "좋아요 : $it") }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                    if (chunkedKeys.size != 2) {
-                        Box(modifier = Modifier.weight(1f))
+                        if (chunkedKeys.size != 2) {
+                            Box(modifier = Modifier.weight(1f))
+                        }
                     }
                 }
             }
