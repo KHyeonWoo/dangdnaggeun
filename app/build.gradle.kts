@@ -136,5 +136,8 @@ dependencies {
 
     // kotlinx.serialization 종속성 추가 - kh
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    // searchbar - kh
+    implementation("androidx.compose.material3:material3:1.3.0-beta03")
 }
 

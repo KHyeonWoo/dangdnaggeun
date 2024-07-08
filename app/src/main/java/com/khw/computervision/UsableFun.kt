@@ -411,32 +411,32 @@ fun ImageItem(
 
 //07022024 하승수 - 검색 fun 추가
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SearchTextField(onSearch: (String) -> Unit) {
-    var searchQuery by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = searchQuery,
-        onValueChange = { searchQuery = it },
-        label = { Text("검색") },
-        modifier = Modifier.size(210.dp, 60.dp),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedTextColor = colorDang,
-            focusedBorderColor = colorDang,
-            unfocusedTextColor = colorDang,
-            unfocusedBorderColor = colorDang,
-            focusedLabelColor = colorDang,
-            unfocusedLabelColor = colorDang
-        ),
-        leadingIcon = {
-            Icon(
-                painter = painterResource(id = R.drawable.search_icon),
-                contentDescription = "Search Icon",
-                tint = colorDang
-            )
-        }
-    )
-}
+//@Composable
+//fun SearchTextField(onSearch: (String) -> Unit) {
+//    var searchQuery by remember { mutableStateOf("") }
+//
+//    OutlinedTextField(
+//        value = searchQuery,
+//        onValueChange = { searchQuery = it },
+//        label = { Text("검색") },
+//        modifier = Modifier.size(210.dp, 60.dp),
+//        colors = TextFieldDefaults.outlinedTextFieldColors(
+//            focusedTextColor = colorDang,
+//            focusedBorderColor = colorDang,
+//            unfocusedTextColor = colorDang,
+//            unfocusedBorderColor = colorDang,
+//            focusedLabelColor = colorDang,
+//            unfocusedLabelColor = colorDang
+//        ),
+//        leadingIcon = {
+//            Icon(
+//                painter = painterResource(id = R.drawable.search_icon),
+//                contentDescription = "Search Icon",
+//                tint = colorDang
+//            )
+//        }
+//    )
+//}
 
 
 fun encodeUrl(url: String): String {

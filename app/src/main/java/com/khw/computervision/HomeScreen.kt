@@ -23,24 +23,33 @@ import androidx.compose.material.DropdownMenu
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -50,6 +59,9 @@ import com.google.firebase.ktx.Firebase
 
 @Composable
 fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewModel) {
+    var isSearchBarVisible by rememberSaveable { mutableStateOf(false) }
+    var searchText by rememberSaveable { mutableStateOf("") }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -61,24 +73,6 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
         ) {
             var checkedOption by remember { mutableIntStateOf(0) }
             var sortOpt by remember { mutableStateOf("date") }
-            var searchText: String by remember { mutableStateOf("") }
-
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(16.dp)
-//            ) {
-//                Row(modifier = Modifier.align(Alignment.CenterStart)) {
-//                    SearchDropdownMenu { searchText = it }
-//                }
-//                Row(modifier = Modifier.align(Alignment.Center)) {
-//                    val options = listOf("상의", "하의")
-//                    ChoiceSegButton(options, checkedOption) { checkedOption = it }
-//                }
-//                Row(modifier = Modifier.align(Alignment.CenterEnd)) {
-//                    SortDropdownMenu({ sortOpt = "liked" }, { sortOpt = "date" })
-//                }
-//            }
 
             Row(
                 modifier = Modifier
@@ -86,7 +80,14 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SearchDropdownMenu { searchText = it }
+                IconButton(onClick = { isSearchBarVisible = !isSearchBarVisible }) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search",
+                        modifier = Modifier.size(24.dp),
+                        tint = colorDang
+                    )
+                }
 
                 Spacer(modifier = Modifier.weight(2f))
 
@@ -99,6 +100,10 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
                 Spacer(modifier = Modifier.weight(2f))
 
                 SortDropdownMenu({ sortOpt = "liked" }, { sortOpt = "date" })
+            }
+
+            if (isSearchBarVisible) {
+                SearchBarSample(searchText) { searchText = it }
             }
 
             HorizontalDivider(
@@ -118,11 +123,6 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
                 }
             }
 
-
-//            HorizontalDivider(color = colorDang, modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp, 8.dp))
-
             if (checkedOption == 0) {
                 ImageList(navController, productsViewModel, "top", sortOpt, searchText)
             } else {
@@ -132,45 +132,35 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchDropdownMenu(searchEvent: (String) -> Unit) {
-    var searchDropdownVisble by remember { mutableStateOf(false) }
-    IconButton(onClick = { searchDropdownVisble = !searchDropdownVisble }) {
-        Icon(
-            imageVector = Icons.Default.Search,
-            contentDescription = "More",
-            modifier = Modifier.size(24.dp),
-            tint = colorDang
-        )
-    }
+fun SearchBarSample(searchText: String, onSearchTextChange: (String) -> Unit) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
 
-    DropdownMenu(
-        expanded = searchDropdownVisble,
-        onDismissRequest = { searchDropdownVisble = false }) {
-        Row(
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .semantics { isTraversalGroup = true }) {
+        SearchBar(
+            query = searchText,
+            onQueryChange = onSearchTextChange,
+            onSearch = { expanded = false },
+            active = false,
+            onActiveChange = { expanded = it },
+            placeholder = { Text("검색어를 입력하세요") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            trailingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
             modifier = Modifier
-                .width(200.dp)
-                .height(40.dp)
+                .align(Alignment.TopCenter)
+                .semantics { traversalIndex = 0f }
+                .fillMaxWidth(1f), // 크기를 80%로 조절
+            shape = RectangleShape,
+            colors = SearchBarDefaults.colors(Color.White),
         ) {
-            var searchText: String by remember { mutableStateOf("") }
-            CustomOutlinedTextField(
-                value = searchText,
-                onValueChange = { searchText = it },
-                modifier = Modifier.weight(6f)
-            )
-            Image(
-                imageVector = Icons.Default.Search, contentDescription = "Search",
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .weight(1f)
-                    .clickable {
-                        searchEvent(searchText)
-                    }
-            )
+            // 여기에 추가적인 콘텐츠를 넣을 수 있습니다.
         }
     }
 }
-
 
 @Composable
 fun SortDropdownMenu(setLike: () -> Unit, setDate: () -> Unit) {
@@ -215,33 +205,26 @@ fun ImageList(
     ) {
         val productData by productsViewModel.productsData.observeAsState()
 
-        var searchedProductData by remember { mutableStateOf(productData) }
-        if (searchText != "") {
-            searchedProductData = productData?.filter { (key, value) ->
-                value["name"]?.contains(searchText) ?: false
+        val searchedProductData = if (searchText.isNotEmpty()) {
+            productData?.filter { (key, value) ->
+                value["name"]?.contains(searchText, ignoreCase = true) == true
             }
         } else {
-            searchedProductData = productData
+            productData
         }
 
         val productFavoriteData by productsViewModel.totalLikedData.observeAsState()
-        var sortedKeyList by remember {
-            mutableStateOf(emptyList<String>())
-        }
+        var sortedKeyList by remember { mutableStateOf(emptyList<String>()) }
 
-// 검색된 데이터가 null이 아닌 경우 정렬을 수행
         searchedProductData?.let { searchedProductMap ->
             productFavoriteData?.let { productFavoriteMap ->
                 sortedKeyList = if (sortOpt == "liked") {
-                    // 좋아요 기준으로 정렬된 리스트 생성
                     productFavoriteMap.entries.sortedByDescending { it.value[sortOpt] }
                         .map { it.key }
                 } else {
-                    // 정렬 옵션이 "liked"가 아닌 경우 검색된 데이터를 그대로 사용
                     searchedProductMap.keys.toList()
                 }
             }
-
         }
 
         val sortedSearchedProductData = sortedKeyList.mapNotNull { key ->
@@ -286,7 +269,6 @@ fun ImageList(
                                         .size(136.dp, 136.dp)
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(Color.LightGray)
-
                                 )
 
                                 Column(
@@ -312,7 +294,6 @@ fun ImageList(
                                                     ?.let { Text(text = "조회수 : $it", fontSize = 12.sp) }
                                             }
                                         }
-
                                     }
                                 }
                             }
@@ -327,4 +308,3 @@ fun ImageList(
         }
     }
 }
-
