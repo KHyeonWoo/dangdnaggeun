@@ -345,7 +345,7 @@ fun PopupVisible(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     if (popupVisibleState) {
-        InsertPopup(newPopupDetails, {
+        SavePopup(newPopupDetails, {
             saveEvent(coroutineScope, context, productKey, it)
             productsViewModel.getProductsFromFireStore()
         }, {

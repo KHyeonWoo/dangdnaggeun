@@ -35,6 +35,7 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.TextButton
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -164,17 +165,21 @@ fun ProfilePopup(
 
             }) {
                 Row {
-                    Icon(painter = painterResource(id = R.drawable.searching_location_icon),
+                    Icon(
+                        painter = painterResource(id = R.drawable.searching_location_icon),
                         contentDescription = "location searching",
-                        tint = colorDang)
+                        tint = colorDang
+                    )
                     Text(text = "현재 위치 확인")
                 }
             }
 
             Row {
-                Icon(painter = painterResource(id = R.drawable.current_location_icon),
+                Icon(
+                    painter = painterResource(id = R.drawable.current_location_icon),
                     contentDescription = "location searching",
-                    tint = colorDang)
+                    tint = colorDang
+                )
                 Text(text = UserIDManager.userAddress.value)
             }
             Spacer(modifier = Modifier.weight(2f))
@@ -477,43 +482,12 @@ fun SavePopup(
                 shape = RoundedCornerShape(10.dp)
             )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_android_24),
-                    contentDescription = "gpt",
-                    modifier = Modifier.clickable {
-                        if (isFormValid) {
-                            coroutineScope.launch {
-                                val apiKey = BuildConfig.OPENAI_API_KEY
-                                val prompt = """
-                                    다음 세부 정보를 기반으로 사람들이 제대로 된 상품 정보를 확인하게끔
-                                    판매글을 한글로 작성해줘.
-
-                                    - Product Name: $name
-                                    - Price: $price
-                                    - Deal Method: $dealMethod
-                                    - 상태(5점만점) : $rating
-                                """.trimIndent()
-
-                                val messages = listOf(
-                                    ChatGPTMessage(role = "user", content = prompt)
-                                )
-                                try {
-                                    val response = sendChatGPTRequest(apiKey, messages)
-                                    withContext(Dispatchers.Main) {
-                                        productDescription =
-                                            response.choices.first().message.content
-                                    }
-                                } catch (e: Exception) {
-                                    withContext(Dispatchers.Main) {
-                                        // 요청 실패했을 때
-                                    }
-                                }
-                            }
-                        }
-                    }
-                )
-                Column(modifier = Modifier.padding(start = 16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(end = 8.dp)) {
                     Text(
                         text = "여기를 클릭하면 AI가 글을 대신 써줘요!",
                         fontSize = 10.sp,
@@ -528,9 +502,43 @@ fun SavePopup(
                         style = TextStyle(lineHeight = 12.sp) // Adjust line height as needed
                     )
                 }
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_android_24),
+                    contentDescription = "gpt",
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable {
+                            if (isFormValid) {
+                                coroutineScope.launch {
+                                    val apiKey = BuildConfig.OPENAI_API_KEY
+                                    val prompt = """
+                                    다음 세부 정보를 기반으로 사람들이 제대로 된 상품 정보를 확인하게끔
+                                    판매글을 한글로 작성해줘.
 
+                                    - Product Name: $name
+                                    - Price: $price
+                                    - Deal Method: $dealMethod
+                                    - 상태(5점만점) : $rating
+                                """.trimIndent()
 
-
+                                    val messages = listOf(
+                                        ChatGPTMessage(role = "user", content = prompt)
+                                    )
+                                    try {
+                                        val response = sendChatGPTRequest(apiKey, messages)
+                                        withContext(Dispatchers.Main) {
+                                            productDescription =
+                                                response.choices.first().message.content
+                                        }
+                                    } catch (e: Exception) {
+                                        withContext(Dispatchers.Main) {
+                                            // 요청 실패했을 때
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                )
 
             }
         }
@@ -542,27 +550,39 @@ fun SavePopup(
             horizontalArrangement = Arrangement.End
         ) {
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = { close() }) {
-                Text("Cancel")
+            Button(
+                onClick = { close() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorDang, // 버튼의 배경색
+                    contentColor = Color.White  // 버튼 내용(텍스트)의 색상
+                )
+            ) {
+                Text("취소")
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = {
-                saveData(
-                    PopupDetails(
-                        UserIDManager.userID.value,
-                        name,
-                        imageUrl,
-                        aiUrl,
-                        category,
-                        price.toInt(),
-                        dealMethod,
-                        rating,
-                        productDescription
+            Button(
+                onClick = {
+                    saveData(
+                        PopupDetails(
+                            UserIDManager.userID.value,
+                            name,
+                            imageUrl,
+                            aiUrl,
+                            category,
+                            price.toInt(),
+                            dealMethod,
+                            rating,
+                            productDescription
+                        )
                     )
+                    close()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorDang, // 버튼의 배경색
+                    contentColor = Color.White  // 버튼 내용(텍스트)의 색상
                 )
-                close()
-            }) {
-                Text("Upload")
+            ) {
+                Text("등록")
             }
         }
     })
