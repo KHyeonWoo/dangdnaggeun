@@ -52,7 +52,7 @@ fun DetailScreen(
     ) {
 
         productMap?.let { productMap ->
-            HeaderSection()
+            HeaderSection(navController)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -95,10 +95,10 @@ fun DetailScreen(
 }
 
 @Composable
-private fun HeaderSection() {
+private fun HeaderSection(navController: NavHostController) {
     TopBar(
         title = "판매제품",
-        onBackClick = { /*TODO*/ },
+        onBackClick = { navController.popBackStack() },
         onAddClick = { /*TODO*/ },
         addIcon = null
     )
