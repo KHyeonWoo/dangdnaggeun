@@ -54,7 +54,8 @@ fun ClosetScreen(
     onBackClick: () -> Unit,
     navController: NavHostController,
     salesViewModel: SalesViewModel,
-    beforeScreen: String?
+    beforeScreen: String?,
+    backIconVisible: String?
 ) {
     BackHandler {
         navController.navigateUp()
@@ -64,7 +65,7 @@ fun ClosetScreen(
             .fillMaxSize()
             .background(colorBack)
     ) {
-        HeaderSection(Modifier.weight(1f), closetViewModel, onBackClick)
+        HeaderSection(Modifier.weight(1f), closetViewModel, onBackClick, backIconVisible)
         BodySection(
             navController,
             Modifier.weight(8f),
@@ -77,10 +78,11 @@ fun ClosetScreen(
 }
 
 @Composable
-fun HeaderSection(
+private fun HeaderSection(
     modifier: Modifier,
     closetViewModel: ClosetViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    backIconVisible: String?
 ) {
     var isLoading by remember { mutableStateOf(false) }
     var showImagePicker by remember { mutableStateOf(false) }
@@ -112,11 +114,13 @@ fun HeaderSection(
             .fillMaxWidth(),
     ) {
         if (isLoading) {
+
             TopBar(
                 title = "나의 옷장",
                 onBackClick = onBackClick,
                 onAddClick = { },
-                addIcon = Icons.Default.Refresh
+                addIcon = Icons.Default.Refresh,
+                showBackIcon = backIconVisible.toBoolean()
             )
         } else {
             TopBar(
@@ -125,7 +129,8 @@ fun HeaderSection(
                 onAddClick = {
                     startImagePicker(imageCropLauncher)
                 },
-                addIcon = Icons.Default.Add
+                addIcon = Icons.Default.Add,
+                showBackIcon = backIconVisible.toBoolean()
             )
         }
     }
