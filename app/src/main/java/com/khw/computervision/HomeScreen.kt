@@ -2,9 +2,7 @@ package com.khw.computervision
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,17 +21,12 @@ import androidx.compose.material.DropdownMenu
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -44,14 +37,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.semantics.isTraversalGroup
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -153,6 +141,7 @@ private fun HeaderSection(
         SearchTextField(searchText) { setSearchText(it) }
     }
 }
+
 @Composable
 fun SearchTextField(searchText: String, onSearchTextChange: (String) -> Unit) {
     OutlinedTextField(
@@ -210,12 +199,22 @@ fun ImageList(
     ) {
         val productData by productsViewModel.productsData.observeAsState()
 
-        val searchedProductData = if (searchText.isNotEmpty()) {
+        val categoryProductData = if (categoryOption == "top") {
             productData?.filter { (key, value) ->
+                value["category"] == "top"
+            }
+        } else {
+            productData?.filter { (key, value) ->
+                value["category"] == "bottom"
+            }
+        }
+
+        val searchedProductData = if (searchText.isNotEmpty()) {
+            categoryProductData?.filter { (key, value) ->
                 value["name"]?.contains(searchText, ignoreCase = true) == true
             }
         } else {
-            productData
+            categoryProductData
         }
 
         val productFavoriteData by productsViewModel.totalLikedData.observeAsState()
@@ -264,67 +263,65 @@ fun ImageList(
                                 },
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            if (product["category"] == categoryOption) {
-                                val painter = rememberAsyncImagePainter(product["imageUrl"])
+                            val painter = rememberAsyncImagePainter(product["imageUrl"])
 
-                                Image(
-                                    painter = painter,
-                                    contentDescription = "Image",
-                                    contentScale = ContentScale.FillBounds,
-                                    modifier = Modifier
-                                        .size(136.dp, 136.dp)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(Color.LightGray)
-                                )
+                            Image(
+                                painter = painter,
+                                contentDescription = "Image",
+                                contentScale = ContentScale.FillBounds,
+                                modifier = Modifier
+                                    .size(136.dp, 136.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color.LightGray)
+                            )
 
-                                Column(
+                            Column(
+                                modifier = Modifier
+                                    .width(136.dp)
+                            ) {
+                                Row(
                                     modifier = Modifier
-                                        .width(136.dp)
+                                        .fillMaxWidth()
                                 ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                    ) {
-                                        Column {
-                                            value["name"]?.let {
-                                                Text(
-                                                    text = it,
-                                                    fontSize = 16.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                            value["price"]?.let {
-                                                Text(text = "${it}원", fontSize = 16.sp)
-                                            }
-                                            Row(
-                                                horizontalArrangement = Arrangement.Start,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                totalLiked?.get("liked")
-                                                    ?.let {
-                                                        Text(
-                                                            text = "좋아요 $it",
-                                                            fontSize = 12.sp,
-                                                            modifier = Modifier.padding(end = 4.dp)
-                                                        )
-                                                    }
-                                                totalLiked?.get("viewCount")
-                                                    ?.let {
-                                                        Text(
-                                                            text = "조회수 $it",
-                                                            fontSize = 12.sp
-                                                        )
-                                                    }
-                                            }
+                                    Column {
+                                        value["name"]?.let {
+                                            Text(
+                                                text = it,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        value["price"]?.let {
+                                            Text(text = "${it}원", fontSize = 16.sp)
+                                        }
+                                        Row(
+                                            horizontalArrangement = Arrangement.Start,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            totalLiked?.get("liked")
+                                                ?.let {
+                                                    Text(
+                                                        text = "좋아요 $it",
+                                                        fontSize = 12.sp,
+                                                        modifier = Modifier.padding(end = 4.dp)
+                                                    )
+                                                }
+                                            totalLiked?.get("viewCount")
+                                                ?.let {
+                                                    Text(
+                                                        text = "조회수 $it",
+                                                        fontSize = 12.sp
+                                                    )
+                                                }
                                         }
                                     }
                                 }
                             }
-                            Spacer(modifier = Modifier.height(24.dp))
                         }
-                        if (chunkedKeys.size != 2) {
-                            Box(modifier = Modifier.weight(1f))
-                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                    if (chunkedKeys.size != 2) {
+                        Box(modifier = Modifier.weight(1f))
                     }
                 }
             }

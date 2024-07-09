@@ -34,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -245,30 +244,22 @@ fun ImgGridSection(
         }
     }
     expandedImage?.let { (ref, url) ->
-        ExpandedImageDialog(url = url, onDismiss = { expandedImage = null })
+        ExpandedImageDialog(
+            ref = ref,
+            url = url,
+            closetViewModel = closetViewModel,
+            onDismiss = { expandedImage = null })
     }
 
 }
 
-
 @Composable
-fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
-        color = Color.White,
-        modifier = Modifier
-            .padding(8.dp)
-            .background(colorDang)
-            .padding(8.dp)
-            .fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
-}
-
-@Composable
-fun ExpandedImageDialog(url: String, onDismiss: () -> Unit) {
+fun ExpandedImageDialog(
+    ref: StorageReference,
+    url: String,
+    closetViewModel: ClosetViewModel,
+    onDismiss: () -> Unit
+) {
     Dialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
@@ -289,6 +280,21 @@ fun ExpandedImageDialog(url: String, onDismiss: () -> Unit) {
             ) {
                 Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.Black)
             }
+            FunButton("삭제", null) {
+                ref.delete()
+                    .addOnSuccessListener {
+                        closetViewModel.getItemsFromFirebase(
+                            Firebase.storage.reference.child(
+                                UserIDManager.userID.value
+                            )
+                        )
+                        onDismiss()
+                    }
+                    .addOnFailureListener {
+                    }
+            }
+
+
         }
     }
 }
