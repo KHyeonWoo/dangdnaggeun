@@ -148,8 +148,8 @@ private fun BodySection(
     val tabs = listOf("상의", "하의")
     TabRow(
         selectedTabIndex = selectedTabIndex,
-        contentColor = colorDang,
-        backgroundColor = Color.White,
+        contentColor = colorDong,
+        backgroundColor = colorBack,
         modifier = Modifier.padding(0.dp, 4.dp)
     ) {
         tabs.forEachIndexed { index, title ->

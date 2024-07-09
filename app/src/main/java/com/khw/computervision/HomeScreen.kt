@@ -2,9 +2,7 @@ package com.khw.computervision
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +21,6 @@ import androidx.compose.material.DropdownMenu
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,7 +39,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -50,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -74,42 +71,18 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
             var checkedOption by remember { mutableIntStateOf(0) }
             var sortOpt by remember { mutableStateOf("date") }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = { isSearchBarVisible = !isSearchBarVisible }) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        modifier = Modifier.size(24.dp),
-                        tint = colorDang
-                    )
-                }
-
-                Spacer(modifier = Modifier.weight(2f))
-
-                Text(
-                    "당당하게 거래해요",
-                    fontSize = 20.sp,
-                    fontFamily = customFont,
-                    color = colorDong
-                )
-                Spacer(modifier = Modifier.weight(2f))
-
-                SortDropdownMenu({ sortOpt = "liked" }, { sortOpt = "date" })
-            }
-
-            if (isSearchBarVisible) {
-                SearchBarSample(searchText) { searchText = it }
-            }
+            HeaderSection(
+                isSearchBarVisible,
+                searchText,
+                { isSearchBarVisible = !isSearchBarVisible },
+                { sortOpt = "liked" },
+                { sortOpt = "date" },
+                { searchText = it })
 
             HorizontalDivider(
                 color = colorDang, modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp, 0.dp)
+                    .padding(horizontal = 16.dp)
             )
 
             Box(
@@ -132,6 +105,48 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
     }
 }
 
+@Composable
+private fun HeaderSection(
+    isSearchBarVisible: Boolean,
+    searchText: String,
+    searchBarVisible: () -> Unit,
+    likeSort: () -> Unit,
+    dateSort: () -> Unit,
+    setSearchText: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = { searchBarVisible() }) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search",
+                modifier = Modifier.size(24.dp),
+                tint = colorDang
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(2f))
+
+        Text(
+            "당당하게 거래해요",
+            fontSize = 20.sp,
+            fontFamily = customFont,
+            color = colorDong
+        )
+        Spacer(modifier = Modifier.weight(2f))
+
+        SortDropdownMenu({ likeSort() }, { dateSort() })
+    }
+
+    if (isSearchBarVisible) {
+        SearchBarSample(searchText) { setSearchText(it) }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBarSample(searchText: String, onSearchTextChange: (String) -> Unit) {
@@ -141,7 +156,6 @@ fun SearchBarSample(searchText: String, onSearchTextChange: (String) -> Unit) {
         Modifier
             .fillMaxSize()
             .semantics { isTraversalGroup = true }) {
-
         SearchBar(
             query = searchText,
             onQueryChange = onSearchTextChange,
@@ -150,7 +164,7 @@ fun SearchBarSample(searchText: String, onSearchTextChange: (String) -> Unit) {
             onActiveChange = { expanded = it },
             placeholder = { Text("검색어를 입력하세요") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            trailingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
+            trailingIcon = { },
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .semantics { traversalIndex = 0f }
@@ -165,28 +179,32 @@ fun SearchBarSample(searchText: String, onSearchTextChange: (String) -> Unit) {
 @Composable
 fun SortDropdownMenu(setLike: () -> Unit, setDate: () -> Unit) {
     var sortDropdownVisble by remember { mutableStateOf(false) }
-    IconButton(onClick = { sortDropdownVisble = !sortDropdownVisble }) {
-        Icon(
-            imageVector = Icons.Default.ArrowDropDown,
-            contentDescription = "More",
-            modifier = Modifier.size(24.dp),
-            tint = colorDang
-        )
-    }
+    Box {
+        IconButton(onClick = { sortDropdownVisble = !sortDropdownVisble }) {
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "More",
+                modifier = Modifier.size(24.dp),
+                tint = colorDang
+            )
+        }
 
-    DropdownMenu(expanded = sortDropdownVisble, onDismissRequest = { sortDropdownVisble = false }) {
-        DropdownMenuItem(
-            text = { Text("인기순") },
-            onClick = {
-                setLike()
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("최신순") },
-            onClick = {
-                setDate()
-            }
-        )
+        DropdownMenu(
+            expanded = sortDropdownVisble,
+            onDismissRequest = { sortDropdownVisble = false }) {
+            DropdownMenuItem(
+                text = { Text("인기순") },
+                onClick = {
+                    setLike()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("최신순") },
+                onClick = {
+                    setDate()
+                }
+            )
+        }
     }
 }
 
@@ -234,6 +252,7 @@ fun ImageList(
         sortedKeyList.chunked(2).forEach { chunkedKeys ->
             Row(
                 modifier = Modifier
+                    .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -280,9 +299,15 @@ fun ImageList(
                                             .fillMaxWidth()
                                     ) {
                                         Column {
-                                            value["name"]?.let { Text(text = it, fontSize = 14.sp) }
+                                            value["name"]?.let {
+                                                Text(
+                                                    text = it,
+                                                    fontSize = 16.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
                                             value["price"]?.let {
-                                                Text(text = "${it}원", fontSize = 12.sp)
+                                                Text(text = "${it}원", fontSize = 16.sp)
                                             }
                                             Row(
                                                 horizontalArrangement = Arrangement.Start,
@@ -291,7 +316,7 @@ fun ImageList(
                                                 totalLiked?.get("liked")
                                                     ?.let {
                                                         Text(
-                                                            text = "좋아요 : $it",
+                                                            text = "좋아요 $it",
                                                             fontSize = 12.sp,
                                                             modifier = Modifier.padding(end = 4.dp)
                                                         )
@@ -299,7 +324,7 @@ fun ImageList(
                                                 totalLiked?.get("viewCount")
                                                     ?.let {
                                                         Text(
-                                                            text = "조회수 : $it",
+                                                            text = "조회수 $it",
                                                             fontSize = 12.sp
                                                         )
                                                     }
