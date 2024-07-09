@@ -2,9 +2,7 @@ package com.khw.computervision
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,8 +28,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -42,10 +43,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
@@ -103,13 +102,14 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
             }
 
             if (isSearchBarVisible) {
-                SearchBarSample(searchText) { searchText = it }
+                SearchTextField(searchText) { searchText = it }
             }
 
             HorizontalDivider(
                 color = colorDang, modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp, 0.dp)
+                    .padding(16.dp)
+
             )
 
             Box(
@@ -132,34 +132,18 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBarSample(searchText: String, onSearchTextChange: (String) -> Unit) {
-    var expanded by rememberSaveable { mutableStateOf(false) }
-
-    Box(
-        Modifier
-            .fillMaxSize()
-            .semantics { isTraversalGroup = true }) {
-
-        SearchBar(
-            query = searchText,
-            onQueryChange = onSearchTextChange,
-            onSearch = { expanded = false },
-            active = expanded,
-            onActiveChange = { expanded = it },
-            placeholder = { Text("검색어를 입력하세요") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            trailingIcon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .semantics { traversalIndex = 0f }
-                .fillMaxWidth(),
-
-            shape = RectangleShape,
-            colors = SearchBarDefaults.colors(containerColor = Color.White),
-        ) {}
-    }
+fun SearchTextField(searchText: String, onSearchTextChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = searchText,
+        onValueChange = onSearchTextChange,
+        label = { Text("검색어를 입력하세요") },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        singleLine = true,
+    )
 }
 
 @Composable
@@ -179,12 +163,14 @@ fun SortDropdownMenu(setLike: () -> Unit, setDate: () -> Unit) {
             text = { Text("인기순") },
             onClick = {
                 setLike()
+                sortDropdownVisble = false
             }
         )
         DropdownMenuItem(
             text = { Text("최신순") },
             onClick = {
                 setDate()
+                sortDropdownVisble = false
             }
         )
     }
