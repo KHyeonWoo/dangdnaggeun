@@ -168,29 +168,31 @@ fun SearchTextField(searchText: String, onSearchTextChange: (String) -> Unit) {
 
 @Composable
 fun SortDropdownMenu(setLike: () -> Unit, setDate: () -> Unit) {
-    var sortDropdownVisble by remember { mutableStateOf(false) }
-    IconButton(onClick = { sortDropdownVisble = !sortDropdownVisble }) {
-        Icon(
-            imageVector = Icons.Default.ArrowDropDown,
-            contentDescription = "More",
-            modifier = Modifier.size(24.dp),
-            tint = colorDang
-        )
-    }
+    Box{
+        var sortDropdownVisble by remember { mutableStateOf(false) }
+        IconButton(onClick = { sortDropdownVisble = !sortDropdownVisble }) {
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "More",
+                modifier = Modifier.size(24.dp),
+                tint = colorDang
+            )
+        }
 
-    DropdownMenu(expanded = sortDropdownVisble, onDismissRequest = { sortDropdownVisble = false }) {
-        DropdownMenuItem(
-            text = { Text("인기순") },
-            onClick = {
-                setLike()
-            }
-        )
-        DropdownMenuItem(
-            text = { Text("최신순") },
-            onClick = {
-                setDate()
-            }
-        )
+        DropdownMenu(expanded = sortDropdownVisble, onDismissRequest = { sortDropdownVisble = false }) {
+            DropdownMenuItem(
+                text = { Text("인기순") },
+                onClick = {
+                    setLike()
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("최신순") },
+                onClick = {
+                    setDate()
+                }
+            )
+        }
     }
 }
 
