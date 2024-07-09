@@ -74,7 +74,6 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            var checkedOption by remember { mutableIntStateOf(0) }
             var sortOpt by remember { mutableStateOf("date") }
 
             HeaderSection(
@@ -92,6 +91,7 @@ fun SaleScreen(navController: NavHostController, productsViewModel: ProductViewM
                     .padding(16.dp, 0.dp)
             )
 
+            var checkedOption by remember { mutableIntStateOf(0) }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
