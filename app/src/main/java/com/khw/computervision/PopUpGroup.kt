@@ -15,16 +15,13 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -64,6 +61,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import coil.compose.rememberAsyncImagePainter
 import com.canhub.cropper.CropImage
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageContractOptions
@@ -225,13 +223,13 @@ fun uploadBitmapImage(
 
     val uploadTask = mountainsRef.putBytes(data)
     uploadTask.addOnSuccessListener {
-        Toast.makeText(context, "사진 업로드 성공", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "프로필 업로드 성공", Toast.LENGTH_SHORT).show()
         successUpload()
         inputImageNullEvent()
     }.addOnProgressListener {
-        Toast.makeText(context, "사진 업로드 중", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "프로필 업로드 중", Toast.LENGTH_SHORT).show()
     }.addOnFailureListener {
-        Toast.makeText(context, "사진 업로드 실패", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "프로필 업로드 실패", Toast.LENGTH_SHORT).show()
         inputImageNullEvent()
     }
 }
@@ -255,24 +253,26 @@ fun ProfileImage(profileUrl: String?, setInputImage: (Bitmap) -> Unit) {
     val cropOption = CropImageContractOptions(
         CropImage.CancelledResult.uriContent, CropImageOptions()
     )
+    val painter = rememberAsyncImagePainter(profileUrl)
 
     profileUrl?.let {
-        GlideImage(imageModel = it,
+        Image(
+            painter = painter,
             contentDescription = "Image",
             modifier = Modifier
-                .size(160.dp)
+                .size(136.dp)
+                .clip(RoundedCornerShape(80.dp))
                 .clickable {
                     imageCropLauncher.launch(cropOption)
-                }
-                .clip(RoundedCornerShape(120.dp)))
-    } ?: Image(painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                })
+    } ?: Image(painter = painterResource(id = R.drawable.dangkki_img_noback),
         contentDescription = "",
         modifier = Modifier
-            .size(160.dp)
+            .size(136.dp)
+            .clip(RoundedCornerShape(80.dp))
             .clickable {
                 imageCropLauncher.launch(cropOption)
-            }
-            .clip(RoundedCornerShape(32.dp)))
+            })
 
 }
 
@@ -459,7 +459,9 @@ fun SavePopup(
                 Image(
                     painter = painterResource(id = R.drawable.baseline_gps_fixed_24),
                     contentDescription = "gps",
-                    modifier = Modifier.size(20.dp).clickable { showMapPopup = true }
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clickable { showMapPopup = true }
                 )
                 // 거래 위치에 address를 표시
                 Text(

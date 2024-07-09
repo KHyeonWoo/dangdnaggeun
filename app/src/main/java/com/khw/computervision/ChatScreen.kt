@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,6 +18,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -29,25 +33,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 
 @Composable
-fun MessageScreen(
-    navController: NavHostController,
-    chatViewModel: ChatViewModel,
-    otherUserID: String,
-    otherUserProfile: String
-) {
+fun MessageScreen(chatViewModel: ChatViewModel, otherUserID: String, otherUserProfile: String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -58,7 +61,7 @@ fun MessageScreen(
         ) {
             TopBar(
                 title = otherUserID,
-                onBackClick = { navController.popBackStack() },
+                onBackClick = { },
                 onAddClick = { /*TODO*/ },
                 addIcon = null
             )
@@ -131,11 +134,12 @@ fun MessageList(
             if (message.sendUserID == UserIDManager.userID.value) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth().padding(4.dp)
+                        .fillMaxWidth()
+                        .padding(4.dp)
                 ) {
                     Spacer(modifier = Modifier.weight(1f))
                     Row(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(2f),
                         verticalAlignment = Alignment.Bottom
                     ) {
                         Spacer(modifier = Modifier.weight(1f))
@@ -158,13 +162,15 @@ fun MessageList(
                 Row(
                     modifier = Modifier.padding(4.dp)
                 ) {
-                    val painter = rememberAsyncImagePainter(otherUserProfile)
-                    Row(
-                        modifier = Modifier.weight(1f),
-                    ) {
                         Row(
+                            modifier = Modifier.weight(2f),
                             verticalAlignment = Alignment.Bottom
                         ) {
+                            val painter = if(otherUserProfile == " ") {
+                                painterResource(id = R.drawable.dangkki_img_noback)
+                            } else {
+                                rememberAsyncImagePainter(otherUserProfile)
+                            }
                             Image(
                                 painter = painter,
                                 contentDescription = null,
@@ -187,8 +193,6 @@ fun MessageList(
                             }
                             DateText(message.date)
                         }
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }

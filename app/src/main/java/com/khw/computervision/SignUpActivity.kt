@@ -1,6 +1,7 @@
 package com.khw.computervision
 
 import android.content.ContentValues
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -182,6 +183,9 @@ class SignUpActivity : ComponentActivity() {
                             auth.createUserWithEmailAndPassword(userID, userPassword)
                                 .addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
+
+                                        val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.dangkki_img_noback)
+                                        uploadBitmapImage(context, bitmap, userID, "profile.jpg", {}, {})
                                         // Sign in success, update UI with the signed-in user's information
                                         Toast.makeText(
                                             context,

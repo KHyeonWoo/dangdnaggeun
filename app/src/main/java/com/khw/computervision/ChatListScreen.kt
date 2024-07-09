@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,19 +48,11 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
             .background(colorBack),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
-        TopBar(
-            title = "메세지",
-            onBackClick = { /*TODO*/ },
-            onAddClick = { /*TODO*/ },
-            addIcon = null,
-            showBackIcon = false
-        )
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            val sortedChatList = chatListData.sortedBy { it.lastMessageDate }
+            val sortedChatList = chatListData.sortedByDescending { it.lastMessageDate }
             items(sortedChatList) { chat ->
                 val otherUserID = if (chat.sendUserID == UserIDManager.userID.value) {
                     chat.receiveUserID
@@ -72,7 +65,6 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                     otherUserProfile = getProfile(otherUserID)
                 }
 
-                otherUserProfile?.let {
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -81,12 +73,17 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                             .clickable {
                                 navController.navigate(
                                     "messageScreen/$otherUserID/${
-                                        encodeUrl(it)
+                                        otherUserProfile?.let { encodeUrl(it) } ?: " "
                                     }"
                                 )
                             }) {
 
-                        val painter = rememberAsyncImagePainter(it)
+                        val painter = if(otherUserProfile == null) {
+                            painterResource(id = R.drawable.dangkki_img_noback)
+                        } else {
+                            rememberAsyncImagePainter(otherUserProfile)
+                        }
+
                         Spacer(modifier = Modifier.weight(1f))
                         Image(
                             painter = painter,
@@ -121,7 +118,6 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                         }
                         Spacer(modifier = Modifier.weight(1f))
                     }
-                }
                 HorizontalDivider(
                     modifier = Modifier
                         .fillMaxWidth()
