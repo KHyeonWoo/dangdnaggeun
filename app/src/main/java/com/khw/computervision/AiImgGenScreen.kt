@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,7 +48,9 @@ fun AiImgGenScreen(
     val clickedCategoryLiveData by salesViewModel.categoryData.observeAsState()
 
     Column(
-        modifier = Modifier.fillMaxSize().background(colorBack),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorBack),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -187,7 +191,7 @@ private fun BottomSection(
             )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(.5f))
 
         Column(
             modifier = Modifier
@@ -195,23 +199,26 @@ private fun BottomSection(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (clickedCategory) {
-                "top" -> FunTextButton(buttonText = "하의 선택") { }
-                "bottom" -> FunTextButton(buttonText = "상의 선택") { }
+                "top" -> FunButton(buttonText = "하의 선택", null) {}
+                "bottom" -> FunButton(buttonText = "상의 선택", null) { }
             }
             if (encodingExtraClickedUrl != " ") {
-                GlideImage(
-                    imageModel = encodingExtraClickedUrl,
+                val painter = rememberAsyncImagePainter(encodingExtraClickedUrl)
+                Image(
+                    painter = painter,
+                    contentDescription = "Image",
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .aspectRatio(1f)
                 )
             } else {
-                Image(
+                Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "",
-                    contentScale = ContentScale.FillBounds,
+                    tint = colorDang,
                     modifier = Modifier
-                        .aspectRatio(1f)
+                        .padding(24.dp)
+                        .size(80.dp)
                         .clickable {
                             navController.navigate("closet/aiImgGen")
                         }
