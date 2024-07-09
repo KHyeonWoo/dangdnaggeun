@@ -76,7 +76,7 @@ fun InsertScreen(
             )
         )
     }
-    var checkedOption by remember { mutableIntStateOf(0) }
+    var checkedOption by remember { mutableIntStateOf(1) }
     var popupVisibleState by remember { mutableStateOf(false) }
 
     Column(

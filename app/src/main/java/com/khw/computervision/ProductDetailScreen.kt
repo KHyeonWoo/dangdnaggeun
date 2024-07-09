@@ -137,7 +137,7 @@ fun SegmentImageSection(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        var checkedOption by remember { mutableIntStateOf(1) }
+        var checkedOption by remember { mutableIntStateOf(0) }
         val options = listOf(
             "옷", "모델"
         )
