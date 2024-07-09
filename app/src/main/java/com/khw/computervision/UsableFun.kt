@@ -517,6 +517,8 @@ fun TopBar(
                         tint = colorDong
                     )
                 }
+            } else {
+                Spacer(modifier = Modifier.size(48.dp))
             }
             Spacer(modifier = Modifier.weight(.1f))
             androidx.compose.material.Text(

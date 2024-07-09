@@ -85,7 +85,28 @@ class AppNavigator : ComponentActivity() {
                                 },
                                 navController,
                                 salesViewModel,
-                                backStackEntry.arguments?.getString("beforeScreen")
+                                backStackEntry.arguments?.getString("beforeScreen"),
+                                "true"
+                            )
+                        }
+                        composable(
+                            "closet/{beforeScreen}/{backIconVisible}",
+                            arguments = listOf(
+                                navArgument("beforeScreen") { type = NavType.StringType },
+                                navArgument("backIconVisible") { type = NavType.StringType }
+                            )
+
+                        ) { backStackEntry ->
+                            ClosetScreen(
+                                closetViewModel,
+                                onBackClick = {
+                                    // 뒤로 가기 로직 추가
+                                    navController.popBackStack()
+                                },
+                                navController,
+                                salesViewModel,
+                                backStackEntry.arguments?.getString("beforeScreen"),
+                                backStackEntry.arguments?.getString("backIconVisible")
                             )
                         }
                         composable("login") {
@@ -204,7 +225,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
             "홈"
         ),
         BottomNavItem(
-            "closet/bottomNav",
+            "closet/bottomNav/false",
             icon = null,
             iconPainter = painterResource(id = R.drawable.closet_icon),
             "옷장"
@@ -269,7 +290,7 @@ fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
                 selectedContentColor = colorDang,
                 unselectedContentColor = colorDong.copy(alpha = .5f),
                 selected = when {
-                    item.route == "closet/bottomNav" -> currentRoute?.startsWith("closet") == true
+                    item.route == "closet/bottomNav/false" -> currentRoute?.startsWith("closet") == true
                     item.route == "decorate/ / " -> currentRoute?.startsWith("decorate") == true
                     else -> currentRoute == item.route
                 },
@@ -314,14 +335,12 @@ fun shouldShowBottomBar(navController: NavController): Boolean {
     val currentRoute = currentRoute(navController)
     return currentRoute in listOf(
         "sales",
-        "closet/{beforeScreen}",
-        "chatListScreen",
+        "closet/{beforeScreen}/{backIconVisible}",
         "decorate/{encodedClickedUrl}/{clickedCategory}",
-        "profile/{profileUrl}"
+        "chatListScreen",
+        "profile/{profileUrl}",
     )
 }
-
-
 
 @Composable
 fun shouldShowTopBar(navController: NavController): Boolean {

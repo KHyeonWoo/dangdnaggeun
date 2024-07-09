@@ -3,6 +3,7 @@ package com.khw.computervision
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,11 +18,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MultiChoiceSegmentedButtonRow
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -75,7 +80,9 @@ fun InsertScreen(
     var popupVisibleState by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize().background(colorBack),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorBack),
     ) {
 
         HeaderSection(
@@ -95,7 +102,9 @@ fun InsertScreen(
 
             HorizontalDivider(
                 thickness = 2.dp,
-                modifier = Modifier.padding(horizontal = 16.dp).padding(top = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 16.dp),
                 color = colorDang
             )
             ProductNameAndEditSection(newPopupDetails) {
@@ -104,7 +113,9 @@ fun InsertScreen(
 
             HorizontalDivider(
                 thickness = 2.dp,
-                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 16.dp),
                 color = colorDang
             )
             StateScreen(
@@ -133,18 +144,26 @@ fun ProductNameAndEditSection(
     newPopupDetails: PopupDetails,
     popupVisible: () -> Unit
 ) {
-    Row(modifier = Modifier.fillMaxWidth()
+    Row(modifier = Modifier
+        .fillMaxWidth()
         .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Text(
-            newPopupDetails.name
+            text = "상품명 : ${newPopupDetails.name}"
         )
         Spacer(modifier = Modifier
             .weight(1f))
 
-        FunTextButton("수정", clickEvent = {
-            popupVisible()
-        })
+        Icon(
+            imageVector = Icons.Default.Edit,
+            contentDescription = "Edit",
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .clickable {
+                    popupVisible()
+                },
+            tint = colorDang
+        )
     }
 }
 
@@ -238,7 +257,7 @@ private fun HeaderSection(
             },
             addIcon = aiResponseData?.let {
                 Icons.Default.Check
-            } ?: run { null }
+            } ?: run { Icons.Default.Refresh }
         )
     }
 
@@ -272,7 +291,7 @@ fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt:
                     }
                 },
                 checked = index == checkedOption,
-                modifier = Modifier.size(80.dp,40.dp)
+                modifier = Modifier.size(62.dp,32.dp)
             ) {
                 if (checkedOption == index) {
                     Text(label, color = colorBack, fontSize = 16.sp)
@@ -304,15 +323,13 @@ private fun StateScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "가격: ${newPopupDetails.price}",
-                    color = colorDang
+                    text = "가격 : ${newPopupDetails.price}"
                 )
                 Text(
-                    text = "거래방법 ${newPopupDetails.dealMethod}",
-                    color = colorDang
+                    text = "거래방법 : ${newPopupDetails.dealMethod}"
                 )
                 Row {
-                    Text(text = "평점", color = colorDang)
+                    Text(text = "평점 ")
                     RatingBar(
                         value = newPopupDetails.rating,
                         style = RatingBarStyle.Fill(),
@@ -327,10 +344,9 @@ private fun StateScreen(
                 }
             }
             Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.End
+                modifier = Modifier.weight(1f)
             ) {
-                Text(text = "거래 위치: ", modifier = Modifier.weight(1f), color = colorDang)
+                Text(text = "거래 위치:\n${newPopupDetails.address}")
             }
         }
     }

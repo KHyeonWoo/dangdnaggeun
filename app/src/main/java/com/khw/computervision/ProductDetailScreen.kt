@@ -15,7 +15,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -139,7 +143,7 @@ fun SegmentImageSection(
         )
 
         SegmentButtonAndLikeSection(
-            Modifier.weight(1f), productsViewModel, productKey, options, checkedOption, productMap
+            productsViewModel, productKey, options, checkedOption, productMap
         ) { checkedOption = it }
 
         val painter = if (checkedOption == 0) {
@@ -160,7 +164,6 @@ fun SegmentImageSection(
 
 @Composable
 fun SegmentButtonAndLikeSection(
-    modifier: Modifier,
     productsViewModel: ProductViewModel,
     productKey: String?,
     options: List<String>,
@@ -169,7 +172,7 @@ fun SegmentButtonAndLikeSection(
     changeCheckedOpt: (Int) -> Unit
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
     ) {
         val coroutineScope = rememberCoroutineScope()
         Spacer(modifier = Modifier.weight(2f))
@@ -297,14 +300,29 @@ fun UserInfoSection(
 
         var popupVisibleState by remember { mutableStateOf(false) }
         if (insertUser == UserIDManager.userID.value) {
-            FunTextButton("수정", clickEvent = {
-                popupVisibleState = true
-            })
+
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = "Edit",
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clickable {
+                        popupVisibleState = true
+                    },
+                tint = colorDang
+            )
         } else {
-            FunTextButton("메세지", clickEvent = {
-                val encodedProfileUrl = uploadUserProfile?.let { encodeUrl(it) }
-                navController.navigate("messageScreen/${insertUser}/${encodedProfileUrl}")
-            })
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Send,
+                contentDescription = "Send",
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .clickable {
+                        val encodedProfileUrl = uploadUserProfile?.let { encodeUrl(it) }
+                        navController.navigate("messageScreen/${insertUser}/${encodedProfileUrl}")
+                    },
+                tint = colorDang
+            )
         }
         PopupVisible(
             popupVisibleState,
