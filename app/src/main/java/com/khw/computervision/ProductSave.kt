@@ -76,7 +76,7 @@ fun InsertScreen(
             )
         )
     }
-    var checkedOption by remember { mutableIntStateOf(0) }
+    var checkedOption by remember { mutableIntStateOf(1) }
     var popupVisibleState by remember { mutableStateOf(false) }
 
     Column(
@@ -252,12 +252,12 @@ private fun HeaderSection(
                     saveEvent(coroutineScope, context, dateTimeNow, newPopupDetails)
                     productsViewModel.getProductsFromFireStore()
 
-                    navController.navigate("detailProduct/$dateTimeNow")
+                    navController.navigate("sales")
                 }
             },
             addIcon = aiResponseData?.let {
                 Icons.Default.Check
-            } ?: run { Icons.Default.Refresh }
+            }
         )
     }
 
