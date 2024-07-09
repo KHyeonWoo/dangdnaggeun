@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +60,7 @@ fun MessageScreen(chatViewModel: ChatViewModel, otherUserID: String, otherUserPr
             modifier = Modifier.fillMaxSize()
         ) {
             TopBar(
-                title = "$otherUserID",
+                title = otherUserID,
                 onBackClick = { },
                 onAddClick = { /*TODO*/ },
                 addIcon = null
@@ -133,11 +134,12 @@ fun MessageList(
             if (message.sendUserID == UserIDManager.userID.value) {
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth().padding(4.dp)
+                        .fillMaxWidth()
+                        .padding(4.dp)
                 ) {
                     Spacer(modifier = Modifier.weight(1f))
                     Row(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(2f),
                         verticalAlignment = Alignment.Bottom
                     ) {
                         Spacer(modifier = Modifier.weight(1f))
@@ -160,13 +162,15 @@ fun MessageList(
                 Row(
                     modifier = Modifier.padding(4.dp)
                 ) {
-                    val painter = rememberAsyncImagePainter(otherUserProfile)
-                    Row(
-                        modifier = Modifier.weight(1f),
-                    ) {
                         Row(
+                            modifier = Modifier.weight(2f),
                             verticalAlignment = Alignment.Bottom
                         ) {
+                            val painter = if(otherUserProfile == " ") {
+                                painterResource(id = R.drawable.dangkki_img_noback)
+                            } else {
+                                rememberAsyncImagePainter(otherUserProfile)
+                            }
                             Image(
                                 painter = painter,
                                 contentDescription = null,
@@ -189,8 +193,6 @@ fun MessageList(
                             }
                             DateText(message.date)
                         }
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
                     Spacer(modifier = Modifier.weight(1f))
                 }
             }
