@@ -52,7 +52,8 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
             title = "메세지",
             onBackClick = { /*TODO*/ },
             onAddClick = { /*TODO*/ },
-            addIcon = null
+            addIcon = null,
+            showBackIcon = false
         )
         LazyColumn(
             modifier = Modifier

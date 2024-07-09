@@ -163,7 +163,7 @@ class AppNavigator : ComponentActivity() {
                             MyUploadedScreen(navController, productsViewModel)
                         }
                         composable("myLiked") {
-                            MyLikedScreen(productsViewModel)
+                            MyLikedScreen(navController,productsViewModel)
                         }
                         composable("chatListScreen") {
                             ChatListScreen(navController, chatViewModel)
@@ -174,6 +174,7 @@ class AppNavigator : ComponentActivity() {
                                 navArgument("otherUserProfile") { type = NavType.StringType }
                             )) { backStackEntry ->
                             MessageScreen(
+                                navController,
                                 chatViewModel,
                                 backStackEntry.arguments?.getString("otherUserID") ?: "",
                                 backStackEntry.arguments?.getString("otherUserProfile") ?: ""
@@ -311,12 +312,16 @@ fun currentRoute(navController: NavController): String? {
 @Composable
 fun shouldShowBottomBar(navController: NavController): Boolean {
     val currentRoute = currentRoute(navController)
-    return currentRoute !in listOf(
-        "login",
-        "messageScreen/{otherUserID}/{otherUserProfile}",
-        "detailProduct/{productKey}",
+    return currentRoute in listOf(
+        "sales",
+        "closet/{beforeScreen}",
+        "chatListScreen",
+        "decorate/{encodedClickedUrl}/{clickedCategory}",
+        "profile/{profileUrl}"
     )
 }
+
+
 
 @Composable
 fun shouldShowTopBar(navController: NavController): Boolean {
