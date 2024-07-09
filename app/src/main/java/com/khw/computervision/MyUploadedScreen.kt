@@ -5,9 +5,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -15,6 +22,10 @@ import androidx.navigation.NavHostController
 @Composable
 fun MyUploadedScreen(navController: NavHostController, productsViewModel: ProductViewModel) {
     val productData by productsViewModel.productsData.observeAsState()
+    var isSearchBarVisible by rememberSaveable { mutableStateOf(false) }
+    var searchText by remember {
+        mutableStateOf("")
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -28,18 +39,23 @@ fun MyUploadedScreen(navController: NavHostController, productsViewModel: Produc
             TopBar(
                 title = "판매내역",
                 onBackClick = { navController.popBackStack() },
-                onAddClick = { },
-                addIcon = null
+                onAddClick = { isSearchBarVisible = !isSearchBarVisible },
+                addIcon = Icons.Default.Search,
             )
+            if (isSearchBarVisible) {
+                SearchTextField(searchText = searchText,
+                    onSearchTextChange = { searchText = it }
+                )
+            }
+
+            val filteredProducts = productData?.filter { (productName, product) ->
+                product["InsertUser"] == UserIDManager.userID.value &&
+                        product["name"]?.contains(searchText, ignoreCase = true) ?: false
+            } ?: emptyMap()
+
             LazyColumn {
-                item {
-                    productData?.let { product ->
-                        product.forEach { (productName, product) ->
-                            if (product["InsertUser"] == UserIDManager.userID.value) {
-                                MyProductSwipeBox(productName, product)
-                            }
-                        }
-                    }
+                items(filteredProducts.entries.toList()) { (productName, product) ->
+                    MyProductSwipeBox(productName, product)
                 }
             }
         }
