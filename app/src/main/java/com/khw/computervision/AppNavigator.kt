@@ -184,7 +184,7 @@ class AppNavigator : ComponentActivity() {
                             MyUploadedScreen(navController, productsViewModel)
                         }
                         composable("myLiked") {
-                            MyLikedScreen(productsViewModel)
+                            MyLikedScreen(navController,productsViewModel)
                         }
                         composable("chatListScreen") {
                             ChatListScreen(navController, chatViewModel)
@@ -195,6 +195,7 @@ class AppNavigator : ComponentActivity() {
                                 navArgument("otherUserProfile") { type = NavType.StringType }
                             )) { backStackEntry ->
                             MessageScreen(
+                                navController,
                                 chatViewModel,
                                 backStackEntry.arguments?.getString("otherUserID") ?: "",
                                 backStackEntry.arguments?.getString("otherUserProfile") ?: ""

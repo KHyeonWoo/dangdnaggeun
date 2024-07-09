@@ -139,13 +139,14 @@ fun SearchBarSample(searchText: String, onSearchTextChange: (String) -> Unit) {
 
     Box(
         Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .semantics { isTraversalGroup = true }) {
+
         SearchBar(
             query = searchText,
             onQueryChange = onSearchTextChange,
             onSearch = { expanded = false },
-            active = false,
+            active = expanded,
             onActiveChange = { expanded = it },
             placeholder = { Text("검색어를 입력하세요") },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
@@ -153,12 +154,11 @@ fun SearchBarSample(searchText: String, onSearchTextChange: (String) -> Unit) {
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .semantics { traversalIndex = 0f }
-                .fillMaxWidth(1f), // 크기를 80%로 조절
+                .fillMaxWidth(),
+
             shape = RectangleShape,
-            colors = SearchBarDefaults.colors(Color.White),
-        ) {
-            // 여기에 추가적인 콘텐츠를 넣을 수 있습니다.
-        }
+            colors = SearchBarDefaults.colors(containerColor = Color.White),
+        ) {}
     }
 }
 
@@ -196,7 +196,7 @@ fun ImageList(
     productsViewModel: ProductViewModel,
     categoryOption: String,
     sortOpt: String,
-    searchText: String
+    searchText: String,
 ) {
     Column(
         modifier = Modifier
@@ -289,9 +289,20 @@ fun ImageList(
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
                                                 totalLiked?.get("liked")
-                                                    ?.let { Text(text = "좋아요 : $it", fontSize = 12.sp, modifier = Modifier.padding(end = 4.dp)) }
+                                                    ?.let {
+                                                        Text(
+                                                            text = "좋아요 : $it",
+                                                            fontSize = 12.sp,
+                                                            modifier = Modifier.padding(end = 4.dp)
+                                                        )
+                                                    }
                                                 totalLiked?.get("viewCount")
-                                                    ?.let { Text(text = "조회수 : $it", fontSize = 12.sp) }
+                                                    ?.let {
+                                                        Text(
+                                                            text = "조회수 : $it",
+                                                            fontSize = 12.sp
+                                                        )
+                                                    }
                                             }
                                         }
                                     }
