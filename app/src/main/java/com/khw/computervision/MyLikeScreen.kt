@@ -76,9 +76,10 @@ fun MyLikedScreen(navController: NavHostController, productsViewModel: ProductVi
         }
 
         val filteredProducts = productData?.filter { (productName, product) ->
-//            product["InsertUser"] == UserIDManager.userID.value &&
-                    product["name"]?.contains(searchText, ignoreCase = true) ?: false &&
-                    likedData?.contains(productName) == true
+            (product["name"]?.contains(
+                searchText,
+                ignoreCase = true
+            ) == true) && (likedData?.contains(productName) == true)
         } ?: emptyMap()
 
         LazyColumn {
@@ -90,98 +91,96 @@ fun MyLikedScreen(navController: NavHostController, productsViewModel: ProductVi
 }
 
 
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MyProductSwipeBox(key: String, productMap: Map<String, String>) {
 
-    if (productMap["InsertUser"] == UserIDManager.userID.value) {
-        val squareSize = 48.dp
-        val swipeState = rememberSwipeableState(0)
-        val sizePx = with(LocalDensity.current) { squareSize.toPx() }
-        val anchors =
-            mapOf(0f to 0, -sizePx to 1) // Maps anchor points (in px) to states
+    val squareSize = 48.dp
+    val swipeState = rememberSwipeableState(0)
+    val sizePx = with(LocalDensity.current) { squareSize.toPx() }
+    val anchors =
+        mapOf(0f to 0, -sizePx to 1) // Maps anchor points (in px) to states
 
-        Box(
+    Box(
+        modifier = Modifier
+            .padding(8.dp)
+            .width(350.dp)
+            .swipeable(
+                state = swipeState,
+                anchors = anchors,
+                thresholds = { _, _ -> FractionalThreshold(0.4f) },
+                orientation = Orientation.Horizontal
+            )
+            .clip(RoundedCornerShape(15.dp))
+    ) {
+        Row(
             modifier = Modifier
-                .padding(8.dp)
-                .width(350.dp)
-                .swipeable(
-                    state = swipeState,
-                    anchors = anchors,
-                    thresholds = { _, _ -> FractionalThreshold(0.4f) },
-                    orientation = Orientation.Horizontal
-                )
+                .offset { IntOffset(swipeState.offset.value.roundToInt(), 0) }
+                .padding(start = 4.dp)
                 .clip(RoundedCornerShape(15.dp))
+                .background(colorDang),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
+            val painter = rememberAsyncImagePainter(productMap["imageUrl"])
+            Image(
+                painter = painter,
+                contentDescription = "",
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
-                    .offset { IntOffset(swipeState.offset.value.roundToInt(), 0) }
-                    .padding(start = 4.dp)
-                    .clip(RoundedCornerShape(15.dp))
-                    .background(colorDang),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val painter = rememberAsyncImagePainter(productMap["imageUrl"])
-                Image(
-                    painter = painter,
-                    contentDescription = "",
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .weight(3f)
-                        .padding(4.dp)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White)
-                )
+                    .weight(3f)
+                    .padding(4.dp)
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White)
+            )
 
-                Box(
+            Box(
+                modifier = Modifier
+                    .weight(8f)
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.White)
+            ) {
+                Column(
                     modifier = Modifier
-                        .weight(8f)
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color.White)
+                        .fillMaxSize()
+                        .padding(10.dp, 0.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(10.dp, 0.dp)
-                    ) {
-                        for ((fieldKey, fieldValue) in productMap) {
-                            if (fieldKey == "name" || fieldKey == "price") {
-                                Text(
-                                    text = fieldKey,
-                                    color = colorDang
-                                )
-                                Text(
-                                    text = fieldValue,
-                                    fontSize = 12.sp
-                                )
-                            }
+                    for ((fieldKey, fieldValue) in productMap) {
+                        if (fieldKey == "name" || fieldKey == "price") {
+                            Text(
+                                text = fieldKey,
+                                color = colorDang
+                            )
+                            Text(
+                                text = fieldValue,
+                                fontSize = 12.sp
+                            )
                         }
                     }
                 }
             }
+        }
 
-            if (swipeState.currentValue == 1) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp, 100.dp)
-                        .align(Alignment.CenterEnd),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = colorDang,
-                        modifier = Modifier.clickable {
-                            deleteFirestoreData("product", key) {
-                                ReLoadingManager.reLoading()
-                            }
+        if (swipeState.currentValue == 1) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp, 100.dp)
+                    .align(Alignment.CenterEnd),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = colorDang,
+                    modifier = Modifier.clickable {
+                        deleteFirestoreData("product", key) {
+                            ReLoadingManager.reLoading()
                         }
-                    )
-                }
+                    }
+                )
             }
         }
+
     }
 }
