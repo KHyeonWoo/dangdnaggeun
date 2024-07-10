@@ -12,6 +12,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
+import com.khw.computervision.server.RetrofitClient
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -22,6 +23,32 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.time.LocalDateTime
 
+data class PopupDetails(
+    val userID: String,
+    val name: String = "",
+    var imageUrl: String = "",
+    var aiUrl: String = "",
+    val category: String = "",
+    val price: Int = 0,
+    val dealMethod: String = "",
+    val rating: Float = 0f,
+    val productDescription: String = "",
+    val address: String = ""
+)
+
+class Chat(
+    var sendUserID: String,
+    var receiveUserID: String,
+    var lastMessageDate: String,
+    var lastMessage: String
+)
+
+class Message(
+    var date: String,
+    var sendUserID: String,
+    var receiveUserID: String,
+    var message: String
+)
 
 class ProductViewModel : ViewModel() {
     private val _productsData = MutableLiveData<Map<String, Map<String, String>>>()
@@ -242,7 +269,6 @@ class AiViewModel : ViewModel() {
     }
 }
 
-
 class ChatViewModel : ViewModel() {
     private val database =
         Firebase.database("https://dangdanggeun-1b552-default-rtdb.asia-southeast1.firebasedatabase.app").reference
@@ -368,10 +394,5 @@ class SalesViewModel : ViewModel() {
     }
 }
 fun replaceUserIDToRef(ref: String): String {
-    return ref.replace(".", "")
-        .replace("#", "")
-        .replace("$", "")
-        .replace("[", "")
-        .replace("]", "")
-        .replace("@", "")
+    return ref.replace("[.#$\\[\\]@]".toRegex(), "")
 }

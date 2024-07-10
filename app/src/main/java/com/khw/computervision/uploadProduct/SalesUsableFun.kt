@@ -1,19 +1,15 @@
-package com.khw.computervision
+package com.khw.computervision.uploadProduct
 
-import ChatGPTMessage
+import com.khw.computervision.server.ChatGPTMessage
 import android.Manifest
-import android.content.ContentValues.TAG
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.location.Geocoder
 import android.os.Handler
 import android.os.Looper
-import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,10 +26,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.TextButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -48,7 +42,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -59,311 +52,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import coil.compose.rememberAsyncImagePainter
-import com.canhub.cropper.CropImage
-import com.canhub.cropper.CropImageContract
-import com.canhub.cropper.CropImageContractOptions
-import com.canhub.cropper.CropImageOptions
 import com.google.android.gms.location.LocationServices
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarStyle
 import com.gowtham.ratingbar.StepSize
+import com.khw.computervision.BuildConfig
+import com.khw.computervision.PopupDetails
+import com.khw.computervision.ProductViewModel
+import com.khw.computervision.R
+import com.khw.computervision.UserIDManager
+import com.khw.computervision.colorDang
+import com.khw.computervision.colorDong
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.util.MarkerIcons
-import com.skydoves.landscapist.glide.GlideImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import sendChatGPTRequest
-import java.io.ByteArrayOutputStream
+import com.khw.computervision.server.sendChatGPTRequest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.tasks.await
 import java.io.IOException
-import java.time.LocalDateTime
 import java.util.Locale
-
-
-@Composable
-fun ProfilePopup(
-    profileUri: String?, close: () -> Unit, successUpload: () -> Unit
-) {
-    var addressText by remember { mutableStateOf("주소 정보가 여기에 표시됩니다") }
-    val context = LocalContext.current
-    AlertDialog(onDismissRequest = { close() }, title = { Text(text = "") }, text = {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(600.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-
-            val fusedLocationClient =
-                remember { LocationServices.getFusedLocationProviderClient(context) }
-            val geocoder = remember { Geocoder(context, Locale.KOREA) }
-            val coroutineScope = rememberCoroutineScope()
-
-            val requestPermissionLauncher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.RequestPermission()
-            ) { isGranted: Boolean ->
-                if (isGranted) {
-                    getLocation(fusedLocationClient) { location ->
-                        coroutineScope.launch(Dispatchers.IO) {
-                            val address = getAddressFromLocation(geocoder, location)
-                            addressText = address ?: "주소를 찾을 수 없습니다."
-                            withContext(Dispatchers.Main) {
-                                UserIDManager.userAddress.value = addressText
-                            }
-                        }
-                    }
-                }
-            }
-
-            Text(text = "")
-
-            var inputImage by remember { mutableStateOf<Bitmap?>(null) }
-
-            ProfileImage(profileUri) { inputImage = it }
-
-            inputImage?.let { bitmap ->
-                uploadBitmapImage(context, bitmap, UserIDManager.userID.value, "profile.jpg", {
-                    successUpload()
-                }, {
-                    inputImage = null
-                })
-            }
-            Text(text = UserIDManager.userID.value)
-            TextButton(onClick = {
-                when {
-                    ActivityCompat.checkSelfPermission(
-                        context, Manifest.permission.ACCESS_FINE_LOCATION
-                    ) == PackageManager.PERMISSION_GRANTED -> {
-                        getLocation(fusedLocationClient) { location ->
-                            coroutineScope.launch(Dispatchers.IO) {
-                                val address = getAddressFromLocation(geocoder, location)
-                                addressText = address ?: "주소를 찾을 수 없습니다."
-                                withContext(Dispatchers.Main) {
-                                    UserIDManager.userAddress.value = addressText
-                                }
-                            }
-                        }
-                    }
-
-                    else -> {
-                        requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-                    }
-                }
-
-            }) {
-                Row {
-                    Icon(
-                        painter = painterResource(id = R.drawable.searching_location_icon),
-                        contentDescription = "location searching",
-                        tint = colorDang
-                    )
-                    Text(text = "현재 위치 확인")
-                }
-            }
-
-            Row {
-                Icon(
-                    painter = painterResource(id = R.drawable.current_location_icon),
-                    contentDescription = "location searching",
-                    tint = colorDang
-                )
-                Text(text = UserIDManager.userAddress.value)
-            }
-            Spacer(modifier = Modifier.weight(2f))
-
-            val messageMap = getMessage()
-
-
-            FunButton("내가 올린 제품", image = R.drawable.list_icon) {
-//                    val productIntent = Intent(context, MyUploadedActivity::class.java)
-//                    productIntent.putExtra("userID", UserIDManager.userID.value)
-//                    context.startActivity(productIntent)
-            }
-
-//                FunButton("내게 온 메세지 : ${messageMap.size}", null) {
-//                    val userIntent = Intent(context, MessageListActivity::class.java)
-//                    userIntent.putExtra("messageList", mapToBundle(messageMap))
-//                    context.startActivity(userIntent)
-//                }
-
-            Spacer(modifier = Modifier.weight(1f))
-            FunButton("로그아웃", null) {
-//                    context.startActivity(Intent(context, LoginActivity::class.java))
-            }
-        }
-    }, confirmButton = { }, dismissButton = { })
-}
-
-
-fun uploadBitmapImage(
-    context: Context,
-    bitmap: Bitmap,
-    user: String,
-    pathName: String,
-    successUpload: () -> Unit,
-    inputImageNullEvent: () -> Unit
-) {
-
-    val mountainsRef = Firebase.storage.reference.child("$user/$pathName")
-
-    val baos = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-    val data = baos.toByteArray()
-
-    val uploadTask = mountainsRef.putBytes(data)
-    uploadTask.addOnSuccessListener {
-        Toast.makeText(context, "프로필 업로드 성공", Toast.LENGTH_SHORT).show()
-        successUpload()
-        inputImageNullEvent()
-    }.addOnProgressListener {
-        Toast.makeText(context, "프로필 업로드 중", Toast.LENGTH_SHORT).show()
-    }.addOnFailureListener {
-        Toast.makeText(context, "프로필 업로드 실패", Toast.LENGTH_SHORT).show()
-        inputImageNullEvent()
-    }
-}
-
-@Composable
-fun ProfileImage(profileUrl: String?, setInputImage: (Bitmap) -> Unit) {
-
-    val context = LocalContext.current
-    val imageCropLauncher = rememberLauncherForActivityResult(CropImageContract()) { result ->
-        if (result.isSuccessful) {
-            setInputImage(
-                MediaStore.Images.Media.getBitmap(
-                    context.contentResolver, result.uriContent
-                )
-            )
-        } else {
-            Log.d("PhotoPicker", "No media selected")
-        }
-    }
-
-    val cropOption = CropImageContractOptions(
-        CropImage.CancelledResult.uriContent, CropImageOptions()
-    )
-    val painter = rememberAsyncImagePainter(profileUrl)
-
-    profileUrl?.let {
-        Image(
-            painter = painter,
-            contentDescription = "Image",
-            modifier = Modifier
-                .size(136.dp)
-                .clip(RoundedCornerShape(80.dp))
-                .clickable {
-                    imageCropLauncher.launch(cropOption)
-                })
-    } ?: Image(painter = painterResource(id = R.drawable.dangkki_img_noback),
-        contentDescription = "",
-        modifier = Modifier
-            .size(136.dp)
-            .clip(RoundedCornerShape(80.dp))
-            .clickable {
-                imageCropLauncher.launch(cropOption)
-            })
-
-}
-
-@Composable
-fun MessagePopup(
-    receiveUser: String, close: () -> Unit
-) {
-    var message: String by remember { mutableStateOf("") }
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    AlertDialog(onDismissRequest = { close() }, title = { Text(text = "") }, text = {
-        Column(
-        ) {
-            Text(text = "당당하게 보내세요", color = colorDang)
-            Spacer(modifier = Modifier.height(20.dp))
-            OutlinedTextField(
-                value = receiveUser,
-                onValueChange = { },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colorDang,
-                    unfocusedBorderColor = colorDang,
-                ),
-                textStyle = TextStyle(color = Color.Black),
-                label = { Text(text = "받는 사람", color = colorDang) },
-            )
-            OutlinedTextField(
-                value = message,
-                onValueChange = { message = it },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = colorDang,
-                    unfocusedBorderColor = colorDang,
-                ),
-                textStyle = TextStyle(color = Color.Black),
-                label = { Text(text = "메시지", color = colorDang) },
-                modifier = Modifier.height(320.dp)
-            )
-        }
-    }, confirmButton = {
-        Button(onClick = {
-            // Create a new user with a first and last name
-            val dateTimeNow = LocalDateTime.now().toLocalDate().toString()
-                .replace("-", "") + LocalDateTime.now().toLocalTime().toString().replace(":", "")
-                .substring(0, 4)
-            val sendMessage = hashMapOf(
-                "sendUser" to UserIDManager.userID.value,
-                "date" to dateTimeNow,
-                "message" to message,
-                "read" to "false"
-            )
-
-            val db = Firebase.firestore
-            coroutineScope.launch(Dispatchers.IO) {
-                try {
-                    db.collection(receiveUser).document(dateTimeNow).set(sendMessage)
-                        .await() // suspend function to await the task completion
-                    withContext(Dispatchers.Main) {
-                        Log.d(TAG, "DocumentSnapshot successfully written!")
-                        Toast.makeText(context, "메세지 전송 성공", Toast.LENGTH_SHORT).show()
-                        close()
-                    }
-                } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        Log.w(TAG, "Error writing document", e)
-                        Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-
-        }) {
-            Text("Upload")
-        }
-    }, dismissButton = {
-        Button(onClick = { close() }) {
-            Text("Cancel")
-        }
-    })
-
-}
-
-data class PopupDetails(
-    val userID: String,
-    val name: String = "",
-    var imageUrl: String = "",
-    var aiUrl: String = "",
-    val category: String = "",
-    val price: Int = 0,
-    val dealMethod: String = "",
-    val rating: Float = 0f,
-    val productDescription: String = "",
-    val address: String = ""
-)
 
 @Composable
 fun SavePopup(
@@ -591,7 +307,6 @@ fun SavePopup(
     })
 }
 
-
 //20240707 신동환 네이버 지도입니다
 @Composable
 fun MapPopup(close: () -> Unit, onAddressSelected: (String) -> Unit) {
@@ -629,13 +344,11 @@ fun MapPopup(close: () -> Unit, onAddressSelected: (String) -> Unit) {
         }
     }
 }
-
 fun extractAddressPart(address: String): String {
     val regex = "서울특별시(.*)".toRegex()
     val matchResult = regex.find(address)
     return matchResult?.groups?.get(1)?.value?.trim() ?: address
 }
-
 @Composable
 fun NaverMapView(
     address: String?,
@@ -752,4 +465,88 @@ fun NaverMapView(
 }
 
 
+suspend fun insertLiked(productsViewModel: ProductViewModel, productName: String) {
 
+    val likedProduct = hashMapOf(
+        "liked" to "true"
+    )
+
+    Firebase.firestore.collection("${UserIDManager.userID.value}liked").document(productName)
+        .set(likedProduct).addOnSuccessListener {}.addOnFailureListener {}.await()
+    productsViewModel.getLikedFromFireStore()
+
+}
+
+fun deleteLiked(productsViewModel: ProductViewModel, productKey: String) {
+    Firebase.firestore.collection("${UserIDManager.userID.value}liked").document(productKey)
+        .delete().addOnSuccessListener {}.addOnFailureListener {}
+    productsViewModel.getLikedFromFireStore()
+}
+
+fun updateProductLike(
+    productsViewModel: ProductViewModel,
+    productKey: String,
+    totalLiked: Map<String, String>?,
+    likedCount: Int
+) {
+    Firebase.firestore.collection("favoriteProduct").document(productKey)
+        .update("liked", totalLiked?.get("liked")?.let { it.toInt() + likedCount } ?: 0)
+    productsViewModel.getTotalLikedFromFireStore()
+}
+
+
+fun saveEvent(
+    coroutineScope: CoroutineScope,
+    context: Context,
+    dateTimeNow: String,
+    newPopupDetails: PopupDetails
+) {
+    coroutineScope.launch(Dispatchers.IO) {
+
+        val db = Firebase.firestore
+        val sendMessage = hashMapOf(
+            "InsertUser" to UserIDManager.userID.value,
+            "name" to newPopupDetails.name,
+            "date" to dateTimeNow,
+            "imageUrl" to newPopupDetails.imageUrl,
+            "aiUrl" to newPopupDetails.aiUrl,
+            "category" to newPopupDetails.category,
+            "price" to newPopupDetails.price,
+            "dealMethod" to newPopupDetails.dealMethod,
+            "rating" to newPopupDetails.rating,
+            "productDescription" to newPopupDetails.productDescription,
+            "state" to 1, //1: 판매중, 2: 판매완료, 3:숨기기, 4:삭제
+            "address" to newPopupDetails.address,
+        )
+
+        db.collection("product")
+            .document(dateTimeNow)
+            .set(sendMessage)
+            .addOnSuccessListener {
+                Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
+                Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Log.w(ContentValues.TAG, "Error writing document", e)
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            }
+
+
+        val favoriteProduct = hashMapOf(
+            "liked" to 0,
+            "viewCount" to 0
+        )
+
+        db.collection("favoriteProduct")
+            .document(dateTimeNow)
+            .set(favoriteProduct)
+            .addOnSuccessListener {
+                Log.d(ContentValues.TAG, "DocumentSnapshot successfully written!")
+                Toast.makeText(context, "업로드 성공", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Log.w(ContentValues.TAG, "Error writing document", e)
+                Toast.makeText(context, e.message, Toast.LENGTH_SHORT).show()
+            }
+    }
+}

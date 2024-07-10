@@ -1,21 +1,18 @@
-package com.khw.computervision
+package com.khw.computervision.chat
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +31,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import com.khw.computervision.Chat
+import com.khw.computervision.ChatViewModel
+import com.khw.computervision.HorizontalDividerColorDang
+import com.khw.computervision.R
+import com.khw.computervision.UserIDManager
+import com.khw.computervision.colorBack
+import com.khw.computervision.encodeUrl
+import com.khw.computervision.getProfile
 
 @Composable
 fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewModel) {
@@ -77,63 +82,58 @@ fun ChatListScreen(navController: NavHostController, chatViewModel: ChatViewMode
                                     }"
                                 )
                             }) {
-
-                        val painter = if(otherUserProfile == null) {
-                            painterResource(id = R.drawable.dangkki_img_noback)
-                        } else {
-                            rememberAsyncImagePainter(otherUserProfile)
-                        }
-
                         Spacer(modifier = Modifier.weight(1f))
-                        Image(
-                            painter = painter,
-                            contentDescription = "profile",
-                            contentScale = ContentScale.FillBounds,
-                            modifier = Modifier
-                                .size(80.dp)
-                                .clip(RoundedCornerShape(80.dp))
-                        )
+                        ProfileImage(otherUserProfile)
                         Spacer(modifier = Modifier.weight(1f))
-                        Column(modifier = Modifier.padding(8.dp)) {
-                            Text(
-                                text = "상대방: $otherUserID",
-                                fontSize = 16.sp,
-                                style = TextStyle(lineHeight = 18.sp)
-                            )
-                            Text(
-                                text = "시간: " +
-                                        "${chat.lastMessageDate.substring(4, 6)}월 " +
-                                        "${chat.lastMessageDate.substring(6, 8)}일 " +
-                                        "${chat.lastMessageDate.substring(8, 10)}시 " +
-                                        "${chat.lastMessageDate.substring(10, 12)}분",
-                                fontSize = 16.sp,
-                                style = TextStyle(lineHeight = 18.sp)
-                            )
-                            Text(
-                                text = "내용: ${chat.lastMessage}",
-                                maxLines = 1,
-                                fontSize = 16.sp,
-                                style = TextStyle(lineHeight = 18.sp)
-                            )
-                        }
+                        LastMessage(chat, otherUserID)
                         Spacer(modifier = Modifier.weight(1f))
                     }
-                HorizontalDivider(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp, 8.dp),
-                    thickness = 1.dp,
-                    color = colorDang
-                )
+                HorizontalDividerColorDang(16.dp, 16.dp, 8.dp, 8.dp)
             }
         }
-
     }
 }
 
-class Chat(
-    var sendUserID: String,
-    var receiveUserID: String,
-    var lastMessageDate: String,
-    var lastMessage: String
-)
+@Composable
+private fun LastMessage(chat: Chat, otherUserID: String?) {
+    Column(modifier = Modifier.padding(8.dp)) {
+        Text(
+            text = "상대방: $otherUserID",
+            fontSize = 16.sp,
+            style = TextStyle(lineHeight = 18.sp)
+        )
+        Text(
+            text = "시간: " +
+                    "${chat.lastMessageDate.substring(4, 6)}월 " +
+                    "${chat.lastMessageDate.substring(6, 8)}일 " +
+                    "${chat.lastMessageDate.substring(8, 10)}시 " +
+                    "${chat.lastMessageDate.substring(10, 12)}분",
+            fontSize = 16.sp,
+            style = TextStyle(lineHeight = 18.sp)
+        )
+        Text(
+            text = "내용: ${chat.lastMessage}",
+            maxLines = 1,
+            fontSize = 16.sp,
+            style = TextStyle(lineHeight = 18.sp)
+        )
+    }
+}
+
+@Composable
+private fun ProfileImage(otherUserProfile: String?){
+    val painter = if(otherUserProfile == null) {
+        painterResource(id = R.drawable.dangkki_img_noback)
+    } else {
+        rememberAsyncImagePainter(otherUserProfile)
+    }
+
+    Image(
+        painter = painter,
+        contentDescription = "profile",
+        contentScale = ContentScale.FillBounds,
+        modifier = Modifier
+            .size(80.dp)
+            .clip(RoundedCornerShape(80.dp))
+    )
+}

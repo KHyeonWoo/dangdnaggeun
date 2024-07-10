@@ -1,7 +1,9 @@
-package com.khw.computervision
+package com.khw.computervision.server
 
 import android.app.Application
 import android.graphics.Bitmap
+import com.khw.computervision.BuildConfig
+import com.khw.computervision.UserIDManager
 import com.naver.maps.map.NaverMapSdk
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -17,9 +19,9 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.PartMap
+import java.io.ByteArrayOutputStream
 import java.util.concurrent.TimeUnit
 
-//240702 김현우 - 서버통신을 위한 함수 UsableFun으로 이동
 interface ApiService {
     @Multipart
     @POST("/infer")
@@ -99,4 +101,8 @@ class YourApplication : Application() {
     }
 }
 
-
+fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+    return byteArrayOutputStream.toByteArray()
+}

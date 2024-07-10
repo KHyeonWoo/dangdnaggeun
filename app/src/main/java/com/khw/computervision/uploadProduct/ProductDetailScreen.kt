@@ -1,4 +1,4 @@
-package com.khw.computervision
+package com.khw.computervision.uploadProduct
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -18,7 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,11 +37,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.khw.computervision.ChoiceSegButton
+import com.khw.computervision.HorizontalDividerColorDang
+import com.khw.computervision.PopupDetails
+import com.khw.computervision.ProductViewModel
+import com.khw.computervision.R
+import com.khw.computervision.TopBar
+import com.khw.computervision.UserIDManager
+import com.khw.computervision.colorDang
+import com.khw.computervision.encodeUrl
+import com.khw.computervision.getProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 @Composable
 fun DetailScreen(
@@ -73,26 +79,13 @@ fun DetailScreen(
                     productMap,
                     productKey ?: ""
                 )
-                HorizontalDivider(
-                    thickness = 2.dp,
-                    modifier = Modifier.padding(16.dp),
-                    color = colorDang
-                )
+                HorizontalDividerColorDang(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
                 ProductNameSection(productMap)
-                HorizontalDivider(
-                    thickness = 2.dp,
-                    modifier = Modifier.padding(16.dp),
-                    color = colorDang
-                )
+                HorizontalDividerColorDang(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
                 PriceAndMethodSection(productMap)
-                HorizontalDivider(
-                    thickness = 2.dp,
-                    modifier = Modifier.padding(16.dp),
-                    color = colorDang
-                )
+                HorizontalDividerColorDang(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
                 ProductDescriptionSection(productMap)
             }
-
         }
     }
 }
@@ -109,7 +102,7 @@ private fun HeaderSection(navController: NavHostController) {
 }
 
 @Composable
-fun ProductNameSection(productMap: Map<String, String>) {
+private fun ProductNameSection(productMap: Map<String, String>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -126,7 +119,7 @@ fun ProductNameSection(productMap: Map<String, String>) {
 }
 
 @Composable
-fun SegmentImageSection(
+private fun SegmentImageSection(
     productsViewModel: ProductViewModel,
     productKey: String?,
     productMap: Map<String, String>
@@ -163,7 +156,7 @@ fun SegmentImageSection(
 }
 
 @Composable
-fun SegmentButtonAndLikeSection(
+private fun SegmentButtonAndLikeSection(
     productsViewModel: ProductViewModel,
     productKey: String?,
     options: List<String>,
@@ -234,37 +227,8 @@ fun SegmentButtonAndLikeSection(
 
 }
 
-suspend fun insertLiked(productsViewModel: ProductViewModel, productName: String) {
-
-    val likedProduct = hashMapOf(
-        "liked" to "true"
-    )
-
-    Firebase.firestore.collection("${UserIDManager.userID.value}liked").document(productName)
-        .set(likedProduct).addOnSuccessListener {}.addOnFailureListener {}.await()
-    productsViewModel.getLikedFromFireStore()
-
-}
-
-fun updateProductLike(
-    productsViewModel: ProductViewModel,
-    productKey: String,
-    totalLiked: Map<String, String>?,
-    likedCount: Int
-) {
-    Firebase.firestore.collection("favoriteProduct").document(productKey)
-        .update("liked", totalLiked?.get("liked")?.let { it.toInt() + likedCount } ?: 0)
-    productsViewModel.getTotalLikedFromFireStore()
-}
-
-fun deleteLiked(productsViewModel: ProductViewModel, productKey: String) {
-    Firebase.firestore.collection("${UserIDManager.userID.value}liked").document(productKey)
-        .delete().addOnSuccessListener {}.addOnFailureListener {}
-    productsViewModel.getLikedFromFireStore()
-}
-
 @Composable
-fun UserInfoSection(
+private fun UserInfoSection(
     productsViewModel: ProductViewModel,
     navController: NavHostController,
     productMap: Map<String, String>,
@@ -334,7 +298,7 @@ fun UserInfoSection(
 }
 
 @Composable
-fun PopupVisible(
+private fun PopupVisible(
     popupVisibleState: Boolean,
     productsViewModel: ProductViewModel,
     productMap: Map<String, String>,
@@ -342,7 +306,7 @@ fun PopupVisible(
     close: () -> Unit
 ) {
 
-    var newPopupDetails by remember {
+    val newPopupDetails by remember {
         mutableStateOf(
             PopupDetails(
                 UserIDManager.userID.value,
@@ -372,7 +336,7 @@ fun PopupVisible(
 }
 
 @Composable
-fun PriceAndMethodSection(productMap: Map<String, String>) {
+private fun PriceAndMethodSection(productMap: Map<String, String>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -387,7 +351,7 @@ fun PriceAndMethodSection(productMap: Map<String, String>) {
 }
 
 @Composable
-fun ProductDescriptionSection(productMap: Map<String, String>) {
+private fun ProductDescriptionSection(productMap: Map<String, String>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

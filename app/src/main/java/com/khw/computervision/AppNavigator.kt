@@ -1,50 +1,49 @@
 package com.khw.computervision
 
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
 import com.google.gson.Gson
+import com.khw.computervision.main.ClosetScreen
+import com.khw.computervision.main.HomeScreen
+import com.khw.computervision.chat.ChatListScreen
+import com.khw.computervision.chat.MessageScreen
+import com.khw.computervision.login.LoginScreen
+import com.khw.computervision.login.SignUpScreen
+import com.khw.computervision.uploadProduct.AiImgGenScreen
+import com.khw.computervision.profile.MyLikedScreen
+import com.khw.computervision.profile.MyUploadedScreen
+import com.khw.computervision.profile.ProfileScreen
 import com.khw.computervision.ui.theme.ComputerVisionTheme
+import com.khw.computervision.uploadProduct.DetailScreen
+import com.khw.computervision.uploadProduct.InsertScreen
+import com.khw.computervision.uploadProduct.SalesScreen
 import java.net.URLEncoder
 
 class AppNavigator : ComponentActivity() {
@@ -52,330 +51,274 @@ class AppNavigator : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComputerVisionTheme {
-                val navController = rememberNavController()
-                val aiViewModel: AiViewModel = viewModel() // aiViewModel 인스턴스 생성
-                val closetViewModel: ClosetViewModel = viewModel() // closetViewModel 인스턴스 생성
-                val productsViewModel: ProductViewModel = viewModel() // productsViewModel 인스턴스 생성
-                val chatViewModel: ChatViewModel = viewModel() // chatViewModel 인스턴스 생성
-                val salesViewModel: SalesViewModel = viewModel() // decorateViewModel 인스턴스 생성
+                val navController = rememberNavController() as NavHostController
+                val aiViewModel: AiViewModel = viewModel()
+                val closetViewModel: ClosetViewModel = viewModel()
+                val productsViewModel: ProductViewModel = viewModel()
+                val chatViewModel: ChatViewModel = viewModel()
+                val salesViewModel: SalesViewModel = viewModel()
 
                 Scaffold(
-                    topBar = { },
+                    topBar = {},
                     bottomBar = {
                         if (shouldShowBottomBar(navController)) {
-                            BottomNavigationBar(navController, aiViewModel) // ViewModel 전달
+                            BottomNavigationBar(navController)
                         }
                     }
                 ) { innerPadding ->
-                    NavHost(
+                    NavigationHost(
                         navController = navController,
-                        startDestination = "login",
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        composable(
-                            "closet/{beforeScreen}",
-                            arguments = listOf(
-                                navArgument("beforeScreen") { type = NavType.StringType }
-                            )
-
-                        ) { backStackEntry ->
-                            ClosetScreen(
-                                closetViewModel,
-                                onBackClick = {
-                                    // 뒤로 가기 로직 추가
-                                    navController.popBackStack()
-                                },
-                                navController,
-                                salesViewModel,
-                                backStackEntry.arguments?.getString("beforeScreen"),
-                                "true"
-                            )
-                        }
-                        composable(
-                            "closet/{beforeScreen}/{backIconVisible}",
-                            arguments = listOf(
-                                navArgument("beforeScreen") { type = NavType.StringType },
-                                navArgument("backIconVisible") { type = NavType.StringType }
-                            )
-
-                        ) { backStackEntry ->
-                            ClosetScreen(
-                                closetViewModel,
-                                onBackClick = {
-                                    // 뒤로 가기 로직 추가
-                                    navController.popBackStack()
-                                },
-                                navController,
-                                salesViewModel,
-                                backStackEntry.arguments?.getString("beforeScreen"),
-                                backStackEntry.arguments?.getString("backIconVisible")
-                            )
-                        }
-                        composable("login") {
-                            LoginScreen(
-                                navController,
-                                closetViewModel,
-                                productsViewModel
-                            )
-                        }
-                        composable("sales") {
-                            SaleScreen(navController, productsViewModel)
-                        }
-                        composable(
-                            "detailProduct/{productKey}",
-                            arguments = listOf(navArgument("productKey") {
-                                type = NavType.StringType
-                            })
-                        ) { backStackEntry ->
-                            DetailScreen(
-                                navController,
-                                productsViewModel,
-                                backStackEntry.arguments?.getString("productKey")
-                            )
-                        }
-                        composable(
-                            "decorate/{encodedClickedUrl}/{clickedCategory}",
-                            arguments = listOf(
-                                navArgument("encodedClickedUrl") { type = NavType.StringType },
-                                navArgument("clickedCategory") { type = NavType.StringType }
-                            )
-                        ) { backStackEntry ->
-                            DecorateScreen(
-                                navController,
-                                salesViewModel,
-                                backStackEntry.arguments?.getString("encodedClickedUrl") ?: " ",
-                                backStackEntry.arguments?.getString("clickedCategory") ?: " "
-                            )
-                        }
-                        composable(
-                            "aiImgGen/{encodedExtraClickedUrl}",
-                            arguments = listOf(
-                                navArgument("encodedExtraClickedUrl") { type = NavType.StringType }
-                            )
-                        ) { backStackEntry ->
-                            AiImgGenScreen(
-                                navController,
-                                salesViewModel,
-                                backStackEntry.arguments?.getString("encodedExtraClickedUrl") ?: "",
-                                aiViewModel
-                            )
-                        }
-                        composable(
-                            "insert"
-                        ) {
-                            InsertScreen(
-                                navController,
-                                aiViewModel,
-                                productsViewModel,
-                                salesViewModel
-                            )
-                        }
-                        composable(
-                            "profile/{profileUrl}",
-                            arguments = listOf(navArgument("profileUrl") {
-                                type = NavType.StringType
-                            })
-                        ) { _ ->
-                            ProfileScreen(navController)
-                        }
-                        composable("myUploaded") {
-                            MyUploadedScreen(navController, productsViewModel)
-                        }
-                        composable("myLiked") {
-                            MyLikedScreen(navController,productsViewModel)
-                        }
-                        composable("chatListScreen") {
-                            ChatListScreen(navController, chatViewModel)
-                        }
-                        composable("messageScreen/{otherUserID}/{otherUserProfile}",
-                            arguments = listOf(
-                                navArgument("otherUserID") { type = NavType.StringType },
-                                navArgument("otherUserProfile") { type = NavType.StringType }
-                            )) { backStackEntry ->
-                            MessageScreen(
-                                navController,
-                                chatViewModel,
-                                backStackEntry.arguments?.getString("otherUserID") ?: "",
-                                backStackEntry.arguments?.getString("otherUserProfile") ?: ""
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-data class BottomNavItem(
-    val route: String,
-    val icon: ImageVector? = null,
-    val iconPainter: Painter? = null,
-    val label: String
-)
-
-@Composable
-fun BottomNavigationBar(navController: NavController, viewModel: AiViewModel) {
-    val items = listOf(
-        BottomNavItem(
-            "sales",
-            icon = Icons.Default.Home,
-            iconPainter = null,
-            "홈"
-        ),
-        BottomNavItem(
-            "closet/bottomNav/false",
-            icon = null,
-            iconPainter = painterResource(id = R.drawable.closet_icon),
-            "옷장"
-        ),
-        BottomNavItem(
-            "decorate/ / ",
-            icon = Icons.Default.AddCircle,
-            iconPainter = null,
-            "판매글 등록"
-        ),
-        BottomNavItem(
-            "chatListScreen",
-            icon = Icons.AutoMirrored.Filled.Send,
-            iconPainter = null,
-            "메세지"
-        ),
-        BottomNavItem(
-            "profile/{profileUrl}",
-            icon = Icons.Default.Person,
-            iconPainter = null,
-            "프로필"
-        )
-    )
-
-    BottomNavigation(
-        backgroundColor = Color(0xFFF9F4EE),
-        modifier = Modifier
-            .height(60.dp)
-            .border(
-                2.dp,
-                color = colorDang,
-                shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
-            )
-    ) {
-        val currentRoute = currentRoute(navController)
-        items.forEach { item ->
-            BottomNavigationItem(
-                icon = {
-                    when {
-                        item.icon != null -> Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.label,
-                            modifier = Modifier.size(30.dp)
-                        )
-
-                        item.iconPainter != null -> Icon(
-                            painter = item.iconPainter,
-                            contentDescription = item.label,
-                            modifier = Modifier
-                                .padding(3.dp)
-                                .size(25.dp)
-                        )
-                    }
-                },
-                label = {
-                    Text(
-                        item.label,
-                        maxLines = if (item.label == "판매글 등록") Int.MAX_VALUE else 1,
-                        fontSize = 10.sp
+                        innerPadding = innerPadding,
+                        aiViewModel = aiViewModel,
+                        closetViewModel = closetViewModel,
+                        productsViewModel = productsViewModel,
+                        chatViewModel = chatViewModel,
+                        salesViewModel = salesViewModel
                     )
-                },
-                selectedContentColor = colorDang,
-                unselectedContentColor = colorDong.copy(alpha = .5f),
-                selected = when {
-                    item.route == "closet/bottomNav/false" -> currentRoute?.startsWith("closet") == true
-                    item.route == "decorate/ / " -> currentRoute?.startsWith("decorate") == true
-                    else -> currentRoute == item.route
-                },
-                onClick = {
-                    val route = if (item.route.contains("{messageMap}")) {
-                        val emptyMessageMap = emptyMap<String, String>()
-                        val messageMapJson =
-                            URLEncoder.encode(Gson().toJson(emptyMessageMap), "UTF-8")
-                        item.route.replace("{messageMap}", messageMapJson)
-                    } else {
-                        item.route
-                    }
-                    navController.navigate(route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                },
-                modifier = if (item.label == "판매글 등록") {
-                    Modifier
-                        .padding(2.dp)
-                        .weight(1.5f) // Adjust the size for "판매글 등록"
-                } else {
-                    Modifier.padding(5.dp)
                 }
-            )
+            }
         }
     }
-}
 
+    @Composable
+    private fun NavigationHost(
+        navController: NavHostController,
+        innerPadding: PaddingValues,
+        aiViewModel: AiViewModel,
+        closetViewModel: ClosetViewModel,
+        productsViewModel: ProductViewModel,
+        chatViewModel: ChatViewModel,
+        salesViewModel: SalesViewModel
+    ) {
+        NavHost(
+            navController = navController,
+            startDestination = "login",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("login") {
+                LoginScreen(
+                    navController,
+                    closetViewModel,
+                    productsViewModel
+                )
+            }
+            composable("signUp") {
+                SignUpScreen(navController)
+            }
+            composable("sales") {
+                HomeScreen(navController, productsViewModel)
+            }
+            composable(
+                "detailProduct/{productKey}",
+                arguments = listOf(navArgument("productKey") { type = NavType.StringType })
+            ) { backStackEntry ->
+                DetailScreen(
+                    navController,
+                    productsViewModel,
+                    backStackEntry.arguments?.getString("productKey")
+                )
+            }
+            composable(
+                "closet/{beforeScreen}",
+                arguments = listOf(navArgument("beforeScreen") { type = NavType.StringType })
+            ) { backStackEntry ->
+                ClosetScreen(
+                    closetViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    navController,
+                    salesViewModel,
+                    backStackEntry.arguments?.getString("beforeScreen"),
+                    "true"
+                )
+            }
+            composable(
+                "closet/{beforeScreen}/{backIconVisible}",
+                arguments = listOf(
+                    navArgument("beforeScreen") { type = NavType.StringType },
+                    navArgument("backIconVisible") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                ClosetScreen(
+                    closetViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    navController,
+                    salesViewModel,
+                    backStackEntry.arguments?.getString("beforeScreen"),
+                    backStackEntry.arguments?.getString("backIconVisible")
+                )
+            }
+            composable(
+                "decorate/{encodedClickedUrl}/{clickedCategory}",
+                arguments = listOf(
+                    navArgument("encodedClickedUrl") { type = NavType.StringType },
+                    navArgument("clickedCategory") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                SalesScreen(
+                    navController,
+                    salesViewModel,
+                    backStackEntry.arguments?.getString("encodedClickedUrl") ?: " ",
+                    backStackEntry.arguments?.getString("clickedCategory") ?: " "
+                )
+            }
+            composable(
+                "aiImgGen/{encodedExtraClickedUrl}",
+                arguments = listOf(navArgument("encodedExtraClickedUrl") { type = NavType.StringType })
+            ) { backStackEntry ->
+                AiImgGenScreen(
+                    navController,
+                    salesViewModel,
+                    backStackEntry.arguments?.getString("encodedExtraClickedUrl") ?: "",
+                    aiViewModel
+                )
+            }
+            composable("insert") {
+                InsertScreen(
+                    navController,
+                    aiViewModel,
+                    productsViewModel,
+                    salesViewModel
+                )
+            }
+            composable(
+                "profile/{profileUrl}",
+                arguments = listOf(navArgument("profileUrl") { type = NavType.StringType })
+            ) {
+                ProfileScreen(navController)
+            }
+            composable("myUploaded") {
+                MyUploadedScreen(navController, productsViewModel)
+            }
+            composable("myLiked") {
+                MyLikedScreen(navController, productsViewModel)
+            }
+            composable("chatListScreen") {
+                ChatListScreen(navController, chatViewModel)
+            }
+            composable(
+                "messageScreen/{otherUserID}/{otherUserProfile}",
+                arguments = listOf(
+                    navArgument("otherUserID") { type = NavType.StringType },
+                    navArgument("otherUserProfile") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                MessageScreen(
+                    navController,
+                    chatViewModel,
+                    backStackEntry.arguments?.getString("otherUserID") ?: "",
+                    backStackEntry.arguments?.getString("otherUserProfile") ?: ""
+                )
+            }
+        }
+    }
 
-@Composable
-fun currentRoute(navController: NavController): String? {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    return navBackStackEntry?.destination?.route
-}
+    @Composable
+    private fun BottomNavigationBar(navController: NavHostController) {
+        val items = listOf(
+            BottomNavItem.RouteItem("sales", Icons.Default.Home, "홈"),
+            BottomNavItem.PainterItem(
+                "closet/bottomNav/false",
+                painterResource(id = R.drawable.closet_icon),
+                "옷장"
+            ),
+            BottomNavItem.RouteItem("decorate/ / ", Icons.Default.AddCircle, "판매글 등록"),
+            BottomNavItem.RouteItem("chatListScreen", Icons.AutoMirrored.Filled.Send, "메세지"),
+            BottomNavItem.RouteItem("profile/{profileUrl}", Icons.Default.Person, "프로필")
+        )
 
-@Composable
-fun shouldShowBottomBar(navController: NavController): Boolean {
-    val currentRoute = currentRoute(navController)
-    return currentRoute in listOf(
-        "sales",
-        "closet/{beforeScreen}/{backIconVisible}",
-        "decorate/{encodedClickedUrl}/{clickedCategory}",
-        "chatListScreen",
-        "profile/{profileUrl}",
-    )
-}
+        BottomNavigation(
+            backgroundColor = Color(0xFFF9F4EE),
+            modifier = Modifier
+                .height(60.dp)
+                .border(
+                    2.dp,
+                    color = Color(0xFFFFA500),
+                    shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
+                )
+        ) {
+            val currentRoute = currentRoute(navController)
+            items.forEach { item ->
+                BottomNavigationItem(
+                    icon = {
+                        when (item) {
+                            is BottomNavItem.RouteItem -> Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.label,
+                                modifier = Modifier.size(30.dp)
+                            )
+                            is BottomNavItem.PainterItem -> Icon(
+                                painter = item.iconPainter,
+                                contentDescription = item.label,
+                                modifier = Modifier
+                                    .padding(3.dp)
+                                    .size(25.dp)
+                            )
+                        }
+                    },
+                    label = {
+                        Text(
+                            item.label,
+                            maxLines = if (item.label == "판매글 등록") Int.MAX_VALUE else 1,
+                            fontSize = 10.sp
+                        )
+                    },
+                    selectedContentColor = Color(0xFFFFA500),
+                    unselectedContentColor = Color(0xFFD3D3D3).copy(alpha = .5f),
+                    selected = when (item.route) {
+                        "closet/bottomNav/false" -> currentRoute?.startsWith("closet") == true
+                        "decorate/ / " -> currentRoute?.startsWith("decorate") == true
+                        else -> currentRoute == item.route
+                    },
+                    onClick = {
+                        val route = if (item.route.contains("{messageMap}")) {
+                            val emptyMessageMap = emptyMap<String, String>()
+                            val messageMapJson =
+                                URLEncoder.encode(Gson().toJson(emptyMessageMap), "UTF-8")
+                            item.route.replace("{messageMap}", messageMapJson)
+                        } else {
+                            item.route
+                        }
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    modifier = if (item.label == "판매글 등록") {
+                        Modifier
+                            .padding(2.dp)
+                            .weight(1.5f)
+                    } else {
+                        Modifier.padding(5.dp)
+                    }
+                )
+            }
+        }
+    }
 
-@Composable
-fun shouldShowTopBar(navController: NavController): Boolean {
-    val currentRoute = currentRoute(navController)
-    Log.d("CurrentRoute", "Current Route: $currentRoute")
-    return currentRoute in listOf(
-        "sales",
-        "messageScreen/{otherUserID}/{otherUserProfile}"
-    ) || currentRoute?.startsWith("messageScreen/") == true
-}
+    @Composable
+    private fun currentRoute(navController: NavHostController): String? {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        return navBackStackEntry?.destination?.route
+    }
 
-fun parseMessageMap(messageMapString: String): Map<String, String> {
-    return try {
-        Gson().fromJson(messageMapString, Map::class.java) as Map<String, String>
-    } catch (e: Exception) {
-        emptyMap()
+    @Composable
+    private fun shouldShowBottomBar(navController: NavHostController): Boolean {
+        val currentRoute = currentRoute(navController)
+        val routesToShowBottomBar = listOf(
+            "sales",
+            "closet/{beforeScreen}/{backIconVisible}",
+            "decorate/{encodedClickedUrl}/{clickedCategory}",
+            "chatListScreen",
+            "profile/{profileUrl}"
+        )
+        return routesToShowBottomBar.any { currentRoute?.startsWith(it.substringBefore('/')) == true }
     }
 }
 
-@Composable
-fun getMessage(): Map<String, String> {
-    val context = LocalContext.current
-    val messageMap = produceState<Map<String, String>>(initialValue = emptyMap()) {
-        Firebase.firestore.collection(UserIDManager.userID.value)
-            .get()
-            .addOnSuccessListener { result ->
-                value = result.documents.associate {
-                    it.id to "보낸일시: ${
-                        it.getString("date").orEmpty()
-                    }\n보낸사람: ${it.getString("sendUser").orEmpty()}\n메세지: ${
-                        it.getString("message").orEmpty()
-                    }"
-                }
-            }
-            .addOnFailureListener { exception ->
-                Toast.makeText(context, exception.message, Toast.LENGTH_SHORT).show()
-            }
-    }
-    return messageMap.value
+sealed class BottomNavItem(val route: String, val label: String) {
+    class RouteItem(route: String, val icon: ImageVector, label: String) : BottomNavItem(route, label)
+    class PainterItem(route: String, val iconPainter: Painter, label: String) : BottomNavItem(route, label)
 }

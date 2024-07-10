@@ -1,4 +1,4 @@
-package com.khw.computervision
+package com.khw.computervision.uploadProduct
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -34,7 +34,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
-import com.skydoves.landscapist.glide.GlideImage
+import com.khw.computervision.AiViewModel
+import com.khw.computervision.FunButton
+import com.khw.computervision.R
+import com.khw.computervision.SalesViewModel
+import com.khw.computervision.TopBar
+import com.khw.computervision.colorBack
+import com.khw.computervision.colorDang
+import com.khw.computervision.colorDong
 
 @Composable
 fun AiImgGenScreen(
@@ -230,7 +237,7 @@ private fun BottomSection(
 }
 
 @Composable
-fun GenderSelection(
+private fun GenderSelection(
     modifier: Modifier,
     gender: Boolean,
     changeWoman: () -> Unit,
@@ -256,7 +263,7 @@ fun GenderSelection(
 }
 
 @Composable
-fun GenderOption(
+private fun GenderOption(
     label: String,
     isSelected: Boolean,
     onCheckedChange: () -> Unit

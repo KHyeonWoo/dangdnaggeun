@@ -1,4 +1,4 @@
-package com.khw.computervision
+package com.khw.computervision.uploadProduct
 
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -19,14 +18,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MultiChoiceSegmentedButtonRow
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -37,16 +29,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.gowtham.ratingbar.RatingBar
 import com.gowtham.ratingbar.RatingBarStyle
 import com.gowtham.ratingbar.StepSize
+import com.khw.computervision.AiViewModel
+import com.khw.computervision.ChoiceSegButton
+import com.khw.computervision.HorizontalDividerColorDang
+import com.khw.computervision.PopupDetails
+import com.khw.computervision.ProductViewModel
+import com.khw.computervision.R
+import com.khw.computervision.SalesViewModel
+import com.khw.computervision.TopBar
+import com.khw.computervision.UserIDManager
+import com.khw.computervision.colorBack
+import com.khw.computervision.colorDang
+import com.khw.computervision.gifImageDecode
 import java.time.LocalDateTime
 
 @Composable
@@ -99,35 +101,17 @@ fun InsertScreen(
             ImageSection(aiResponseData, checkedOption, clickedUrlLiveData) {
                 checkedOption = it
             }
-
-            HorizontalDivider(
-                thickness = 2.dp,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 16.dp),
-                color = colorDang
-            )
+            HorizontalDividerColorDang(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 0.dp)
             ProductNameAndEditSection(newPopupDetails) {
                 popupVisibleState = true
             }
-
-            HorizontalDivider(
-                thickness = 2.dp,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 16.dp),
-                color = colorDang
-            )
+            HorizontalDividerColorDang(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 16.dp)
             StateScreen(
                 newPopupDetails,
                 popupVisibleState,
                 { newPopupDetails = it },
                 { popupVisibleState = false })
-            HorizontalDivider(
-                thickness = 2.dp,
-                modifier = Modifier.padding(16.dp),
-                color = colorDang
-            )
+            HorizontalDividerColorDang(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -140,7 +124,7 @@ fun InsertScreen(
 }
 
 @Composable
-fun ProductNameAndEditSection(
+private fun ProductNameAndEditSection(
     newPopupDetails: PopupDetails,
     popupVisible: () -> Unit
 ) {
@@ -169,7 +153,7 @@ fun ProductNameAndEditSection(
 
 
 @Composable
-fun ImageSection(
+private fun ImageSection(
     aiResponseData: String?,
     checkedOption: Int,
     clickedUrlLiveData: String?,
@@ -259,47 +243,6 @@ private fun HeaderSection(
                 Icons.Default.Check
             }
         )
-    }
-
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ChoiceSegButton(options: List<String>, checkedOption: Int, changeCheckedOpt: (Int) -> Unit) {
-    MultiChoiceSegmentedButtonRow {
-        options.forEachIndexed { index, label ->
-            SegmentedButton(
-                shape = SegmentedButtonDefaults.itemShape(
-                    index = index,
-                    count = options.size
-                ),
-                icon = {},
-                colors = SegmentedButtonDefaults.colors(
-                    activeContainerColor = colorDong,
-                    activeContentColor = Color.White,
-                    inactiveContainerColor = colorBack,
-                    inactiveContentColor = Color.White,
-                    activeBorderColor = colorDong,
-                    inactiveBorderColor = colorDang,
-                ),
-                onCheckedChange = {
-                    if (label == options[0]) {
-                        changeCheckedOpt(0)
-                    } else {
-                        changeCheckedOpt(1)
-
-                    }
-                },
-                checked = index == checkedOption,
-                modifier = Modifier.size(62.dp,32.dp)
-            ) {
-                if (checkedOption == index) {
-                    Text(label, color = colorBack, fontSize = 16.sp)
-                } else {
-                    Text(label, color = colorDang, fontSize = 16.sp)
-                }
-            }
-        }
     }
 
 }
